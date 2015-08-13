@@ -13,7 +13,11 @@ ui <- fluidPage(
   tags$hr(),
   sidebarLayout(
     sidebarPanel(
-      fileInput('file1', 'Choose CSV/TXT File',
+      fileInput('file1', 'Choose CSV/TXT File for RNA-seq',
+                accept=c('text/csv', 
+                         'text/comma-separated-values,text/plain', 
+                         '.csv')),
+      fileInput('file2', 'Choose CSV/TXT File for experiment design',
                 accept=c('text/csv', 
                          'text/comma-separated-values,text/plain', 
                          '.csv'))
@@ -52,6 +56,13 @@ server <- function(input, output, session) {
   # generate heatmap using D3heatmap
   dataMat <- reactive({
     inFile <- input$file1
+    if (is.null(inFile))
+      return(NULL)
+    fread(inFile$datapath, data.table=F)
+  })
+  
+  design <- reactive({
+    inFile <- input$file2
     if (is.null(inFile))
       return(NULL)
     fread(inFile$datapath, data.table=F)
@@ -115,6 +126,7 @@ server <- function(input, output, session) {
     if (is.null(input$file1))
       return(NULL)
     dataMat <- dataMat()
+    design <- design()
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     cvcutoff <- input$cvCutoff
     clusterMethod <- input$clusterMethod
@@ -130,9 +142,10 @@ server <- function(input, output, session) {
       pca.result <- prcomp(t(dataMat))
       ppoints <- pca.result$x[,1:2]
     }
+    ppoints <- cbind(ppoints, design)
     rownames(ppoints) <- colnames(dataMat)
-    colnames(ppoints) <- c('PC1', 'PC2')
-    np <- nPlot(PC2~PC1, data = as.data.frame(ppoints), type = 'scatterChart')
+    colnames(ppoints) <- c('PC1', 'PC2', 'Design')
+    np <- nPlot(PC2~PC1, data = as.data.frame(ppoints), group= 'Design', type = 'scatterChart')
     np$addParams(dom = "PrincipalComponent")
     np$xAxis(axisLabel = 'PC1')
     np$yAxis(axisLabel = 'PC2')
