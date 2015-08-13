@@ -25,23 +25,30 @@ ui <- fluidPage(
         tabPanel("Density", showOutput("Density", "nvd3")), 
         tabPanel("Scatter Plot", sidebarLayout(
           sidebarPanel(
-            textInput("text1", label = h5("Enter first sample name"), value = "Enter text..."),
+            textInput("text1", label = h5("Enter first sample name (For example, S1)"), value = "Enter text..."),
             verbatimTextOutput("value1"),
-            tags$hr(),
-            textInput("text2", label = h5("Enter second sample name"), value = "Enter text..."),
+            textInput("text2", label = h5("Enter second sample name (For example, S2)"), value = "Enter text..."),
             verbatimTextOutput("value2")
           ),
           mainPanel(showOutput("ScatterPlot", "polycharts")))
         ),
         tabPanel("Boxplot", plotOutput("Boxplot")),
-        tabPanel("Principal Component", forceNetworkOutput("PrincipalComponent")),
-        tabPanel("forceNetworkGene", forceNetworkOutput("forceNetworkGene"))
+        tabPanel("Principal Component", sidebarLayout(
+          sidebarPanel(
+            selectizeInput("cvCutoff", label = 'Please select a cutoff for cv (coefficient of variation)',choices = c(0.1, 0.3, 0.5)),
+            verbatimTextOutput("value3"),
+            selectizeInput("clusterMethod", label = 'Please select a method for clustering (pca or mds)',choices = c('pca', 'mds')),
+            verbatimTextOutput("value4")
+            ),
+          mainPanel(showOutput("PrincipalComponent", "nvd3")))
+          ),
+        tabPanel("Gene interaction network", forceNetworkOutput("forceNetworkGene"))
         )
     )
   )
 )
 
-server <- function(input, output) {
+server <- function(input, output, session) {
   # generate heatmap using D3heatmap
   dataMat <- reactive({
     inFile <- input$file1
@@ -53,15 +60,17 @@ server <- function(input, output) {
   output$Table <- renderDataTable({
     if (is.null(input$file1))
       return(NULL)
-    colnames(dataMat()) <- paste('S', 1:ncol(dataMat()), sep='')
-    datatable(dataMat(), options = list(pageLength = 5))
+    dataMat <- dataMat()
+    colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
+    datatable(dataMat, options = list(pageLength = 5))
   })
   
   output$Heatmap <- renderD3heatmap({
     if (is.null(input$file1))
       return(NULL)
-    colnames(dataMat()) <- paste('S', 1:ncol(dataMat()), sep='')
-    d3heatmap(dataMat(), scale="row", colors=colorRampPalette(c("blue","white","red"))(1000))
+    dataMat <- dataMat()
+    colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
+    d3heatmap(dataMat, scale="row", colors=colorRampPalette(c("blue","white","red"))(1000))
   })
   
   output$Density <- renderChart({
@@ -98,10 +107,43 @@ server <- function(input, output) {
     return(rp)
   })
   
-  output$PrincipalComponent <- renderForceNetwork({
+  output$value3 <- renderPrint({input$cvCutoff})
+  
+  output$value4 <- renderPrint({input$clusterMethod})
+  
+  output$PrincipalComponent <- renderChart({
     if (is.null(input$file1))
       return(NULL)
     dataMat <- dataMat()
+    colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
+    cvcutoff <- input$cvCutoff
+    clusterMethod <- input$clusterMethod
+    cv.gene <- apply(dataMat, 1, function(x) sd(x)/mean(x))
+    dataMat <- dataMat[which(cv.gene>cvcutoff), ]
+    dataMat <- scale(dataMat)
+    if(clusterMethod == 'mds'){
+      dd <- dist(t(dataMat))
+      mds.result <- cmdscale(dd, k = 2, eig = TRUE)
+      ppoints <- mds.result$points
+    }
+    else{
+      pca.result <- prcomp(t(dataMat))
+      ppoints <- pca.result$x[,1:2]
+    }
+    rownames(ppoints) <- colnames(dataMat)
+    colnames(ppoints) <- c('PC1', 'PC2')
+    np <- nPlot(PC2~PC1, data = as.data.frame(ppoints), type = 'scatterChart')
+    np$addParams(dom = "PrincipalComponent")
+    np$xAxis(axisLabel = 'PC1')
+    np$yAxis(axisLabel = 'PC2')
+    return(np)
+  })
+  
+  output$forceNetworkGene <- renderForceNetwork({
+    if (is.null(input$file1))
+      return(NULL)
+    dataMat <- dataMat()
+    colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     MisLinks <- data.frame(source = rep(0:(ncol(dataMat)-1), each = ncol(dataMat)),
                            target = rep(0:(ncol(dataMat)-1), times = ncol(dataMat)),
                            value = c(cor(dataMat, method = 'spearman')))
@@ -113,5 +155,7 @@ server <- function(input, output) {
                  Group = "group", opacity = 0.4)
   })
 }
+
+
 
 shinyApp(ui, server)
