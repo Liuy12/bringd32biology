@@ -46,11 +46,20 @@ ui <- fluidPage(
             ),
           mainPanel(showOutput("PrincipalComponent", "nvd3")))
           ),
-        tabPanel("Gene interaction network", forceNetworkOutput("forceNetworkGene"))
+        tabPanel("Gene interaction network", sidebarLayout(
+          sidebarPanel(
+            sliderInput("Exprscut", "Expression level cutoff", 
+                        min=0, max=100, step = 10, value=10),
+            verbatimTextOutput("value5"),
+            sliderInput("Corrcut", "Correlation cutoff", 
+                        min=0, max=1, step = 0.1, value=0.7),
+            verbatimTextOutput("value6")
+          ),
+          mainPanel(forceNetworkOutput("forceNetworkGene")))
         )
     )
   )
-)
+))
 
 server <- function(input, output, session) {
   # generate heatmap using D3heatmap
@@ -152,17 +161,27 @@ server <- function(input, output, session) {
     return(np)
   })
   
+  output$value5 <- renderPrint({input$Exprscut})
+  
+  output$value6 <- renderPrint({input$Corrcut})
+  
   output$forceNetworkGene <- renderForceNetwork({
     if (is.null(input$file1))
       return(NULL)
     dataMat <- dataMat()
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
-    MisLinks <- data.frame(source = rep(0:(ncol(dataMat)-1), each = ncol(dataMat)),
-                           target = rep(0:(ncol(dataMat)-1), times = ncol(dataMat)),
-                           value = c(cor(dataMat, method = 'spearman')))
-    MisNodes <- data.frame(name = paste('Sample', 1:ncol(dataMat), sep=''),
-                           group = rep(1, ncol(dataMat)),
-                           size = rep(15, ncol(dataMat)))
+    mean.gene <- apply(dataMat, 1, mean)
+    dataMat <- dataMat[mean.gene > input$Exprscut, ]
+    MisLinks <- data.frame(source = rep(0:(nrow(dataMat)-1), each = nrow(dataMat)),
+                           target = rep(0:(nrow(dataMat)-1), times = nrow(dataMat)),
+                           value = c(cor(t(dataMat), method = 'spearman')))
+    index <- which(abs(MisLinks$value)>input$Corrcut)
+    MisLinks <- MisLinks[index, ]
+    name <- unique(rep(rownames(dataMat),
+                      each = nrow(dataMat))[index])
+    MisNodes <- data.frame(name = name,
+                           group = rep(1, length(name)),
+                           size = rep(15, length(name)))
     forceNetwork(Links = MisLinks, Nodes = MisNodes, Source = "source",
                  Target = "target", Value = "value", NodeID = "name",
                  Group = "group", opacity = 0.4)
