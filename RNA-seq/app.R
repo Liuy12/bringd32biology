@@ -13,14 +13,129 @@ ui <- fluidPage(
   tags$hr(),
   sidebarLayout(
     sidebarPanel(
-      fileInput('file1', 'Choose CSV/TXT File for RNA-seq',
+      selectizeInput(
+        "DEmethod", 
+        label = 'Please select a method for DE analysis',
+        choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom'),
+        options = list(placeholder = 'select a method below',
+                       onInitialize = I('function() { this.setValue(""); }'))
+        ),
+      verbatimTextOutput("value_DE"),
+      fileInput(
+        'file_obs', 'Choose CSV/TXT File for RNA-seq', accept=c('text/csv', 
+                         'text/comma-separated-values,text/plain', 
+                         '.csv')
+        ),
+      conditionalPanel(
+        condition = "input.DEmethod == 'XBSeq'",
+        fileInput(
+          'file_bg', 'Choose CSV/TXT File for RNA-seq (bg), required if you choose XBSeq', 
+          accept=c('text/csv',
+                   'text/comma-separated-values,text/plain', 
+                   '.csv')
+        )
+      ),
+      fileInput('file_design', 
+                'Choose CSV/TXT File for experiment design',
                 accept=c('text/csv', 
                          'text/comma-separated-values,text/plain', 
-                         '.csv')),
-      fileInput('file2', 'Choose CSV/TXT File for experiment design',
-                accept=c('text/csv', 
-                         'text/comma-separated-values,text/plain', 
-                         '.csv'))
+                         '.csv')
+                ),
+      conditionalPanel(
+        condition = "input.DEmethod == 'DESeq' || input.DEmethod == 'XBSeq'",
+        selectizeInput("SCVmethod", 
+                       label = "Please select a method to estimate dispersion", 
+                       choices =c('pooled', 'per-condition', 'blind'),
+                       options = list(placeholder = 'select a method below',
+                                      onInitialize = I('function() { this.setValue(""); }'))
+                       ),
+        verbatimTextOutput("SCVmethod"),
+        selectizeInput("SharingMode",
+                       label = "Please select a method for sharing mode",
+                       choices = c('maximum', 'fit-only', 'gene-est-only'),
+                       options = list(placeholder = 'select a method below',
+                                      onInitialize = I('function() { this.setValue(""); }'))
+                       ),
+        verbatimTextOutput("SharingMode"),
+        selectizeInput("fitType",
+                       label = "Please select a method for fitType",
+                       choices = c('local', 'parametric'),
+                       options = list(placeholder = 'select a method below',
+                                      onInitialize = I('function() { this.setValue(""); }'))
+        ),
+        verbatimTextOutput("fitType"),        
+        conditionalPanel(
+          condition = "input.DEmethod == 'XBSeq'",
+          selectizeInput("ParamEst", 
+                         label = "Please select a method to estimate distribution parameters", 
+                         choices =c('Non-parametric' = 'NP', 
+                                    'Maximum liklihood estimation' = 'MLE'),
+                         options = list(placeholder = 'select a method below',
+                                        onInitialize = I('function() { this.setValue(""); }'))
+          ),
+          verbatimTextOutput("ParamEst")          
+        )
+      ),
+      conditionalPanel(
+        condition = "input.DEmethod == 'DESeq2'",
+        selectizeInput("fitType_DESeq2", 
+                       label = "Please select a method for fit type", 
+                       choices =c('local', 'parametric', 'mean'),
+                       options = list(placeholder = 'select a method below',
+                                      onInitialize = I('function() { this.setValue(""); }'))
+        ),
+        verbatimTextOutput("fitType_DESeq2"),
+        selectizeInput("Test",
+                       label = "Please select a method for statistical test",
+                       choices = c('Wald test' = 'Wald',
+                                   'Log ratio test' = 'LRT'),
+                       options = list(placeholder = 'select a method below',
+                                      onInitialize = I('function() { this.setValue(""); }'))
+        ),
+        verbatimTextOutput("Test"),
+        selectizeInput("cooksCutoff",
+                       label = "Please select a value for cooks distance cutoff",
+                       choices = c('FALSE',
+                                   0.99,
+                                   0.95,
+                                   0.90),
+                       options = list(placeholder = 'select a value below',
+                                      onInitialize = I('function() { this.setValue(""); }'))
+        ),
+        verbatimTextOutput("cooksCutoff")
+      ),
+      conditionalPanel(
+        condition = "input.DEmethod == 'edgeR-robust'",
+        selectizeInput("residualType", 
+                       label = "Please select a method for calculating residuals", 
+                       choices =c("pearson", "deviance", "anscombe"),
+                       options = list(placeholder = 'select a method below',
+                                      onInitialize = I('function() { this.setValue(""); }'))
+        ),
+        verbatimTextOutput("residualType")
+      ),
+      selectizeInput("padjust", 
+                     label = "Please select a method for adjusting p values", 
+                     choices =c("Benj&Hoch" = "BH", 
+                                "bonferroni", "none"),
+                     options = list(placeholder = 'select a method below',
+                                    onInitialize = I('function() { this.setValue(""); }'))
+      ),
+      verbatimTextOutput("padjust"),
+      selectizeInput("pcutoff", 
+                     label = "Please set a cutoff of p values for DE genes", 
+                     choices =c(0.001, 0.01, 0.05, 0.1, 0.2),
+                     options = list(placeholder = 'select a value below',
+                                    onInitialize = I('function() { this.setValue(""); }'))
+      ),
+      verbatimTextOutput("pcutoff"),
+      selectizeInput("fccutoff", 
+                     label = "Please set a cutoff of fold change for DE genes", 
+                     choices =c(1.5, 2, 2.5, 3, 5),
+                     options = list(placeholder = 'select a value below',
+                                    onInitialize = I('function() { this.setValue(""); }'))
+      ),
+      verbatimTextOutput("fccutoff")
     ),
     mainPanel(
       tabsetPanel(
@@ -29,10 +144,10 @@ ui <- fluidPage(
         tabPanel("Density", showOutput("Density", "nvd3")), 
         tabPanel("Scatter Plot", sidebarLayout(
           sidebarPanel(
-            textInput("text1", label = h5("Enter first sample name (For example, S1)"), value = "Enter text..."),
-            verbatimTextOutput("value1"),
-            textInput("text2", label = h5("Enter second sample name (For example, S2)"), value = "Enter text..."),
-            verbatimTextOutput("value2")
+            textInput("text_S1", label = h5("Enter first sample name (For example, S1)"), value = "Enter text..."),
+            verbatimTextOutput("value_S1"),
+            textInput("text_S2", label = h5("Enter second sample name (For example, S2)"), value = "Enter text..."),
+            verbatimTextOutput("value_S2")
           ),
           mainPanel(showOutput("ScatterPlot", "polycharts")))
         ),
@@ -40,9 +155,9 @@ ui <- fluidPage(
         tabPanel("Principal Component", sidebarLayout(
           sidebarPanel(
             selectizeInput("cvCutoff", label = 'Please select a cutoff for cv (coefficient of variation)',choices = c(0.1, 0.3, 0.5)),
-            verbatimTextOutput("value3"),
+            verbatimTextOutput("value_cvcutoff"),
             selectizeInput("clusterMethod", label = 'Please select a method for clustering (pca or mds)',choices = c('pca', 'mds')),
-            verbatimTextOutput("value4")
+            verbatimTextOutput("value_clutermethod")
             ),
           mainPanel(showOutput("PrincipalComponent", "nvd3")))
           ),
@@ -50,10 +165,10 @@ ui <- fluidPage(
           sidebarPanel(
             sliderInput("Exprscut", "Expression level cutoff", 
                         min=0, max=100, step = 10, value=10),
-            verbatimTextOutput("value5"),
+            verbatimTextOutput("value_Exprscut"),
             sliderInput("Corrcut", "Correlation cutoff", 
                         min=0, max=1, step = 0.1, value=0.7),
-            verbatimTextOutput("value6")
+            verbatimTextOutput("value_Corrcut")
           ),
           mainPanel(forceNetworkOutput("forceNetworkGene")))
         )
@@ -61,24 +176,51 @@ ui <- fluidPage(
   )
 ))
 
+
+
+
 server <- function(input, output, session) {
   # generate heatmap using D3heatmap
   dataMat <- reactive({
-    inFile <- input$file1
+    inFile <- input$file_obs
     if (is.null(inFile))
       return(NULL)
     fread(inFile$datapath, data.table=F)
   })
   
   design <- reactive({
-    inFile <- input$file2
+    inFile <- input$file_design
     if (is.null(inFile))
       return(NULL)
     fread(inFile$datapath, data.table=F)
   })
   
+  output$value_DE <- renderPrint({input$DEmethod})
+  
+  output$SCVmethod <- renderPrint({input$SCVmethod})
+  
+  output$SharingMode <- renderPrint({input$SharingMode})
+  
+  output$fitType <- renderPrint({input$fitType})
+  
+  output$ParamEst <- renderPrint({input$ParamEst})
+  
+  output$fitType_DESeq2 <- renderPrint({input$fitType_DESeq2})
+  
+  output$Test <- renderPrint({input$Test})
+  
+  output$cooksCutoff <- renderPrint({input$cooksCutoff})
+  
+  output$residualType <- renderPrint({input$residualType})
+  
+  output$padjust <- renderPrint({input$padjust})
+  
+  output$pcutoff <- renderPrint({input$pcutoff})
+  
+  output$fccutoff <- renderPrint({input$fccutoff})
+  
   output$Table <- renderDataTable({
-    if (is.null(input$file1))
+    if (is.null(input$file_obs))
       return(NULL)
     dataMat <- dataMat()
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
@@ -86,7 +228,7 @@ server <- function(input, output, session) {
   })
   
   output$Heatmap <- renderD3heatmap({
-    if (is.null(input$file1))
+    if (is.null(input$file_obs))
       return(NULL)
     dataMat <- dataMat()
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
@@ -94,7 +236,7 @@ server <- function(input, output, session) {
   })
   
   output$Density <- renderChart({
-    if (is.null(input$file1))
+    if (is.null(input$file_obs))
       return(NULL)
     dataMat <- dataMat()
     denStat <- density(dataMat[,1], from = min(dataMat), to = max(dataMat))
@@ -113,26 +255,26 @@ server <- function(input, output, session) {
     return(np)
   })
   
-  output$value1 <- renderPrint({input$text1})
+  output$value_S1 <- renderPrint({input$text_S1})
   
-  output$value2 <- renderPrint({input$text2})
+  output$value_S2 <- renderPrint({input$text_S2})
   
   output$ScatterPlot <- renderChart({
-    if (is.null(input$file1))
+    if (is.null(input$file_obs))
       return(NULL)
     dataMat <- dataMat()
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
-    rp <- rPlot(input$text1, input$text2, data = dataMat, type = 'point')
+    rp <- rPlot(input$text_S1, input$text_S2, data = dataMat, type = 'point')
     rp$addParams(dom = "ScatterPlot")
     return(rp)
   })
   
-  output$value3 <- renderPrint({input$cvCutoff})
+  output$value_cvcutoff <- renderPrint({input$cvCutoff})
   
-  output$value4 <- renderPrint({input$clusterMethod})
+  output$value_clustermethod <- renderPrint({input$clusterMethod})
   
   output$PrincipalComponent <- renderChart({
-    if (is.null(input$file1))
+    if (is.null(input$file_obs))
       return(NULL)
     dataMat <- dataMat()
     design <- design()
@@ -161,12 +303,12 @@ server <- function(input, output, session) {
     return(np)
   })
   
-  output$value5 <- renderPrint({input$Exprscut})
+  output$value_Exprscut <- renderPrint({input$Exprscut})
   
-  output$value6 <- renderPrint({input$Corrcut})
+  output$value_Corrcut <- renderPrint({input$Corrcut})
   
   output$forceNetworkGene <- renderForceNetwork({
-    if (is.null(input$file1))
+    if (is.null(input$file_obs))
       return(NULL)
     dataMat <- dataMat()
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
@@ -187,7 +329,5 @@ server <- function(input, output, session) {
                  Group = "group", opacity = 0.4)
   })
 }
-
-
 
 shinyApp(ui, server)
