@@ -1,4 +1,5 @@
 library(data.table)
+library(dplyr)
 library(shiny)
 library(d3heatmap)
 library(networkD3)
@@ -137,16 +138,20 @@ ui <- fluidPage(
       ),
       verbatimTextOutput("fccutoff")
     ),
-    mainPanel(
+    mainPanel(tags$div(
       tabsetPanel(
         tabPanel("Table", dataTableOutput("Table")),
         tabPanel("Heatmap", d3heatmapOutput('Heatmap')), 
         tabPanel("Density", showOutput("Density", "nvd3")), 
         tabPanel("Scatter Plot", sidebarLayout(
           sidebarPanel(
-            textInput("text_S1", label = h5("Enter first sample name (For example, S1)"), value = "Enter text..."),
+            textInput("text_S1", label = h5("Enter first sample name (For example, S1)"), 
+                      value = "Enter text..."
+                      ),
             verbatimTextOutput("value_S1"),
-            textInput("text_S2", label = h5("Enter second sample name (For example, S2)"), value = "Enter text..."),
+            textInput("text_S2", label = h5("Enter second sample name (For example, S2)"), 
+                      value = "Enter text..."
+                      ),
             verbatimTextOutput("value_S2")
           ),
           mainPanel(showOutput("ScatterPlot", "polycharts")))
@@ -154,9 +159,15 @@ ui <- fluidPage(
         tabPanel("Boxplot", plotOutput("Boxplot")),
         tabPanel("Principal Component", sidebarLayout(
           sidebarPanel(
-            selectizeInput("cvCutoff", label = 'Please select a cutoff for cv (coefficient of variation)',choices = c(0.1, 0.3, 0.5)),
+            selectizeInput("cvCutoff", 
+                           label = 'Please select a cutoff for cv (coefficient of variation)',
+                           choices = c(0.1, 0.3, 0.5)
+                           ),
             verbatimTextOutput("value_cvcutoff"),
-            selectizeInput("clusterMethod", label = 'Please select a method for clustering (pca or mds)',choices = c('pca', 'mds')),
+            selectizeInput("clusterMethod", 
+                           label = 'Please select a method for clustering (pca or mds)',
+                           choices = c('pca', 'mds')
+                           ),
             verbatimTextOutput("value_clutermethod")
             ),
           mainPanel(showOutput("PrincipalComponent", "nvd3")))
@@ -164,22 +175,25 @@ ui <- fluidPage(
         tabPanel("Gene interaction network", sidebarLayout(
           sidebarPanel(
             sliderInput("Exprscut", "Expression level cutoff", 
-                        min=0, max=100, step = 10, value=10),
+                        min=0, max=100, step = 10, value=10
+                        ),
             verbatimTextOutput("value_Exprscut"),
             sliderInput("Corrcut", "Correlation cutoff", 
-                        min=0, max=1, step = 0.1, value=0.7),
+                        min=0, max=1, step = 0.1, value=0.7
+                        ),
             verbatimTextOutput("value_Corrcut")
           ),
           mainPanel(forceNetworkOutput("forceNetworkGene")))
         )
     )
-  )
+  , style = "position: fixed;")
+)
 ))
 
 
 
 
-server <- function(input, output, session) {
+server <- function(input, output) {
   # generate heatmap using D3heatmap
   dataMat <- reactive({
     inFile <- input$file_obs
@@ -188,6 +202,8 @@ server <- function(input, output, session) {
     fread(inFile$datapath, data.table=F)
   })
   
+  
+
   design <- reactive({
     inFile <- input$file_design
     if (is.null(inFile))
