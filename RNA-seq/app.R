@@ -25,13 +25,13 @@ ui <- fluidPage(
         choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom'),
         options = list(placeholder = 'select a method below',
                        onInitialize = I('function() { this.setValue(""); }'))
-        ),
+      ),
       verbatimTextOutput("value_DE"),
       fileInput(
         'file_obs', 'Choose CSV/TXT File for RNA-seq', accept=c('text/csv', 
-                         'text/comma-separated-values,text/plain', 
-                         '.csv')
-        ),
+                                                                'text/comma-separated-values,text/plain', 
+                                                                '.csv')
+      ),
       conditionalPanel(
         condition = "input.DEmethod == 'XBSeq'",
         fileInput(
@@ -46,7 +46,7 @@ ui <- fluidPage(
                 accept=c('text/csv', 
                          'text/comma-separated-values,text/plain', 
                          '.csv')
-                ),
+      ),
       conditionalPanel(
         condition = "input.DEmethod == 'DESeq' || input.DEmethod == 'XBSeq'",
         selectizeInput("SCVmethod", 
@@ -54,14 +54,14 @@ ui <- fluidPage(
                        choices =c('pooled', 'per-condition', 'blind'),
                        options = list(placeholder = 'select a method below',
                                       onInitialize = I('function() { this.setValue(""); }'))
-                       ),
+        ),
         verbatimTextOutput("SCVmethod"),
         selectizeInput("SharingMode",
                        label = "Please select a method for sharing mode",
                        choices = c('maximum', 'fit-only', 'gene-est-only'),
                        options = list(placeholder = 'select a method below',
                                       onInitialize = I('function() { this.setValue(""); }'))
-                       ),
+        ),
         verbatimTextOutput("SharingMode"),
         selectizeInput("fitType",
                        label = "Please select a method for fitType",
@@ -100,11 +100,9 @@ ui <- fluidPage(
         ),
         verbatimTextOutput("Test"),
         selectizeInput("cooksCutoff",
-                       label = "Please select a value for cooks distance cutoff",
-                       choices = c('FALSE',
-                                   0.99,
-                                   0.95,
-                                   0.90),
+                       label = "Please choose either to turn on or off cooks distance cutoff",
+                       choices = c('on',
+                                   'off'),
                        options = list(placeholder = 'select a value below',
                                       onInitialize = I('function() { this.setValue(""); }'))
         ),
@@ -154,11 +152,11 @@ ui <- fluidPage(
           sidebarPanel(
             textInput("text_S1", label = h5("Enter first sample name (For example, S1)"), 
                       value = "Enter text..."
-                      ),
+            ),
             verbatimTextOutput("value_S1"),
             textInput("text_S2", label = h5("Enter second sample name (For example, S2)"), 
                       value = "Enter text..."
-                      ),
+            ),
             verbatimTextOutput("value_S2")
           ),
           mainPanel(showOutput("ScatterPlot", "polycharts")))
@@ -169,25 +167,25 @@ ui <- fluidPage(
             selectizeInput("cvCutoff", 
                            label = 'Please select a cutoff for cv (coefficient of variation)',
                            choices = c(0.1, 0.3, 0.5)
-                           ),
+            ),
             verbatimTextOutput("value_cvcutoff"),
             selectizeInput("clusterMethod", 
                            label = 'Please select a method for clustering (pca or mds)',
                            choices = c('pca', 'mds')
-                           ),
-            verbatimTextOutput("value_clutermethod")
             ),
-          mainPanel(showOutput("PrincipalComponent", "nvd3")))
+            verbatimTextOutput("value_clutermethod")
           ),
+          mainPanel(showOutput("PrincipalComponent", "nvd3")))
+        ),
         tabPanel("Gene interaction network", sidebarLayout(
           sidebarPanel(
             sliderInput("Exprscut", "Expression level cutoff", 
                         min=0, max=100, step = 10, value=10
-                        ),
+            ),
             verbatimTextOutput("value_Exprscut"),
             sliderInput("Corrcut", "Correlation cutoff", 
                         min=0, max=1, step = 0.1, value=0.7
-                        ),
+            ),
             verbatimTextOutput("value_Corrcut")
           ),
           mainPanel(forceNetworkOutput("forceNetworkGene")))
@@ -199,10 +197,10 @@ ui <- fluidPage(
         conditionalPanel(condition = "input$DEmethod == 'XBSeq'",
                          tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3"))
         )
+      )
+      , style = "position: fixed;")
     )
-  , style = "position: fixed;")
-)
-))
+  ))
 
 
 
@@ -213,14 +211,17 @@ DESeq2_pfun <-
     colData <- data.frame(group)
     dse <- DESeqDataSetFromMatrix(countData = counts, colData = colData, design = ~ group)
     colData(dse)$group <- as.factor(colData(dse)$group)
-    dse <- DESeq(dse, parallel = TRUE, BPPARAM = SnowParam(), test = test, fitType = fittype)
-    res <- results(dse, cooksCutoff = cookcutoff)
+    dse <- DESeq(dse, test = test, fitType = fittype)
+    if(cookcutoff == 'on')
+      res <- results(dse)
+    else
+      res <- results(dse, cooksCutoff = FALSE)
     list(
       RawCount = counts,
       NormCount = counts(dse, normalized = TRUE),
-      
+      Dispersion = mcols(dse)[,4:6],
+      TestStat = res[,c(2,5)]
     )
-    cbind(pval = res$pvalue, padj = res$padj)
   }
 
 DESeq_pfun <-
@@ -287,7 +288,18 @@ limma_voom.pfun <-
 
 
 server <- function(input, output) {
-  dataMat <- reactive({
+  design <- reactive({
+    inFile <- input$file_design
+    if (is.null(inFile))
+      return(NULL)
+    fread(inFile$datapath, data.table=F)
+  })
+  
+  StartMessage <- eventReactive(input$DEstart, {
+    "Please wait, this might take a while"
+  })
+  
+  dataComb <- eventReactive(input$DEstart, {
     inFile <- input$file_obs
     if (is.null(inFile))
       return(NULL)
@@ -299,7 +311,10 @@ server <- function(input, output) {
       
     }
     else if(input$DEmethod == 'DESeq2'){
-      
+      group <- design()
+      group <- as.factor(group$Design)
+      DESeq2_pfun(data_obs, group, cookcutoff = input$cooksCutoff, 
+                  fittype = input$fitType_DESeq2, test = input$Test)
     }
     else if(input$DEmethod == 'edgeR'){
       
@@ -310,17 +325,6 @@ server <- function(input, output) {
     else if(input$DEmethod == 'limma-voom'){
       
     }
-  })
-  
-  design <- reactive({
-    inFile <- input$file_design
-    if (is.null(inFile))
-      return(NULL)
-    fread(inFile$datapath, data.table=F)
-  })
-  
-  StartMessage <- eventReactive(input$DEstart, {
-    "Please wait, this might take a while"
   })
   
   output$value_DE <- renderPrint({input$DEmethod})
@@ -352,7 +356,8 @@ server <- function(input, output) {
   output$Table <- renderDataTable({
     if (is.null(input$file_obs))
       return(NULL)
-    dataMat <- dataMat()
+    dataComb <- dataComb()
+    dataMat <- dataComb[[1]]
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     datatable(dataMat, options = list(pageLength = 5))
   })
@@ -360,7 +365,8 @@ server <- function(input, output) {
   output$Heatmap <- renderD3heatmap({
     if (is.null(input$file_obs))
       return(NULL)
-    dataMat <- dataMat()
+    dataComb <- dataComb()
+    dataMat <- dataComb[[1]]
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     d3heatmap(dataMat, scale="row", colors=colorRampPalette(c("blue","white","red"))(1000))
   })
@@ -368,7 +374,8 @@ server <- function(input, output) {
   output$Density <- renderChart({
     if (is.null(input$file_obs))
       return(NULL)
-    dataMat <- dataMat()
+    dataComb <- dataComb()
+    dataMat <- dataComb[[1]]
     denStat <- density(dataMat[,1], from = min(dataMat), to = max(dataMat))
     denStat <- data.frame(x = denStat$x,
                           y = denStat$y)
@@ -392,7 +399,8 @@ server <- function(input, output) {
   output$ScatterPlot <- renderChart({
     if (is.null(input$file_obs))
       return(NULL)
-    dataMat <- dataMat()
+    dataComb <- dataComb()
+    dataMat <- dataComb[[1]]
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     rp <- rPlot(input$text_S1, input$text_S2, data = dataMat, type = 'point')
     rp$addParams(dom = "ScatterPlot")
@@ -406,7 +414,8 @@ server <- function(input, output) {
   output$PrincipalComponent <- renderChart({
     if (is.null(input$file_obs))
       return(NULL)
-    dataMat <- dataMat()
+    dataComb <- dataComb()
+    dataMat <- dataComb[[1]]
     design <- design()
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     cvcutoff <- input$cvCutoff
@@ -440,7 +449,8 @@ server <- function(input, output) {
   output$forceNetworkGene <- renderForceNetwork({
     if (is.null(input$file_obs))
       return(NULL)
-    dataMat <- dataMat()
+    dataComb <- dataComb()
+    dataMat <- dataComb[[1]]
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     mean.gene <- apply(dataMat, 1, mean)
     dataMat <- dataMat[mean.gene > input$Exprscut, ]
@@ -450,7 +460,7 @@ server <- function(input, output) {
     index <- which(abs(MisLinks$value)>input$Corrcut)
     MisLinks <- MisLinks[index, ]
     name <- unique(rep(rownames(dataMat),
-                      each = nrow(dataMat))[index])
+                       each = nrow(dataMat))[index])
     MisNodes <- data.frame(name = name,
                            group = rep(1, length(name)),
                            size = rep(15, length(name)))
@@ -459,5 +469,6 @@ server <- function(input, output) {
                  Group = "group", opacity = 0.4)
   })
 }
+
 
 shinyApp(ui, server)
