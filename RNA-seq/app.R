@@ -14,7 +14,7 @@ library(shinythemes)
 
 ui <- fluidPage(
   theme = shinytheme("flatly"),
-  fluidRow(column(12, tags$header(strong(HTML("<p>RNA-seq widget: Bring <span style='color: red;'>D3</span> visualization to RNA-seq!")), style = "font-size: 50px; 
+  fluidRow(column(12, tags$header(strong(HTML("<p align = 'center'>RNA-seq Data Plotting: Bringing <span style='color: red;'>D3</span> visualization to RNA-seq!")), style = "font-size: 50px; 
                                   background-color: #F0FFFF;"))),
   tags$hr(),
   sidebarLayout(
@@ -149,7 +149,7 @@ ui <- fluidPage(
       tabsetPanel(
         tabPanel("Table", dataTableOutput("Table")),
         tabPanel("Heatmap", d3heatmapOutput('Heatmap')), 
-        tabPanel("Density", showOutput("Density", "nvd3")), 
+        tabPanel("Kernel Density Estimation", showOutput("Density", "nvd3")), 
         tabPanel("Scatter Plot", sidebarLayout(
           sidebarPanel(
             textInput("text_S1", label = h5("Enter first sample name (For example, S1)"), 
