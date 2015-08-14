@@ -1,5 +1,10 @@
 library(data.table)
 library(dplyr)
+library(DESeq)
+library(DESeq2)
+library(XBSeq)
+library(edgeR)
+library(limma)
 library(shiny)
 library(d3heatmap)
 library(networkD3)
@@ -136,7 +141,9 @@ ui <- fluidPage(
                      options = list(placeholder = 'select a value below',
                                     onInitialize = I('function() { this.setValue(""); }'))
       ),
-      verbatimTextOutput("fccutoff")
+      verbatimTextOutput("fccutoff"),
+      actionButton('DEstart', label = 'Start analysis!'),
+      textOutput("DEstart")
     ),
     mainPanel(tags$div(
       tabsetPanel(
@@ -184,6 +191,13 @@ ui <- fluidPage(
             verbatimTextOutput("value_Corrcut")
           ),
           mainPanel(forceNetworkOutput("forceNetworkGene")))
+        ),
+        tabPanel("DE Table", dataTableOutput('DEtable')),
+        tabPanel("MAplot", showOutput("MAplot", "nvd3")),
+        tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
+        tabPanel("Dispersion plot", showOutput("DispersionPlot", "nvd3")),
+        conditionalPanel(condition = "input$DEmethod == 'XBSeq'",
+                         tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3"))
         )
     )
   , style = "position: fixed;")
@@ -192,23 +206,121 @@ ui <- fluidPage(
 
 
 
+DESeq2_pfun <-
+  function(counts, group, design = NULL, cookcutoff, fittype, test)
+  {   
+    options(mc.cores = min(10, detectCores()))
+    colData <- data.frame(group)
+    dse <- DESeqDataSetFromMatrix(countData = counts, colData = colData, design = ~ group)
+    colData(dse)$group <- as.factor(colData(dse)$group)
+    dse <- DESeq(dse, parallel = TRUE, BPPARAM = SnowParam(), test = test, fitType = fittype)
+    res <- results(dse, cooksCutoff = cookcutoff)
+    list(
+      RawCount = counts,
+      NormCount = counts(dse, normalized = TRUE),
+      
+    )
+    cbind(pval = res$pvalue, padj = res$padj)
+  }
+
+DESeq_pfun <-
+  function(counts, group, design = NULL, mc.cores = 4)
+  {   
+    ## implement DESeq using pooled method to estimate dispersion ##
+    library(DESeq)
+    de <- newCountDataSet(counts, group)
+    de <- estimateSizeFactors(de)
+    de <- estimateDispersions(de, method = "pooled",fitType='local')
+    res <- nbinomTest(de, levels(group)[1], levels(group)[2])
+    cbind(pval = res$pval, padj = res$padj)
+  }
+
+edgeR.pfun <-
+  function(counts, group, design = NULL, mc.cores = 4, prior.df=10)
+  {
+    ## edgeR standard pipeline ##
+    library(edgeR)
+    d <- DGEList(counts = counts, group = group )
+    d <- calcNormFactors(d)
+    d <- estimateGLMCommonDisp(d, design = design)
+    d <- estimateGLMTrendedDisp(d,design=design)
+    d <- estimateGLMTagwiseDisp(d, design = design, prior.df = prior.df)
+    f <- glmFit(d, design = design)
+    lr <- glmLRT(f, coef=2)
+    pval = lr$table$PValue
+    padj = p.adjust(pval, "BH")
+    logfc = lr$table$logFC
+    cbind(pval = pval, padj = padj, logfc = logfc)
+  }
+
+edgeR_robust.pfun <-
+  function(counts, group, design = NULL, mc.cores = 4, prior.df=10)
+  {   
+    ## edgeR-robsut pipeline ##
+    library(edgeR)
+    d <- DGEList(counts = counts, group = group )
+    d <- calcNormFactors(d)
+    dw <- estimateGLMRobustDisp(d,design=design, prior.df=prior.df, maxit = 6)
+    fw <- glmFit(dw, design=design)
+    lrw <- glmLRT(fw,coef=2)
+    pval = lrw$table$PValue
+    padj = p.adjust(pval, "BH")
+    logfc = lrw$table$logFC
+    cbind(pval = pval, padj = padj, logfc=logfc)
+  }
+
+
+limma_voom.pfun <-
+  function(counts, group, design = NULL, mc.cores = 4) 
+  {   
+    ## limma voom pipeline ##
+    library(limma)
+    nf <- calcNormFactors(counts)
+    y <- voom(counts, design, plot=FALSE, lib.size = colSums(counts)*nf)
+    fit <- lmFit(y, design)
+    fit <- eBayes(fit)
+    pval <- topTable(fit,coef=2,n=nrow(counts), sort.by = "none")$P.Value
+    padj <- topTable(fit,coef=2,n=nrow(counts), sort.by = "none")$adj.P.Val
+    cbind(pval = padj, padj = padj)
+  }
+
+
 
 server <- function(input, output) {
-  # generate heatmap using D3heatmap
   dataMat <- reactive({
     inFile <- input$file_obs
     if (is.null(inFile))
       return(NULL)
-    fread(inFile$datapath, data.table=F)
+    data_obs <- fread(inFile$datapath, data.table=F)
+    if(input$DEmethod == 'XBSeq'){
+      
+    }
+    else if(input$DEmethod == 'DESeq'){
+      
+    }
+    else if(input$DEmethod == 'DESeq2'){
+      
+    }
+    else if(input$DEmethod == 'edgeR'){
+      
+    }
+    else if(input$DEmethod == 'edgeR-robust'){
+      
+    }
+    else if(input$DEmethod == 'limma-voom'){
+      
+    }
   })
   
-  
-
   design <- reactive({
     inFile <- input$file_design
     if (is.null(inFile))
       return(NULL)
     fread(inFile$datapath, data.table=F)
+  })
+  
+  StartMessage <- eventReactive(input$DEstart, {
+    "Please wait, this might take a while"
   })
   
   output$value_DE <- renderPrint({input$DEmethod})
@@ -234,6 +346,8 @@ server <- function(input, output) {
   output$pcutoff <- renderPrint({input$pcutoff})
   
   output$fccutoff <- renderPrint({input$fccutoff})
+  
+  output$DEstart <- renderText({StartMessage()})
   
   output$Table <- renderDataTable({
     if (is.null(input$file_obs))
