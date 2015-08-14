@@ -14,7 +14,7 @@ library(shinythemes)
 
 ui <- fluidPage(
   theme = shinytheme("flatly"),
-  fluidRow(column(12, tags$header(strong(HTML("<p align = 'center'>RNA-seq Data Plotting: Bringing <span style='color: red;'>D3</span> visualization to RNA-seq!")), style = "font-size: 50px; 
+  fluidRow(column(12, tags$header(strong(HTML("<p align = 'center'>RNA-seq Data: Bringing <span style='color: red;'>D3</span> visualization to RNA-seq!")), style = "font-size: 50px; 
                                   background-color: #F0FFFF;"))),
   tags$hr(),
   sidebarLayout(
