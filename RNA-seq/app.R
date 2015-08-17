@@ -141,7 +141,14 @@ ui <- fluidPage(
       ),
       verbatimTextOutput("fccutoff"),
       actionButton('DEstart', label = 'Start analysis!'),
+      checkboxGroupInput("checkGroup", 
+                         label = h3("Which graphs would you like to save?"), 
+                         choices = list("Heatmap" = 1, 
+                                        "Kernel Density Estimation" = 2, 
+                                        "Scatter Plot" = 3),
+                         selected = 1),
       textOutput("DEstart")
+      
     ),
     mainPanel(tags$div(
       tabsetPanel(
@@ -200,6 +207,7 @@ ui <- fluidPage(
       )
       , style = "position: fixed;")
     )
+    
   ))
 
 
@@ -468,6 +476,8 @@ server <- function(input, output) {
                  Target = "target", Value = "value", NodeID = "name",
                  Group = "group", opacity = 0.4)
   })
+  
+  
 }
 
 
