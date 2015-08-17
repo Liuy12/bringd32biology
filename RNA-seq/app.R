@@ -14,7 +14,7 @@ library(shinythemes)
 
 ui <- fluidPage(
   theme = shinytheme("flatly"),
-  fluidRow(column(12, tags$header(strong(HTML("<p align = 'center'>RNA-seq Data Plotting: Bringing <span style='color: red;'>D3</span> visualization to RNA-seq!</p>")), style = "font-size: 50px; 
+  fluidRow(column(12, tags$header(strong(HTML("<p align = 'center'>RNA-seq Data: Bringing <span style='color: red;'>D3</span> visualization to RNA-seq!")), style = "font-size: 50px; 
                                   background-color: #F0FFFF;"))),
   tags$hr(),
   sidebarLayout(
@@ -141,7 +141,14 @@ ui <- fluidPage(
       ),
       verbatimTextOutput("fccutoff"),
       actionButton('DEstart', label = 'Start analysis!'),
+      checkboxGroupInput("checkGroup", 
+                         label = h3("Which graphs would you like to save?"), 
+                         choices = list("Heatmap" = 1, 
+                                        "Kernel Density Estimation" = 2, 
+                                        "Scatter Plot" = 3),
+                         selected = 1),
       textOutput("DEstart")
+      
     ),
     mainPanel(
       tabsetPanel(
