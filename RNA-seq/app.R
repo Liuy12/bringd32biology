@@ -14,7 +14,7 @@ library(shinythemes)
 
 ui <- fluidPage(
   theme = shinytheme("flatly"),
-  fluidRow(column(12, tags$header(strong(HTML("<p align = 'center'>RNA-seq Data Plotting: Bringing <span style='color: red;'>D3</span> visualization to RNA-seq!")), style = "font-size: 50px; 
+  fluidRow(column(12, tags$header(strong(HTML("<p align = 'center'>RNA-seq Data Plotting: Bringing <span style='color: red;'>D3</span> visualization to RNA-seq!</p>")), style = "font-size: 50px; 
                                   background-color: #F0FFFF;"))),
   tags$hr(),
   sidebarLayout(
@@ -143,7 +143,7 @@ ui <- fluidPage(
       actionButton('DEstart', label = 'Start analysis!'),
       textOutput("DEstart")
     ),
-    mainPanel(tags$div(
+    mainPanel(
       tabsetPanel(
         tabPanel("Table", dataTableOutput("Table")),
         tabPanel("Heatmap", d3heatmapOutput('Heatmap')), 
@@ -180,7 +180,7 @@ ui <- fluidPage(
         tabPanel("Gene interaction network", sidebarLayout(
           sidebarPanel(
             sliderInput("Exprscut", "Expression level cutoff", 
-                        min=0, max=100, step = 10, value=10
+                        min=0, max=10, step = 1, value=5
             ),
             verbatimTextOutput("value_Exprscut"),
             sliderInput("Corrcut", "Correlation cutoff", 
@@ -198,7 +198,6 @@ ui <- fluidPage(
                          tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3"))
         )
       )
-      , style = "position: fixed;")
     )
   ))
 
@@ -304,6 +303,8 @@ server <- function(input, output) {
     if (is.null(inFile))
       return(NULL)
     data_obs <- fread(inFile$datapath, data.table=F)
+    rownames(data_obs) <- data_obs[,1]
+    data_obs <- data_obs[,-1]
     if(input$DEmethod == 'XBSeq'){
       
     }
@@ -357,7 +358,7 @@ server <- function(input, output) {
     if (is.null(input$file_obs))
       return(NULL)
     dataComb <- dataComb()
-    dataMat <- dataComb[[1]]
+    dataMat <- dataComb[[2]]
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     datatable(dataMat, options = list(pageLength = 5))
   })
@@ -366,7 +367,8 @@ server <- function(input, output) {
     if (is.null(input$file_obs))
       return(NULL)
     dataComb <- dataComb()
-    dataMat <- dataComb[[1]]
+    dataMat <- log2(dataComb[[2]])
+    dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     d3heatmap(dataMat, scale="row", colors=colorRampPalette(c("blue","white","red"))(1000))
   })
@@ -375,7 +377,8 @@ server <- function(input, output) {
     if (is.null(input$file_obs))
       return(NULL)
     dataComb <- dataComb()
-    dataMat <- dataComb[[1]]
+    dataMat <- log2(dataComb[[2]])
+    dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
     denStat <- density(dataMat[,1], from = min(dataMat), to = max(dataMat))
     denStat <- data.frame(x = denStat$x,
                           y = denStat$y)
@@ -400,7 +403,8 @@ server <- function(input, output) {
     if (is.null(input$file_obs))
       return(NULL)
     dataComb <- dataComb()
-    dataMat <- dataComb[[1]]
+    dataMat <- log2(dataComb[[2]])
+    dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     rp <- rPlot(input$text_S1, input$text_S2, data = dataMat, type = 'point')
     rp$addParams(dom = "ScatterPlot")
@@ -415,7 +419,8 @@ server <- function(input, output) {
     if (is.null(input$file_obs))
       return(NULL)
     dataComb <- dataComb()
-    dataMat <- dataComb[[1]]
+    dataMat <- log2(dataComb[[2]])
+    dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
     design <- design()
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     cvcutoff <- input$cvCutoff
@@ -450,23 +455,29 @@ server <- function(input, output) {
     if (is.null(input$file_obs))
       return(NULL)
     dataComb <- dataComb()
-    dataMat <- dataComb[[1]]
+    dataMat <- log2(dataComb[[2]])
+    dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     mean.gene <- apply(dataMat, 1, mean)
     dataMat <- dataMat[mean.gene > input$Exprscut, ]
-    MisLinks <- data.frame(source = rep(0:(nrow(dataMat)-1), each = nrow(dataMat)),
-                           target = rep(0:(nrow(dataMat)-1), times = nrow(dataMat)),
-                           value = c(cor(t(dataMat), method = 'spearman')))
-    index <- which(abs(MisLinks$value)>input$Corrcut)
-    MisLinks <- MisLinks[index, ]
-    name <- unique(rep(rownames(dataMat),
-                       each = nrow(dataMat))[index])
-    MisNodes <- data.frame(name = name,
-                           group = rep(1, length(name)),
-                           size = rep(15, length(name)))
-    forceNetwork(Links = MisLinks, Nodes = MisNodes, Source = "source",
-                 Target = "target", Value = "value", NodeID = "name",
-                 Group = "group", opacity = 0.4)
+    if(length(dataMat) == 0 | length(dataMat) == ncol(dataComb[[2]]))
+      return(NULL)
+    else
+    {
+      MisLinks <- data.frame(source = rep(0:(nrow(dataMat)-1), each = nrow(dataMat)),
+                             target = rep(0:(nrow(dataMat)-1), times = nrow(dataMat)),
+                             value = c(cor(t(dataMat), method = 'spearman')))
+      index <- which(abs(MisLinks$value)>input$Corrcut)
+      MisLinks <- MisLinks[index, ]
+      name <- unique(rep(rownames(dataMat),
+                         each = nrow(dataMat))[index])
+      MisNodes <- data.frame(name = name,
+                             group = rep(1, length(name)),
+                             size = rep(15, length(name)))
+      forceNetwork(Links = MisLinks, Nodes = MisNodes, Source = "source",
+                   Target = "target", Value = "value", NodeID = "name",
+                   Group = "group", opacity = 0.4) 
+    }
   })
 }
 
