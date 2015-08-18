@@ -1,3 +1,9 @@
+library(d3heatmap)
+library(shiny)
+library(networkD3)
+library(DT)
+library(rCharts)
+library(shinythemes)
 library(data.table)
 library(dplyr)
 library(DESeq)
@@ -5,12 +11,6 @@ library(DESeq2)
 library(XBSeq)
 library(edgeR)
 library(limma)
-library(shiny)
-library(d3heatmap)
-library(networkD3)
-library(DT)
-library(rCharts)
-library(shinythemes)
 
 ui <- fluidPage(
   theme = shinytheme("flatly"),
@@ -153,7 +153,7 @@ ui <- fluidPage(
     mainPanel(
       tabsetPanel(
         tabPanel("Table", dataTableOutput("Table")),
-        tabPanel("Heatmap", d3heatmapOutput('Heatmap')), 
+#        tabPanel("Heatmap", d3heatmapOutput('Heatmap')), 
         tabPanel("Kernel Density Estimation", showOutput("Density", "nvd3")), 
         tabPanel("Scatter Plot", sidebarLayout(
           sidebarPanel(
@@ -180,7 +180,7 @@ ui <- fluidPage(
                            label = 'Please select a method for clustering (pca or mds)',
                            choices = c('pca', 'mds')
             ),
-            verbatimTextOutput("value_clutermethod")
+            verbatimTextOutput("value_clustermethod")
           ),
           mainPanel(showOutput("PrincipalComponent", "nvd3")))
         ),
@@ -370,23 +370,23 @@ server <- function(input, output) {
     dataComb <- dataComb()
     dataMat <- log2(dataComb[[2]])
     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
+    
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     datatable(dataMat, options = list(pageLength = 5))
   })
   
-  output$Heatmap <- renderD3heatmap({
-    if (is.null(input$file_obs))
-      return(NULL)
-    dataComb <- dataComb()
-    dataMat <- log2(dataComb[[2]])
-    dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
-    colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
-    d3heatmap(dataMat, scale="row", colors=colorRampPalette(c("blue","white","red"))(1000))
-  })
+#   output$Heatmap <- renderD3heatmap({
+#     if (is.null(input$file_obs))
+#       return(NULL)
+#     dataComb <- dataComb()
+#     dataMat <- log2(dataComb[[2]])
+#     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
+#     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
+#     d3heatmap(as.data.frame(dataMat), scale="row", labCol = NULL, anim_duration = 0, colors=colorRampPalette(c("blue","white","red"))(1000))
+#   })
   
-  output$Density <- renderChart({
-    if (is.null(input$file_obs))
-      return(NULL)
+  
+  output$Density <- renderChart2({
     dataComb <- dataComb()
     dataMat <- log2(dataComb[[2]])
     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
@@ -410,9 +410,7 @@ server <- function(input, output) {
   
   output$value_S2 <- renderPrint({input$text_S2})
   
-  output$ScatterPlot <- renderChart({
-    if (is.null(input$file_obs))
-      return(NULL)
+  output$ScatterPlot <- renderChart2({
     dataComb <- dataComb()
     dataMat <- log2(dataComb[[2]])
     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
@@ -426,9 +424,7 @@ server <- function(input, output) {
   
   output$value_clustermethod <- renderPrint({input$clusterMethod})
   
-  output$PrincipalComponent <- renderChart({
-    if (is.null(input$file_obs))
-      return(NULL)
+  output$PrincipalComponent <- renderChart2({
     dataComb <- dataComb()
     dataMat <- log2(dataComb[[2]])
     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
@@ -463,8 +459,6 @@ server <- function(input, output) {
   output$value_Corrcut <- renderPrint({input$Corrcut})
   
   output$forceNetworkGene <- renderForceNetwork({
-    if (is.null(input$file_obs))
-      return(NULL)
     dataComb <- dataComb()
     dataMat <- log2(dataComb[[2]])
     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
