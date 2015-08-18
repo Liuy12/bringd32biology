@@ -217,7 +217,10 @@ DESeq2_pfun <-
     colData <- data.frame(group)
     dse <- DESeqDataSetFromMatrix(countData = counts, colData = colData, design = ~ group)
     colData(dse)$group <- as.factor(colData(dse)$group)
-    dse <- DESeq(dse, test = test, fitType = fittype)
+    if(test == 'LRT')
+      dse <- DESeq(dse, test = 'LRT', fitType = fittype, reduced = ~1)
+    else
+      dse <- DESeq(dse, test = 'Wald', fitType = fittype)
     if(cookcutoff == 'on')
       res <- results(dse)
     else
@@ -365,7 +368,8 @@ server <- function(input, output) {
     if (is.null(input$file_obs))
       return(NULL)
     dataComb <- dataComb()
-    dataMat <- dataComb[[2]]
+    dataMat <- log2(dataComb[[2]])
+    dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     datatable(dataMat, options = list(pageLength = 5))
   })

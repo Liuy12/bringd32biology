@@ -1,6 +1,12 @@
 name: RNA-seq
 account: yuanhangliu
 server: shinyapps.io
+<<<<<<< Updated upstream
 bundleId: 241520
 url: https://yuanhangliu.shinyapps.io/RNA-seq
 when: 1439765570.97003
+=======
+bundleId: 238569
+url: https://yuanhangliu.shinyapps.io/RNA-seq
+when: 1439442225.35336
+>>>>>>> Stashed changes
