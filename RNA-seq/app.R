@@ -141,14 +141,13 @@ ui <- fluidPage(
       ),
       verbatimTextOutput("fccutoff"),
       actionButton('DEstart', label = 'Start analysis!'),
+      textOutput("DEstart"),
       checkboxGroupInput("checkGroup", 
                          label = h3("Which graphs would you like to save?"), 
                          choices = list("Heatmap" = 1, 
                                         "Kernel Density Estimation" = 2, 
                                         "Scatter Plot" = 3),
-                         selected = 1),
-      textOutput("DEstart")
-      
+                         selected = 1)
     ),
     mainPanel(
       tabsetPanel(
@@ -386,7 +385,7 @@ server <- function(input, output) {
 #   })
   
   
-  output$Density <- renderChart2({
+  output$Density <- renderChart({
     dataComb <- dataComb()
     dataMat <- log2(dataComb[[2]])
     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
@@ -410,7 +409,7 @@ server <- function(input, output) {
   
   output$value_S2 <- renderPrint({input$text_S2})
   
-  output$ScatterPlot <- renderChart2({
+  output$ScatterPlot <- renderChart({
     dataComb <- dataComb()
     dataMat <- log2(dataComb[[2]])
     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
@@ -424,7 +423,7 @@ server <- function(input, output) {
   
   output$value_clustermethod <- renderPrint({input$clusterMethod})
   
-  output$PrincipalComponent <- renderChart2({
+  output$PrincipalComponent <- renderChart({
     dataComb <- dataComb()
     dataMat <- log2(dataComb[[2]])
     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
@@ -459,6 +458,8 @@ server <- function(input, output) {
   output$value_Corrcut <- renderPrint({input$Corrcut})
   
   output$forceNetworkGene <- renderForceNetwork({
+    if (is.null(input$file_obs))
+      return(NULL)
     dataComb <- dataComb()
     dataMat <- log2(dataComb[[2]])
     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
