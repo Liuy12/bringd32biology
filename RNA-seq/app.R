@@ -140,6 +140,10 @@ ui <- fluidPage(
                                     onInitialize = I('function() { this.setValue(""); }'))
       ),
       verbatimTextOutput("fccutoff"),
+      numericInput("log2bmcutoff", label = "Please set a cutoff for log2 expression intensity (Usually can be determined from density plot)", 
+                value = 5, min = 1
+      ),
+      verbatimTextOutput("log2bmcutoff"),
       actionButton('DEstart', label = 'Start analysis!'),
       textOutput("DEstart"),
       checkboxGroupInput("checkGroup", 
@@ -198,7 +202,7 @@ ui <- fluidPage(
         ),
         tabPanel("DE Table", dataTableOutput('DEtable')),
         tabPanel("MAplot", showOutput("MAplot", "nvd3")),
-        tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
+        #tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
         tabPanel("Dispersion plot", showOutput("DispersionPlot", "nvd3")),
         conditionalPanel(condition = "input$DEmethod == 'XBSeq'",
                          tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3"))
@@ -228,7 +232,7 @@ DESeq2_pfun <-
       RawCount = counts,
       NormCount = counts(dse, normalized = TRUE),
       Dispersion = mcols(dse)[,4:6],
-      TestStat = res[,c(2,5)]
+      TestStat = res[, c(1,2,5)]
     )
   }
 
@@ -307,6 +311,8 @@ server <- function(input, output) {
     "Please wait, this might take a while"
   })
   
+  output$DEstart <- renderText({StartMessage()})
+  
   dataComb <- eventReactive(input$DEstart, {
     inFile <- input$file_obs
     if (is.null(inFile))
@@ -357,11 +363,11 @@ server <- function(input, output) {
   
   output$padjust <- renderPrint({input$padjust})
   
-  output$pcutoff <- renderPrint({input$pcutoff})
+  output$pcutoff <- renderPrint({as.numeric(input$pcutoff)})
   
-  output$fccutoff <- renderPrint({input$fccutoff})
+  output$fccutoff <- renderPrint({as.numeric(input$fccutoff)})
   
-  output$DEstart <- renderText({StartMessage()})
+  output$log2bmcutoff <- renderPrint({input$log2bmcutoff})
   
   output$Table <- renderDataTable({
     if (is.null(input$file_obs))
@@ -485,7 +491,24 @@ server <- function(input, output) {
                    Group = "group", opacity = 0.4) 
     }
   })
+  
+  output$DEtable <- renderDataTable({
+    if (is.null(input$file_obs))
+      return(NULL)
+    dataComb <- dataComb()
+    dataMat <- log2(dataComb[[2]])
+    dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
+    colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
+    dataMat1 <- dataComb[[4]]
+    p_adjust <- p.adjust(dataMat1[,3], method = input$padjust)
+    DE_index <- which(log2(dataMat1[,1]) > as.numeric(input$log2bmcutoff) & 
+                      dataMat1[,2] > log2(as.numeric(input$fccutoff)) &
+                      p_adjust < as.numeric(input$pcutoff))
+    dataMat <- dataMat[DE_index,]
+    datatable(dataMat, options = list(pageLength = 5))
+    })
 }
+
 
 
 shinyApp(ui, server)
