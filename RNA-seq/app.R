@@ -161,15 +161,15 @@ ui <- fluidPage(
         tabPanel("Scatter Plot", sidebarLayout(
           sidebarPanel(
             textInput("text_S1", label = h5("Enter first sample name (For example, S1)"), 
-                      value = "Enter text..."
+                      value = "S1"
             ),
             verbatimTextOutput("value_S1"),
             textInput("text_S2", label = h5("Enter second sample name (For example, S2)"), 
-                      value = "Enter text..."
+                      value = "S2"
             ),
             verbatimTextOutput("value_S2")
           ),
-          mainPanel(showOutput("ScatterPlot", "polycharts")))
+          mainPanel(showOutput("ScatterPlot", "highcharts")))
         ),
         tabPanel("Boxplot", plotOutput("Boxplot")),
         tabPanel("Principal Component", sidebarLayout(
@@ -190,11 +190,11 @@ ui <- fluidPage(
         tabPanel("Gene interaction network", sidebarLayout(
           sidebarPanel(
             sliderInput("Exprscut", "Expression level cutoff", 
-                        min=0, max=10, step = 1, value=5
+                        min=0, max=20, step = 2, value=8
             ),
             verbatimTextOutput("value_Exprscut"),
             sliderInput("Corrcut", "Correlation cutoff", 
-                        min=0, max=1, step = 0.1, value=0.7
+                        min=0, max=1, step = 0.1, value=0.9
             ),
             verbatimTextOutput("value_Corrcut")
           ),
@@ -408,6 +408,9 @@ server <- function(input, output) {
     colnames(denStat) <- c('Exprs', 'Density', 'ind')
     np <- nPlot(Density ~ Exprs, group = 'ind', data = denStat, type = 'lineChart')
     np$addParams(dom = "Density")
+    np$chart(useInteractiveGuideline = TRUE)
+    np$xAxis(axisLabel = 'Log2 intensity')
+    np$yAxis(axisLabel = 'Density')
     return(np)
   })
   
@@ -420,9 +423,11 @@ server <- function(input, output) {
     dataMat <- log2(dataComb[[2]])
     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
-    rp <- rPlot(input$text_S1, input$text_S2, data = dataMat, type = 'point')
-    rp$addParams(dom = "ScatterPlot")
-    return(rp)
+    dataMat <- as.data.frame(dataMat)
+    hp <- hPlot(x= input$text_S1, y = input$text_S2, data = dataMat, type = 'scatter', radius = 3)
+    hp$addParams(dom = "ScatterPlot")
+    hp$colors('black')
+    return(hp)
   })
   
   output$value_cvcutoff <- renderPrint({input$cvCutoff})
@@ -430,6 +435,8 @@ server <- function(input, output) {
   output$value_clustermethod <- renderPrint({input$clusterMethod})
   
   output$PrincipalComponent <- renderChart({
+    colors <- c('#00FFFF', '#FFE4C4', '#D2691E', '#6495ED', '#9932CC', '#8B0000', 
+                '#FF00FF', '#FFD700')
     dataComb <- dataComb()
     dataMat <- log2(dataComb[[2]])
     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
@@ -454,8 +461,10 @@ server <- function(input, output) {
     colnames(ppoints) <- c('PC1', 'PC2', 'Design')
     np <- nPlot(PC2~PC1, data = as.data.frame(ppoints), group= 'Design', type = 'scatterChart')
     np$addParams(dom = "PrincipalComponent")
+    np$chart(color = colors[1:length(unique(design$Design))])
     np$xAxis(axisLabel = 'PC1')
     np$yAxis(axisLabel = 'PC2')
+    np$chart(sizeRange = c(50,50))
     return(np)
   })
   
