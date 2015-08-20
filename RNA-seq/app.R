@@ -507,15 +507,37 @@ server <- function(input, output) {
     dataComb <- dataComb()
     dataMat <- log2(dataComb[[2]])
     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
-    colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     dataMat1 <- dataComb[[4]]
     p_adjust <- p.adjust(dataMat1[,3], method = input$padjust)
     DE_index <- which(log2(dataMat1[,1]) > as.numeric(input$log2bmcutoff) & 
                       dataMat1[,2] > log2(as.numeric(input$fccutoff)) &
                       p_adjust < as.numeric(input$pcutoff))
-    dataMat <- dataMat[DE_index,]
+    if(length(DE_index) == 1)
+      return(datatable(data.frame()), options = list(pageLength = 5))
+    
+    dataMat <- cbind(dataMat[DE_index,], dataMat1[,2], p_adjust)
+    colnames(dataMat) <- c(paste('S', 1:ncol(dataMat), sep=''), 'Log2 fold change', 'p adjusted value')
     datatable(dataMat, options = list(pageLength = 5))
     })
+  
+  output$MAplot <- renderChart({
+    dataComb <- dataComb()
+    dataMat <- dataComb[[4]]
+    p_adjust <- p.adjust(dataMat[,3], method = input$padjust)
+    col <- with(data = dataMat, ifelse(log2(baseMean) > as.numeric(input$log2bmcutoff) & 
+                                         log2FoldChange > log2(as.numeric(input$fccutoff)) &
+                                         p_adjust < as.numeric(input$pcutoff),
+                                       "G1", "G2"))
+    dataMat <- cbind(dataMat, col)
+    np <- nPlot(log2FoldChange ~ baseMean, data = dataMat, group= 'col', type = 'scatterChart')
+    np$addParams(dom = "PrincipalComponent")
+    np$chart(color = c('red', 'grey32'))
+    np$xAxis(axisLabel = 'Expression intensity',
+             tickFormat = "#!function (x) {tickformat = [1,10,100,1000,10000,'100k'];return tickformat[x];}!#")
+    np$yAxis(axisLabel = 'Log2 fold change')
+    np$chart(sizeRange = c(20,20))
+    return(np)
+  })
 }
 
 
