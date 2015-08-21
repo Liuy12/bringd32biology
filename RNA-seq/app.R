@@ -121,22 +121,19 @@ ui <- fluidPage(
                      label = "Please select a method for adjusting p values", 
                      choices =c("Benj&Hoch" = "BH", 
                                 "bonferroni", "none"),
-                     options = list(placeholder = 'select a method below',
-                                    onInitialize = I('function() { this.setValue(""); }'))
+                     selected = 'Benj&Hoch'
       ),
       verbatimTextOutput("padjust"),
       selectizeInput("pcutoff", 
                      label = "Please set a cutoff of p values for DE genes", 
                      choices =c(0.001, 0.01, 0.05, 0.1, 0.2),
-                     options = list(placeholder = 'select a value below',
-                                    onInitialize = I('function() { this.setValue(""); }'))
+                     selected = 0.05
       ),
       verbatimTextOutput("pcutoff"),
       selectizeInput("fccutoff", 
                      label = "Please set a cutoff of fold change for DE genes", 
                      choices =c(1.5, 2, 2.5, 3, 5),
-                     options = list(placeholder = 'select a value below',
-                                    onInitialize = I('function() { this.setValue(""); }'))
+                     selected = 2
       ),
       verbatimTextOutput("fccutoff"),
       numericInput("log2bmcutoff", label = "Please set a cutoff for log2 expression intensity (Usually can be determined from density plot)", 
