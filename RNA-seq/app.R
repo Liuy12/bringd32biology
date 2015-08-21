@@ -49,7 +49,7 @@ ui <- fluidPage(
                          '.csv')
       ),
       conditionalPanel(
-        condition = "input.DEmethod == 'DESeq' || input.DEmethod == 'XBSeq'",
+        condition = "input.DEmethod == 'DESeq' | input.DEmethod == 'XBSeq'",
         selectizeInput("SCVmethod", 
                        label = "Please select a method to estimate dispersion", 
                        choices =c('pooled', 'per-condition', 'blind'),
@@ -157,7 +157,7 @@ ui <- fluidPage(
     mainPanel(
       tabsetPanel(
         tabPanel("Table", dataTableOutput("Table")),
-#        tabPanel("Heatmap", d3heatmapOutput('Heatmap')), 
+        tabPanel("Heatmap", d3heatmapOutput('Heatmap')), 
         tabPanel("Kernel Density Estimation", showOutput("Density", "nvd3")), 
         tabPanel("Scatter Plot", sidebarLayout(
           sidebarPanel(
@@ -203,7 +203,7 @@ ui <- fluidPage(
         ),
         tabPanel("DE Table", dataTableOutput('DEtable')),
         tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
-        #tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
+        tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
         tabPanel("Dispersion plot", showOutput("DispersionPlot", "nvd3")),
         conditionalPanel(condition = "input$DEmethod == 'XBSeq'",
                          tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3"))
@@ -376,21 +376,23 @@ server <- function(input, output) {
     dataComb <- dataComb()
     dataMat <- log2(dataComb[[2]])
     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
-    
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
     datatable(dataMat, options = list(pageLength = 5))
   })
   
-#   output$Heatmap <- renderD3heatmap({
-#     if (is.null(input$file_obs))
-#       return(NULL)
-#     dataComb <- dataComb()
-#     dataMat <- log2(dataComb[[2]])
-#     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
-#     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
-#     d3heatmap(as.data.frame(dataMat), scale="row", labCol = NULL, anim_duration = 0, colors=colorRampPalette(c("blue","white","red"))(1000))
-#   })
-  
+  output$Heatmap <- renderD3heatmap({
+    if (is.null(input$file_obs))
+      return(NULL)
+    dataComb <- dataComb()
+    dataMat <- log2(dataComb[[2]])
+    dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
+    colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
+    mean_gene <- apply(dataMat, 1, mean)
+    var_gene <- apply(dataMat, 1, var)
+    index <- which(log2(mean_gene) > input$log2bmcutoff)
+    dataMat1 <- dataMat[order(var_gene[index]),]
+    d3heatmap(dataMat1[1:100,], scale="row", colors=colorRampPalette(c("blue","white","red"))(1000))
+  })
   
   output$Density <- renderChart({
     dataComb <- dataComb()
