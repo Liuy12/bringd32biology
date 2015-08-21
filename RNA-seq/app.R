@@ -15,6 +15,12 @@ library(limma)
 
 ui <- fluidPage(
   theme = shinytheme("flatly"),
+  # To fix dimple conflict class tooltip between Bootstrap
+  HTML("<style>
+         .tooltip {
+           opacity:1;
+         }
+       </style>"),
   fluidRow(column(12, tags$header(strong(HTML("<p align = 'center'>RNA-seq Data: Bringing <span style='color: red;'>D3</span> visualization to RNA-seq!")), style = "font-size: 50px; 
                                   background-color: #F0FFFF;"))),
   tags$hr(),
@@ -53,22 +59,19 @@ ui <- fluidPage(
         selectizeInput("SCVmethod", 
                        label = "Please select a method to estimate dispersion", 
                        choices =c('pooled', 'per-condition', 'blind'),
-                       options = list(placeholder = 'select a method below',
-                                      onInitialize = I('function() { this.setValue(""); }'))
+                       selected = 'pooled'
         ),
         verbatimTextOutput("SCVmethod"),
         selectizeInput("SharingMode",
                        label = "Please select a method for sharing mode",
                        choices = c('maximum', 'fit-only', 'gene-est-only'),
-                       options = list(placeholder = 'select a method below',
-                                      onInitialize = I('function() { this.setValue(""); }'))
+                       selected = 'maximum'
         ),
         verbatimTextOutput("SharingMode"),
         selectizeInput("fitType",
                        label = "Please select a method for fitType",
                        choices = c('local', 'parametric'),
-                       options = list(placeholder = 'select a method below',
-                                      onInitialize = I('function() { this.setValue(""); }'))
+                       selected = 'local'
         ),
         verbatimTextOutput("fitType"),        
         conditionalPanel(
@@ -77,8 +80,7 @@ ui <- fluidPage(
                          label = "Please select a method to estimate distribution parameters", 
                          choices =c('Non-parametric' = 'NP', 
                                     'Maximum liklihood estimation' = 'MLE'),
-                         options = list(placeholder = 'select a method below',
-                                        onInitialize = I('function() { this.setValue(""); }'))
+                         selected = 'NP'
           ),
           verbatimTextOutput("ParamEst")          
         )
@@ -88,24 +90,21 @@ ui <- fluidPage(
         selectizeInput("fitType_DESeq2", 
                        label = "Please select a method for fit type", 
                        choices =c('local', 'parametric', 'mean'),
-                       options = list(placeholder = 'select a method below',
-                                      onInitialize = I('function() { this.setValue(""); }'))
+                       selected = 'local'
         ),
         verbatimTextOutput("fitType_DESeq2"),
         selectizeInput("Test",
                        label = "Please select a method for statistical test",
                        choices = c('Wald test' = 'Wald',
                                    'Log ratio test' = 'LRT'),
-                       options = list(placeholder = 'select a method below',
-                                      onInitialize = I('function() { this.setValue(""); }'))
+                       selected = 'Wald test'
         ),
         verbatimTextOutput("Test"),
         selectizeInput("cooksCutoff",
                        label = "Please choose either to turn on or off cooks distance cutoff",
                        choices = c('on',
                                    'off'),
-                       options = list(placeholder = 'select a value below',
-                                      onInitialize = I('function() { this.setValue(""); }'))
+                       selected = 'off'
         ),
         verbatimTextOutput("cooksCutoff")
       ),
@@ -114,8 +113,7 @@ ui <- fluidPage(
         selectizeInput("residualType", 
                        label = "Please select a method for calculating residuals", 
                        choices =c("pearson", "deviance", "anscombe"),
-                       options = list(placeholder = 'select a method below',
-                                      onInitialize = I('function() { this.setValue(""); }'))
+                       selected = 'pearson'
         ),
         verbatimTextOutput("residualType")
       ),
@@ -186,7 +184,7 @@ ui <- fluidPage(
             ),
             verbatimTextOutput("value_clustermethod")
           ),
-          mainPanel(showOutput("PrincipalComponent", "nvd3")))
+          mainPanel(showOutput("PrincipalComponent", "dimple")))
         ),
         tabPanel("Gene interaction network", sidebarLayout(
           sidebarPanel(
@@ -204,7 +202,7 @@ ui <- fluidPage(
         tabPanel("DE Table", dataTableOutput('DEtable')),
         tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
         tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
-        tabPanel("Dispersion plot", showOutput("DispersionPlot", "nvd3")),
+        tabPanel("Dispersion plot", showOutput("DispersionPlot", "polycharts")),
         conditionalPanel(condition = "input$DEmethod == 'XBSeq'",
                          tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3"))
         )
@@ -232,7 +230,7 @@ DESeq2_pfun <-
     list(
       RawCount = counts,
       NormCount = counts(dse, normalized = TRUE),
-      Dispersion = mcols(dse)[,4:6],
+      Dispersion = as.data.frame(mcols(dse)[,4:6]),
       TestStat = res[, c(1,2,5)]
     )
   }
@@ -459,16 +457,19 @@ server <- function(input, output) {
       pca.result <- prcomp(t(dataMat))
       ppoints <- pca.result$x[,1:2]
     }
-    ppoints <- cbind(ppoints, design)
-    rownames(ppoints) <- colnames(dataMat)
-    colnames(ppoints) <- c('PC1', 'PC2', 'Design')
-    np <- nPlot(PC2~PC1, data = as.data.frame(ppoints), group= 'Design', type = 'scatterChart')
-    np$addParams(dom = "PrincipalComponent")
-    np$chart(color = colors[1:length(unique(design$Design))])
-    np$xAxis(axisLabel = 'PC1')
-    np$yAxis(axisLabel = 'PC2')
-    np$chart(sizeRange = c(50,50))
-    return(np)
+    ppoints <- cbind(ppoints, design$Design, paste('S', 1:ncol(dataMat), sep=''))
+    colnames(ppoints) <- c('PC1', 'PC2', 'Design', 'Samplename')
+    dp <- dPlot(PC2~ PC1, data = as.data.frame(ppoints), groups = c('Samplename', 'Design'), type = 'bubble')
+    dp$xAxis(type = 'addMeasureAxis')
+    dp$addParams(dom = "PrincipalComponent")
+    dp
+#     np <- nPlot(PC2~PC1, data = as.data.frame(ppoints), group= c('Design'), type = 'scatterChart')
+#     np$addParams(dom = "PrincipalComponent")
+#     np$chart(color = colors[1:length(unique(design$Design))])
+#     np$xAxis(axisLabel = 'PC1')
+#     np$yAxis(axisLabel = 'PC2')
+#     np$chart(sizeRange = c(50,50))
+#     return(np)
   })
   
   output$value_Exprscut <- renderPrint({input$Exprscut})
@@ -536,9 +537,31 @@ server <- function(input, output) {
     dataMat <- cbind(Genename = rownames(dataMat), dataMat, col)
     dataMat$baseMean <- log2(dataMat$baseMean + 1)
     mp <- mjs_plot(dataMat, baseMean, log2FoldChange, decimals = 6) %>% 
-      mjs_point(color_accessor = col, color_range = c('red', 'grey32'), color_type="category") %>%
-      mjs_add_baseline(y_value = 0, label = 'baseline')
+      mjs_point(color_accessor = col, color_range = c('red', 'grey32'), color_type="category", x_rug=TRUE, y_rug=TRUE) %>%
+      mjs_add_baseline(y_value = 0, label = 'baseline') %>%
+      mjs_labs(x_label="Log2 normalized intensity", y_label="Log2 fold change") 
     mp
+  })
+  
+  output$DispersionPlot <- renderChart({
+    dataComb <- dataComb()
+    Dispersion <- as.data.frame(dataComb[[3]])
+    Dispersion$baseMean <- dataComb[[4]][,1] + 1
+    Dispersion1 <- stack(Dispersion[,c(1,3)])
+    colnames(Dispersion1) <- c('Disp', 'Type')
+    Dispersion1$baseMean <- rep(Dispersion$baseMean, times = 2)
+    Dispersion1$Dispfit <- rep(Dispersion$dispFit, times =2)
+    rp <- rPlot(Disp~baseMean, data = Dispersion1, color = 'Type', type = 'point', size = list(const = 2))
+    rp$layer(y = 'Dispfit', type = 'line', color = list(const = 'red'),
+             copy_layer = T)
+    rp$guides("{x: { scale: {type: 'log'}}}")
+    rp$guides(
+      color = list(scale = "#! function(value){
+  color_mapping = {dispersion: 'blue', dispGeneEst: 'grey'}
+  return color_mapping[value];                  
+} !#"))
+    rp$addParams(dom = "DispersionPlot")
+    rp
   })
 }
 
