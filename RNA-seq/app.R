@@ -1,4 +1,5 @@
 library(d3heatmap)
+library(metricsgraphics)
 library(shiny)
 library(networkD3)
 library(DT)
@@ -201,7 +202,7 @@ ui <- fluidPage(
           mainPanel(forceNetworkOutput("forceNetworkGene")))
         ),
         tabPanel("DE Table", dataTableOutput('DEtable')),
-        tabPanel("MAplot", showOutput("MAplot", "nvd3")),
+        tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
         #tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
         tabPanel("Dispersion plot", showOutput("DispersionPlot", "nvd3")),
         conditionalPanel(condition = "input$DEmethod == 'XBSeq'",
@@ -514,29 +515,28 @@ server <- function(input, output) {
                       p_adjust < as.numeric(input$pcutoff))
     if(length(DE_index) == 1)
       return(datatable(data.frame()), options = list(pageLength = 5))
-    
-    dataMat <- cbind(dataMat[DE_index,], dataMat1[,2], p_adjust)
-    colnames(dataMat) <- c(paste('S', 1:ncol(dataMat), sep=''), 'Log2 fold change', 'p adjusted value')
-    datatable(dataMat, options = list(pageLength = 5))
+    dataMat1 <- cbind(dataMat[DE_index,], dataMat1[DE_index,2], p_adjust[DE_index])
+    colnames(dataMat1) <- c(paste('S', 1:ncol(dataMat), sep=''), 'Log2 fold change', 'p adjusted value')
+    datatable(dataMat1, options = list(pageLength = 5))
     })
   
-  output$MAplot <- renderChart({
+  output$MAplot <- renderMetricsgraphics({
+    if (is.null(input$file_obs))
+      return(NULL)
     dataComb <- dataComb()
-    dataMat <- dataComb[[4]]
+    dataMat <- as.data.frame(dataComb[[4]])
     p_adjust <- p.adjust(dataMat[,3], method = input$padjust)
-    col <- with(data = dataMat, ifelse(log2(baseMean) > as.numeric(input$log2bmcutoff) & 
-                                         log2FoldChange > log2(as.numeric(input$fccutoff)) &
+    p_adjust[is.na(p_adjust)] <- 1
+    col <- with(data = dataMat, ifelse(log2(baseMean+1) > as.numeric(input$log2bmcutoff) & 
+                                         abs(log2FoldChange) > log2(as.numeric(input$fccutoff)) &
                                          p_adjust < as.numeric(input$pcutoff),
-                                       "G1", "G2"))
-    dataMat <- cbind(dataMat, col)
-    np <- nPlot(log2FoldChange ~ baseMean, data = dataMat, group= 'col', type = 'scatterChart')
-    np$addParams(dom = "PrincipalComponent")
-    np$chart(color = c('red', 'grey32'))
-    np$xAxis(axisLabel = 'Expression intensity',
-             tickFormat = "#!function (x) {tickformat = [1,10,100,1000,10000,'100k'];return tickformat[x];}!#")
-    np$yAxis(axisLabel = 'Log2 fold change')
-    np$chart(sizeRange = c(20,20))
-    return(np)
+                                       "DE", "Not DE"))
+    dataMat <- cbind(Genename = rownames(dataMat), dataMat, col)
+    dataMat$baseMean <- log2(dataMat$baseMean + 1)
+    mp <- mjs_plot(dataMat, baseMean, log2FoldChange, decimals = 6) %>% 
+      mjs_point(color_accessor = col, color_range = c('red', 'grey32'), color_type="category") %>%
+      mjs_add_baseline(y_value = 0, label = 'baseline')
+    mp
   })
 }
 
