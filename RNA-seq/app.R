@@ -97,7 +97,7 @@ ui <- fluidPage(
                        label = "Please select a method for statistical test",
                        choices = c('Wald test' = 'Wald',
                                    'Log ratio test' = 'LRT'),
-                       selected = 'Wald test'
+                       selected = 'Wald'
         ),
         verbatimTextOutput("Test"),
         selectizeInput("cooksCutoff",
@@ -121,7 +121,7 @@ ui <- fluidPage(
                      label = "Please select a method for adjusting p values", 
                      choices =c("Benj&Hoch" = "BH", 
                                 "bonferroni", "none"),
-                     selected = 'Benj&Hoch'
+                     selected = 'BH'
       ),
       verbatimTextOutput("padjust"),
       selectizeInput("pcutoff", 
@@ -386,6 +386,8 @@ server <- function(input, output) {
     var_gene <- apply(dataMat, 1, var)
     index <- which(log2(mean_gene) > input$log2bmcutoff)
     dataMat1 <- dataMat[order(var_gene[index]),]
+    if(length(index) < 100)
+      return(NULL)
     d3heatmap(dataMat1[1:100,], scale="row", colors=colorRampPalette(c("blue","white","red"))(1000))
   })
   
@@ -514,7 +516,7 @@ server <- function(input, output) {
                       dataMat1[,2] > log2(as.numeric(input$fccutoff)) &
                       p_adjust < as.numeric(input$pcutoff))
     if(length(DE_index) == 1)
-      return(datatable(data.frame()), options = list(pageLength = 5))
+      return(datatable(data.frame(), options = list(pageLength = 5)))
     dataMat1 <- cbind(dataMat[DE_index,], dataMat1[DE_index,2], p_adjust[DE_index])
     colnames(dataMat1) <- c(paste('S', 1:ncol(dataMat), sep=''), 'Log2 fold change', 'p adjusted value')
     datatable(dataMat1, options = list(pageLength = 5))
