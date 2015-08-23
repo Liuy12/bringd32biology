@@ -21,7 +21,7 @@ ui <- fluidPage(
            opacity:1;
          }
        </style>"),
-  fluidRow(column(12, tags$header(strong(HTML("<p align = 'center'>RNA-seq Data: Bringing <span style='color: red;'>D3</span> visualization to RNA-seq!")), style = "font-size: 50px; 
+  fluidRow(column(12, tags$header(strong(HTML("<p align = 'center'>RNA-seq Viz: Bringing <span style='color: red;'>D3</span> visualization to RNA-seq!")), style = "font-size: 50px; 
                                   background-color: #F0FFFF;"))),
   tags$hr(),
   sidebarLayout(
@@ -150,69 +150,77 @@ ui <- fluidPage(
                          selected = 1)
     ),
     mainPanel(
-      tabsetPanel(
-        tabPanel("Table", dataTableOutput("Table")),
-        tabPanel("Heatmap", d3heatmapOutput('Heatmap')), 
-        tabPanel("Kernel Density Estimation", showOutput("Density", "nvd3")), 
-        tabPanel("Scatter Plot", fluidPage(
-          fluidRow(
-            column(4, offset = 1, textInput("text_S1", label = "Enter first sample name (For example, S1)", 
-                                value = "S1"
-            )),
-            column(4,offset = 2, textInput("text_S2", label = "Enter second sample name (For example, S2)", 
-                                value = "S2"
-            ))
-          ), 
-          fluidRow(
-            column(4, offset = 1, verbatimTextOutput("value_S1")),
-            column(4, offset = 2, verbatimTextOutput("value_S2"))
-          ),
-          hr(),
-          showOutput("ScatterPlot", "highcharts")
-        )),
-        tabPanel("Boxplot", plotOutput("Boxplot")),
-        tabPanel("Principal Component", fluidPage(
-          fluidRow(
-            column(4, offset = 1, selectizeInput("cvCutoff", 
-                                     label = 'Please select a cutoff for cv (coefficient of variation)',
-                                     choices = c(0.1, 0.3, 0.5))
-                   ),
-            column(4,offset = 2, selectizeInput("clusterMethod", 
-                                                label = 'Please select a method for clustering (pca or mds)',
-                                                choices = c('pca', 'mds'))
-          )),
-          fluidRow(
-            column(4, offset = 1, verbatimTextOutput("value_cvcutoff")),
-            column(4, offset = 2, verbatimTextOutput("value_clustermethod"))
-          )),
-          hr(),
-          showOutput("PrincipalComponent", "dimple")
-        ),
-        tabPanel("Gene interaction network", fluidPage(
-          fluidRow(
-            column(4, offset = 1, sliderInput("Exprscut", "Expression level cutoff", 
-                                              min=0, max=20, step = 2, value=8
-            )),
-            column(4,offset = 2, sliderInput("Corrcut", "Correlation cutoff", 
-                                             min=0, max=1, step = 0.1, value=0.9)
-            )),
-          fluidRow(
-            column(4, offset = 1, verbatimTextOutput("value_Exprscut")),
-            column(4, offset = 2, verbatimTextOutput("value_Corrcut"))
-          )),
-          hr(),
-          forceNetworkOutput("forceNetworkGene")
-          ),
-        tabPanel("DE Table", dataTableOutput('DEtable')),
-        tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
-        tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
-        tabPanel("Dispersion plot", showOutput("DispersionPlot", "polycharts")),
-        conditionalPanel(condition = "input$DEmethod == 'XBSeq'",
-                         tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3"))
-        )
-      )
-    )
-  ))
+      navbarPage(title = 'Analytical modules', id = 'page', collapsible=TRUE, inverse=FALSE, 
+                 tabPanel('Quanlity control', 
+                          tabsetPanel(
+                            tabPanel("Table", dataTableOutput("Table")),
+                            tabPanel("Heatmap", d3heatmapOutput('Heatmap')), 
+                            tabPanel("Kernel Density Estimation", showOutput("Density", "nvd3")), 
+                            tabPanel("Scatter Plot", fluidPage(
+                              fluidRow(
+                                column(4, offset = 1, textInput("text_S1", label = "Enter first sample name (For example, S1)", 
+                                                                value = "S1"
+                                )),
+                                column(4,offset = 2, textInput("text_S2", label = "Enter second sample name (For example, S2)", 
+                                                               value = "S2"
+                                ))
+                              ), 
+                              fluidRow(
+                                column(4, offset = 1, verbatimTextOutput("value_S1")),
+                                column(4, offset = 2, verbatimTextOutput("value_S2"))
+                              ),
+                              hr(),
+                              showOutput("ScatterPlot", "highcharts")
+                            )),
+                            tabPanel("Boxplot", plotOutput("Boxplot")))
+                 ),
+                 tabPanel('Gene/Sample relationship', 
+                          tabsetPanel(
+                            tabPanel("Principal Component", fluidPage(
+                              fluidRow(
+                                column(4, offset = 1, selectizeInput("cvCutoff", 
+                                                                     label = 'Please select a cutoff for cv (coefficient of variation)',
+                                                                     choices = c(0.1, 0.3, 0.5))
+                                ),
+                                column(4,offset = 2, selectizeInput("clusterMethod", 
+                                                                    label = 'Please select a method for clustering (pca or mds)',
+                                                                    choices = c('pca', 'mds'))
+                                )),
+                              fluidRow(
+                                column(4, offset = 1, verbatimTextOutput("value_cvcutoff")),
+                                column(4, offset = 2, verbatimTextOutput("value_clustermethod"))
+                              )),
+                              hr(),
+                              showOutput("PrincipalComponent", "dimple")
+                            ),
+                            tabPanel("Gene interaction network", fluidPage(
+                              fluidRow(
+                                column(4, offset = 1, sliderInput("Exprscut", "Expression level cutoff", 
+                                                                  min=0, max=20, step = 2, value=8
+                                )),
+                                column(4,offset = 2, sliderInput("Corrcut", "Correlation cutoff", 
+                                                                 min=0, max=1, step = 0.1, value=0.9)
+                                )),
+                              fluidRow(
+                                column(4, offset = 1, verbatimTextOutput("value_Exprscut")),
+                                column(4, offset = 2, verbatimTextOutput("value_Corrcut"))
+                              )),
+                              hr(),
+                              forceNetworkOutput("forceNetworkGene")
+                            )
+                          )),
+                 tabPanel('Differential expression analysis', 
+                          tabsetPanel(
+                            tabPanel("DE Table", dataTableOutput('DEtable')),
+                            tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
+                            tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
+                            tabPanel("Dispersion plot", showOutput("DispersionPlot", "polycharts")),
+                            conditionalPanel(condition = "input$DEmethod == 'XBSeq'",
+                                             tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3"))
+                            )
+                          ))
+                 ))
+      ))
 
 
 
