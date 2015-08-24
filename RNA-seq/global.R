@@ -1,6 +1,20 @@
 library(shiny)
 library(googleVis)
 library(mailR)
+library(d3heatmap)
+library(metricsgraphics)
+library(shiny)
+library(networkD3)
+library(DT)
+library(rCharts)
+library(shinythemes)
+library(data.table)
+library(dplyr)
+library(DESeq)
+library(DESeq2)
+library(XBSeq)
+library(edgeR)
+library(limma)
 
 #Texts
 WEBTITLE <- "RNA-seq Viz"
