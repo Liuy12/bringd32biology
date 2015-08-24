@@ -172,7 +172,7 @@ ui <- fluidPage(
                               hr(),
                               showOutput("ScatterPlot", "highcharts")
                             )),
-                            tabPanel("Boxplot", plotOutput("Boxplot")))
+                            tabPanel("Boxplot", showOutput("Boxplot", "highcharts")))
                  ),
                  tabPanel('Gene/Sample relationship', 
                           tabsetPanel(
@@ -308,6 +308,19 @@ limma_voom.pfun <-
     cbind(pval = padj, padj = padj)
   }
 
+renderChart3 <- function(expr, env = parent.frame(), quoted = FALSE) {
+  func <- shiny::exprToFunction(expr, env, quoted)
+  function() {
+    rChart_ <- func()
+    cht_style <- sprintf("<style>.rChart {width: %spx; height: %spx} </style>",
+                         rChart_$params$width, rChart_$params$height)
+    cht <- paste(capture.output(rChart_$print()), collapse = '\n')
+    fcht <- paste(c(cht_style, cht), collapse = '\n')
+    fcht <- gsub("\\\\", "\\", fcht, fixed=T)
+    HTML(fcht)
+  }
+}
+
 
 
 server <- function(input, output) {
@@ -437,17 +450,46 @@ server <- function(input, output) {
     dataComb <- dataComb()
     dataMat <- log2(dataComb[[2]])
     dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
-    colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
+    colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
     dataMat <- as.data.frame(dataMat)
     hp <- hPlot(x= input$text_S1, y = input$text_S2, data = dataMat, type = 'scatter', radius = 3)
     hp$addParams(dom = "ScatterPlot")
+#     hp$tooltip(formatter = "#! function() { return 'x: '     + this.point.x + 
+#                                                 'y: '    + this.point.y  + 
+#                                                 'name: '  + this.point.GeneName; } !#")
     hp$colors('black')
-    return(hp)
+    hp
   })
   
   output$value_cvcutoff <- renderPrint({input$cvCutoff})
   
   output$value_clustermethod <- renderPrint({input$clusterMethod})
+  
+  output$Boxplot <- renderChart({
+    dataComb <- dataComb()
+    dataMat <- log2(dataComb[[2]])
+    dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
+    colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep='')
+    bwstats <- setNames(
+      as.data.frame(boxplot(dataMat, plot = F)$stats),
+      nm = NULL
+    )
+    hp <- Highcharts$new()
+    hp$set(series = list(list(
+      name = 'Observations',
+      data = bwstats
+    )))
+    hp$xAxis(
+      categories = colnames(dataMat),
+      title = list(text = 'Sample')
+    )
+    hp$yAxis(
+      title = list(text = 'Log2 intensity')  
+    )
+    hp$chart(type = 'boxplot')
+    hp$addParams(dom = "Boxplot")
+    hp
+  })
   
   output$PrincipalComponent <- renderChart({
     colors <- c('#00FFFF', '#FFE4C4', '#D2691E', '#6495ED', '#9932CC', '#8B0000', 
@@ -477,13 +519,6 @@ server <- function(input, output) {
     dp$xAxis(type = 'addMeasureAxis')
     dp$addParams(dom = "PrincipalComponent")
     dp
-#     np <- nPlot(PC2~PC1, data = as.data.frame(ppoints), group= c('Design'), type = 'scatterChart')
-#     np$addParams(dom = "PrincipalComponent")
-#     np$chart(color = colors[1:length(unique(design$Design))])
-#     np$xAxis(axisLabel = 'PC1')
-#     np$yAxis(axisLabel = 'PC2')
-#     np$chart(sizeRange = c(50,50))
-#     return(np)
   })
   
   output$value_Exprscut <- renderPrint({input$Exprscut})
@@ -558,7 +593,7 @@ server <- function(input, output) {
     mp
   })
   
-  output$DispersionPlot <- renderChart({
+  output$DispersionPlot <- renderChart3({
     dataComb <- dataComb()
     Dispersion <- as.data.frame(dataComb[[3]])
     Dispersion$baseMean <- dataComb[[4]][,1] + 1
@@ -566,7 +601,10 @@ server <- function(input, output) {
     colnames(Dispersion1) <- c('Disp', 'Type')
     Dispersion1$baseMean <- rep(Dispersion$baseMean, times = 2)
     Dispersion1$Dispfit <- rep(Dispersion$dispFit, times =2)
-    rp <- rPlot(Disp~baseMean, data = Dispersion1, color = 'Type', type = 'point', size = list(const = 2))
+    Dispersion1$GeneName <- rownames(dataComb[[2]])
+    rp <- rPlot(Disp~baseMean, data = Dispersion1, color = 'Type', type = 'point', size = list(const = 2),
+                tooltip = "#!function(item){ return 'x: ' + item.baseMean + '\\n' + 
+        ' y: ' + item.Disp + '\\n' + ' GeneName: ' + item.GeneName  + '\\n' + 'Type: ' + item.Type}!#")
     rp$layer(y = 'Dispfit', type = 'line', color = list(const = 'red'),
              copy_layer = T)
     rp$guides("{x: { scale: {type: 'log'}}}")
