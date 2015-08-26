@@ -1,6 +1,12 @@
 #### Log in module ###
 USER <- reactiveValues(Logged = Logged,Group=Group)
 
+output$LoginStatus <- reactive({
+  USER$Logged
+})
+
+outputOptions(output, 'LoginStatus', suspendWhenHidden=FALSE)
+  
 output$uiLogin <- renderUI({
   if (USER$Logged == FALSE) {
 	return(
@@ -10,7 +16,7 @@ output$uiLogin <- renderUI({
 	           column(2, offset = 0.5, passwordInput("passwd", "Password:"), style = "margin-top: 25px"),
 	           column(2, offset = 0.5, actionButton("Login", "Log in"), style = "margin-top: 45px"),
 	           column(2, offset = 0.5, textOutput("pass")),
-	           style = "background-color: #4682B4;"
+	           style = "background-color: #87CEFA;"
 	           )
 	  )
   }
@@ -50,6 +56,7 @@ output$pass <- renderText({
 	  if (length(usernameInd) > 0) {
 		  if (GLOBALDATA$userData$password[usernameInd[1]]==Password) {
 			  USER$Logged <- TRUE
+			  
 			  USER$Group <- GLOBALDATA$userData$group[usernameInd[1]]
 		  }
 		  else  {

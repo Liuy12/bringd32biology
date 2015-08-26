@@ -18,5 +18,33 @@ shinyUI(bootstrapPage(
   theme = shinytheme("flatly"),
   uiOutput("uiLogin"),
   uiOutput("uiSignup"),
-  uiOutput("Navbar")
+  conditionalPanel(condition = "output.LoginStatus",
+                   dashboardPage(
+                     dashboardHeader(title = "RNA-seq Vis"),
+                     dashboardSidebar(
+                       sidebarMenu(id = 'sidebar', 
+                                   menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
+                                   menuItem("Application", tabName = "application", icon = icon("th"),
+                                            menuSubItem('Docomentation', tabName = "doc", icon = icon("file-text")),
+                                            menuSubItem('Start analysis', tabName = 'Analysis', icon = icon("bolt"))
+                                   ),
+                                   menuItem("Account", tabName = "Account", icon = icon('user')),
+                                   menuItem("About us", tabName = "aboutus", icon = icon("users"))
+                       ),
+                       conditionalPanel(condition = "input.sidebar == 'Analysis'",
+                                        uiOutput("AnalysisPanel"))
+                     ),
+                     dashboardBody(
+                       tabItems(
+                         # First tab content
+                         tabItem(tabName = "dashboard", uiOutput("dashboardpage")),
+                         tabItem(tabName = "Analysis", 
+                                 uiOutput("Navpage")),
+                         tabItem(tabName = "Account",
+                                 uiOutput("AccountInfo")),
+                         tabItem(tabName = "aboutus", "Things to do")
+                       )
+                     )
+                   )
+    )
 ))

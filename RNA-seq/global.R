@@ -1,4 +1,5 @@
 library(shiny)
+library(shinydashboard)
 library(googleVis)
 library(mailR)
 library(d3heatmap)
@@ -38,7 +39,7 @@ SMTP_FROM = "Yuanhang <yuanhangliu.ok@gmail.com>"
 SMTP_SETTINGS = list(host.name='aspmx.l.google.com',
 		port='2525',
 		user.name='yuanhangliu.ok@gmail.com',
-		passwd='Aa1990914')
+		passwd='')
 SMTP_AUTHENTICATE=TRUE
 
 sendEmail <- function(subject="New Assignment",body="New Assignment Content",to=emailList) {

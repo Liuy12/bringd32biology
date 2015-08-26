@@ -128,180 +128,169 @@ shinyServer(function(input, output,session) {
   })
   
   observe({
-    if (USER$Logged == TRUE) {
-      output$Navbar <- renderUI({
-        navbarPage(
-          "RNA-seq Viz", id = "navbar_id",
-          tabPanel("Introduction",
-                   uiOutput("Intro")),
-          tabPanel("Start analysis",
-                   uiOutput("Startanalysis")),
-          tabPanel("Documentation"),
-          tabPanel("Why D3"),
-          tabPanel("About us"),
-          tabPanel("Account management",
-                   renderUI({
-                     changePasswordTab <-
-                       tabPanel("Change Password",uiOutput("changePassword"))
-                     userAdminTab <-
-                       tabPanel("User Management",uiOutput("userAdmin"))
-                     emailAdminTab <-
-                       tabPanel("Email Management",uiOutput("emailAdmin"))
-                     
-                     if (USER$Group == "admin") {
-                       tabsetPanel(changePasswordTab,
-                                   userAdminTab,emailAdminTab)
-                     } else {
-                       tabsetPanel(changePasswordTab)
-                     }
-                   }))
-        )
+    if (input$sidebar == 'Application') {
+      output$AnalysisPanel <- renderUI({
+              uiOutput("AnalysisPanel")
       })
+    }
+  })
       
-      output$userAdmin <- renderUI({
-        list(
-          h4("Users list:"),
-          htmlOutput("usersTableDisplay"),
-          br(),
-          h4("User Management:"),
-          tags$div(
-            class = "row-fluid",
-           # tags$div(class = "span6", uiOutput("usersAdd")),
-            tags$div(class = "span6", uiOutput("usersMove")),
-            tags$div(class = "span6", uiOutput("usersDel"))
-          )
-        )
-      })
-      
-      output$emailAdmin <- renderUI({
-        list(uiOutput("editEmails"))
-      })
-      
-      output$changePassword <- renderUI({
-        wellPanel(
-          passwordInput("oldPassword", "Input Old Password:"),
-          passwordInput("newPassword1", "Input New Password:"),
-          passwordInput("newPassword2", "Confirm New Password:"),
-          br(),
-          actionButton('changePasswordButton','Change Password'),
-          br(),
-          h4(textOutput("changePaawordResult"))
-        )
-      })
-      
-      output$editEmails <- renderUI({
-        wellPanel(
-          h4("Edit Emails"),
-          checkboxInput(
-            inputId = "sendEmailOrNot", label = "Send email", value = sendEmailSign
-          ),
-          textInput(
-            inputId = "emails",label = "Emails:(email1;email2;email3;...)",value = paste0(emailList,collapse =
-                                                                                            ";")
-          ),
-          tags$head(tags$style(type = "text/css", "#emails {width: 800px}")),
-          br(),
-          actionButton('editEmailButton','Update Email'),
-          br(),
-          h4(textOutput("editEmailResult"))
-        )
-      })
-      
-      output$usersMove <- renderUI({
-        wellPanel(
-          h4("Move User"),
-          selectInput(
-            "moveUserName","Select User Name to Move:",sapply(userData[,1],function(x)
-              x,simplify = F)
-          ),
-          selectInput(
-            "moveUserGroup", "Select User Group to Move:",list("user" = "user","admin" =
-                                                                 "admin")
-          ),
-          textInput(
-            inputId = "moveUserNote",label = "Note:",value = ""
-          ),
-          br(),
-          actionButton('moveUserButton','Move User'),
-          br(),
-          h4(textOutput("moveUserResult"))
-        )
-        #}
-      })
-      
-      output$usersDel <- renderUI({
-        wellPanel(
-          h4("Delete User"),
-          selectInput(
-            "delUserName","Select User Name to Delete:",sapply(userData[,1],function(x)
-              x,simplify = F)
-          ),
-          br(),
-          actionButton('delUserButton','Delete User'),
-          br(),
-          h4(textOutput("delUserResult"))
-        )
-      })
-      
-      output$Intro <- renderUI({
-        HTML(
-          "<div class='portfolio'>
-          <div class='pentagon'>
-          <a href='http://webdesigncrowd.com/dribbble-application-icons/'>
-          <span class='mask'></span>
-          <img src='http://www.webdesigncrowd.com/demo/css-pentagon-hover-9.23.13/images/app_icons.jpg' />
-          </a>
-          <div class='portfolio-title'>
-          <h4>Dribbble's App Icons<span>View Project</span></h4>
-          </div>
-          </div>
-          <div class='pentagon'>
-          <a href='http://webdesigncrowd.com/websites-unique-scrolling-adventure/'>
-          <span class='mask'></span>
-          <img src='http://www.webdesigncrowd.com/demo/css-pentagon-hover-9.23.13/images/thumb.jpg' />
-          </a>
-          <div class='portfolio-title'>
-          <h4>Scrolling Adventures<span>View Project</span></h4>
-          </div>
-          </div>
-          <div class='pentagon'>
-          <a href='http://webdesigncrowd.com/sensational-digital-art-assassins-creed/'>
-          <span class='mask'></span>
-          <img src='http://www.webdesigncrowd.com/demo/css-pentagon-hover-9.23.13/images/thumb2.jpg' />
-          </a>
-          <div class='portfolio-title'>
-          <h4>Assassin's Creed Art<span>View Project</span></h4>
-          </div>
-          </div>
-          <div class='pentagon'>
-          <a href='http://webdesigncrowd.com/bold-free-html-portfolio-theme/'>
-          <span class='mask'></span>
-          <img src='http://www.webdesigncrowd.com/demo/css-pentagon-hover-9.23.13/images/thumb6.jpg' />
-          </a>
-          <div class='portfolio-title'>
-          <h4>BOLD: HTML theme<span>View Project</span></h4>
-          </div>
-          </div>
-          <div class='pentagon'>
-          <a href='http://webdesigncrowd.com/create-wood-textured-web-layout-photoshop-header/'>
-          <span class='mask'></span>
-          <img src='http://www.webdesigncrowd.com/demo/css-pentagon-hover-9.23.13/images/thumb4.jpg' />
-          </a>
-          <div class='portfolio-title'>
-          <h4>Wood Layout Photoshop<span>View Project</span></h4>
-          </div>
-          </div>
-          
-          <!-- clearfix -->
-          <div class='clearfix'></div>
-          </div>"
-        )
-      })
-      
-      
+  output$AccountInfo <- renderUI({
+    changePasswordTab <-
+      tabPanel("Change Password",uiOutput("changePassword"))
+    userAdminTab <-
+      tabPanel("User Management",uiOutput("userAdmin"))
+    emailAdminTab <-
+      tabPanel("Email Management",uiOutput("emailAdmin"))
+    if(USER$Group == "admin"){
+      tabsetPanel(changePasswordTab,userAdminTab,emailAdminTab)
+    }
+    else{
+      tabsetPanel(changePasswordTab)
     }
   })
   
+  
+  output$userAdmin <- renderUI({
+    list(
+      h4("Users list:"),
+      htmlOutput("usersTableDisplay"),
+      br(),
+      h4("User Management:"),
+      tags$div(
+        class = "row-fluid",
+        # tags$div(class = "span6", uiOutput("usersAdd")),
+        tags$div(class = "span6", uiOutput("usersMove")),
+        tags$div(class = "span6", uiOutput("usersDel"))
+      )
+    )
+  })
+  
+  output$emailAdmin <- renderUI({
+    list(uiOutput("editEmails"))
+  })
+  
+  output$changePassword <- renderUI({
+    wellPanel(
+      passwordInput("oldPassword", "Input Old Password:"),
+      passwordInput("newPassword1", "Input New Password:"),
+      passwordInput("newPassword2", "Confirm New Password:"),
+      br(),
+      actionButton('changePasswordButton','Change Password'),
+      br(),
+      h4(textOutput("changePaawordResult"))
+    )
+  })
+  
+  output$editEmails <- renderUI({
+    wellPanel(
+      h4("Edit Emails"),
+      checkboxInput(
+        inputId = "sendEmailOrNot", label = "Send email", value = sendEmailSign
+      ),
+      textInput(
+        inputId = "emails",label = "Emails:(email1;email2;email3;...)",value = paste0(emailList,collapse =
+                                                                                        ";")
+      ),
+      tags$head(tags$style(type = "text/css", "#emails {width: 800px}")),
+      br(),
+      actionButton('editEmailButton','Update Email'),
+      br(),
+      h4(textOutput("editEmailResult"))
+    )
+  })
+  
+  output$usersMove <- renderUI({
+    wellPanel(
+      h4("Move User"),
+      selectInput(
+        "moveUserName","Select User Name to Move:",sapply(userData[,1],function(x)
+          x,simplify = F)
+      ),
+      selectInput(
+        "moveUserGroup", "Select User Group to Move:",list("user" = "user","admin" =
+                                                             "admin")
+      ),
+      textInput(
+        inputId = "moveUserNote",label = "Note:",value = ""
+      ),
+      br(),
+      actionButton('moveUserButton','Move User'),
+      br(),
+      h4(textOutput("moveUserResult"))
+    )
+    #}
+  })
+  
+  output$usersDel <- renderUI({
+    wellPanel(
+      h4("Delete User"),
+      selectInput(
+        "delUserName","Select User Name to Delete:",sapply(userData[,1],function(x)
+          x,simplify = F)
+      ),
+      br(),
+      actionButton('delUserButton','Delete User'),
+      br(),
+      h4(textOutput("delUserResult"))
+    )
+  })
+  
+#   output$dashboardpage <- renderUI({
+#     HTML(
+#       "<div class='portfolio'>
+#       <div class='pentagon'>
+#       <a href='http://webdesigncrowd.com/dribbble-application-icons/'>
+#       <span class='mask'></span>
+#       <img src='http://www.webdesigncrowd.com/demo/css-pentagon-hover-9.23.13/images/app_icons.jpg' />
+#       </a>
+#       <div class='portfolio-title'>
+#       <h4>Dribbble's App Icons<span>View Project</span></h4>
+#       </div>
+#       </div>
+#       <div class='pentagon'>
+#       <a href='http://webdesigncrowd.com/websites-unique-scrolling-adventure/'>
+#       <span class='mask'></span>
+#       <img src='http://www.webdesigncrowd.com/demo/css-pentagon-hover-9.23.13/images/thumb.jpg' />
+#       </a>
+#       <div class='portfolio-title'>
+#       <h4>Scrolling Adventures<span>View Project</span></h4>
+#       </div>
+#       </div>
+#       <div class='pentagon'>
+#       <a href='http://webdesigncrowd.com/sensational-digital-art-assassins-creed/'>
+#       <span class='mask'></span>
+#       <img src='http://www.webdesigncrowd.com/demo/css-pentagon-hover-9.23.13/images/thumb2.jpg' />
+#       </a>
+#       <div class='portfolio-title'>
+#       <h4>Assassin's Creed Art<span>View Project</span></h4>
+#       </div>
+#       </div>
+#       <div class='pentagon'>
+#       <a href='http://webdesigncrowd.com/bold-free-html-portfolio-theme/'>
+#       <span class='mask'></span>
+#       <img src='http://www.webdesigncrowd.com/demo/css-pentagon-hover-9.23.13/images/thumb6.jpg' />
+#       </a>
+#       <div class='portfolio-title'>
+#       <h4>BOLD: HTML theme<span>View Project</span></h4>
+#       </div>
+#       </div>
+#       <div class='pentagon'>
+#       <a href='http://webdesigncrowd.com/create-wood-textured-web-layout-photoshop-header/'>
+#       <span class='mask'></span>
+#       <img src='http://www.webdesigncrowd.com/demo/css-pentagon-hover-9.23.13/images/thumb4.jpg' />
+#       </a>
+#       <div class='portfolio-title'>
+#       <h4>Wood Layout Photoshop<span>View Project</span></h4>
+#       </div>
+#       </div>
+#       
+#       <!-- clearfix -->
+#       <div class='clearfix'></div>
+#       </div>"
+#     )
+#   })
+#   
   output$changePaawordResult <- renderText({
     changePasswordFun()
   })
