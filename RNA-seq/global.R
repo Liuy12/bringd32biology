@@ -34,11 +34,11 @@ GLOBALDATA <- reactiveValues(userData=userData)
 emailList<-readLines(emailFile)
 sendEmailSign<-TRUE
 
-SMTP_FROM = "Yuanhang <Liuy12@uthscsa.edu>"
-SMTP_SETTINGS = list(host.name='mailtrap.io',
+SMTP_FROM = "Yuanhang <yuanhangliu.ok@gmail.com>"
+SMTP_SETTINGS = list(host.name='aspmx.l.google.com',
 		port='2525',
-		user.name='YourUserName',
-		passwd='YourPassword')
+		user.name='yuanhangliu.ok@gmail.com',
+		passwd='Aa1990914')
 SMTP_AUTHENTICATE=TRUE
 
 sendEmail <- function(subject="New Assignment",body="New Assignment Content",to=emailList) {

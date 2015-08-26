@@ -1,21 +1,22 @@
 shinyUI(bootstrapPage(
-				# Add custom CSS & Javascript;
-				tagList(
-						tags$head(
-								tags$link(rel="stylesheet", type="text/css",href="style.css"),
-								tags$script(type="text/javascript", src = "md5.js"),
-								tags$script(type="text/javascript", src = "passwdInputBinding.js")
-						)
-				),
-				
-				## Login module;
-				  theme = shinytheme("flatly"),
-				  fluidRow(column(12, tags$header(strong(HTML("<p align = 'center'>RNA-seq Viz: Bringing <span style='color: red;'>D3</span> visualization to RNA-seq!")), style = "font-size: 50px; 
-                                  background-color: #F0FFFF;"))),
-				tags$hr(),
-				div(class = "login",
-						uiOutput("uiLogin"),
-						textOutput("pass")
-				),
-				uiOutput("Navbar")
-		))
+  # Add custom CSS & Javascript;
+  tagList(
+    tags$head(
+      tags$link(rel="stylesheet", type="text/css",href="style.css"),
+      tags$script(type="text/javascript", src = "md5.js"),
+      tags$script(type="text/javascript", src = "passwdInputBinding.js")
+      # 								tags$script(type="text/javascript", src = "PentagonHover.js"),
+      # 								tags$script(type="text/javascript", charset="UTF-8", src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js")
+    )
+  ),
+  HTML("<style>
+         .tooltip {
+           opacity:1;
+         }
+       </style>"),
+  ## Login module;
+  theme = shinytheme("flatly"),
+  uiOutput("uiLogin"),
+  uiOutput("uiSignup"),
+  uiOutput("Navbar")
+))

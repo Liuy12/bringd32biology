@@ -4,20 +4,40 @@ USER <- reactiveValues(Logged = Logged,Group=Group)
 output$uiLogin <- renderUI({
   if (USER$Logged == FALSE) {
 	return(
-			list(
-			  br(),
-			  br(),
-			  br(),
-			  br(),
-					column(12, wellPanel(
-					  textInput("userName", "User Name:"),
-					  passwordInput("passwd", "Password:"),
-					  br(),
-					  actionButton("Login", "Log in")
-					), offset = 1)
-					)
-			)
+	  fluidRow(column(3, tags$header(strong("RNA-seq Viz"), style = "font-size: 50px; 
+                                  ")),
+	           column(2, offset = 3, textInput("userName", "User Name:"), style = "margin-top: 25px"),
+	           column(2, offset = 0.5, passwordInput("passwd", "Password:"), style = "margin-top: 25px"),
+	           column(2, offset = 0.5, actionButton("Login", "Log in"), style = "margin-top: 45px"),
+	           column(2, offset = 0.5, textOutput("pass")),
+	           style = "background-color: #4682B4;"
+	           )
+	  )
   }
+})
+
+output$uiSignup <- renderUI({
+  if(USER$Logged == FALSE) {
+    return(
+      fluidRow(column(6, forceNetworkOutput("ForceNetdemo")),
+               column(4, h3("Sign up"), offset = 1,
+                      textInput("userName_signup", label = "Username"),
+                      passwordInput("passwd_signup", label = "Password"),
+                      passwordInput("passwd_signup2", label = "Re-enter password"),
+                      actionButton("Signup", "Sign up"),
+                      h4(textOutput("Signupresult"))
+               ),
+               style = "background-color: #F0F8FF"
+      )
+    )
+    }
+  })
+
+output$ForceNetdemo <- renderForceNetwork({
+  data(MisLinks, MisNodes)
+  forceNetwork(Links = MisLinks, Nodes = MisNodes, Source = "source",
+               Target = "target", Value = "value", NodeID = "name",
+               Group = "group", opacity = 0.8)
 })
 
 output$pass <- renderText({  
