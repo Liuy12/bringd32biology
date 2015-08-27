@@ -19,7 +19,7 @@ shinyUI(bootstrapPage(
   uiOutput("uiLogin"),
   uiOutput("uiSignup"),
   conditionalPanel(condition = "output.LoginStatus",
-                   dashboardPage(
+                   dashboardPage(skin = 'green',
                      dashboardHeader(title = "RNA-seq Vis"),
                      dashboardSidebar(
                        sidebarMenu(id = 'sidebar', 

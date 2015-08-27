@@ -9,7 +9,7 @@ output$AnalysisPanel <- renderUI({
         options = list(placeholder = 'select a method below',
                        onInitialize = I('function() { this.setValue(""); }'))
       ),
-      verbatimTextOutput("value_DE"),
+      column(verbatimTextOutput("value_DE"), width =11, offset = 0.5),
       fileInput(
         'file_obs', 'Choose CSV/TXT File for RNA-seq', accept=c('text/csv', 
                                                                 'text/comma-separated-values,text/plain', 
@@ -37,19 +37,19 @@ output$AnalysisPanel <- renderUI({
                        choices =c('pooled', 'per-condition', 'blind'),
                        selected = 'pooled'
         ),
-        verbatimTextOutput("SCVmethod"),
+        column(verbatimTextOutput("SCVmethod"), width =11, offset = 0.5),
         selectizeInput("SharingMode",
                        label = "Please select a method for sharing mode",
                        choices = c('maximum', 'fit-only', 'gene-est-only'),
                        selected = 'maximum'
         ),
-        verbatimTextOutput("SharingMode"),
+        column(verbatimTextOutput("SharingMode"), width =11, offset = 0.5),
         selectizeInput("fitType",
                        label = "Please select a method for fitType",
                        choices = c('local', 'parametric'),
                        selected = 'local'
         ),
-        verbatimTextOutput("fitType"),        
+        column(verbatimTextOutput("fitType"), width =11, offset = 0.5),
         conditionalPanel(
           condition = "input.DEmethod == 'XBSeq'",
           selectizeInput("ParamEst", 
@@ -58,7 +58,7 @@ output$AnalysisPanel <- renderUI({
                                     'Maximum liklihood estimation' = 'MLE'),
                          selected = 'NP'
           ),
-          verbatimTextOutput("ParamEst")          
+          column(verbatimTextOutput("ParamEst"), width =11, offset = 0.5)
         )
       ),
       conditionalPanel(
@@ -68,21 +68,21 @@ output$AnalysisPanel <- renderUI({
                        choices =c('local', 'parametric', 'mean'),
                        selected = 'local'
         ),
-        verbatimTextOutput("fitType_DESeq2"),
+        column(verbatimTextOutput("fitType_DESeq2"), width =11, offset = 0.5),
         selectizeInput("Test",
                        label = "Please select a method for statistical test",
                        choices = c('Wald test' = 'Wald',
                                    'Log ratio test' = 'LRT'),
                        selected = 'Wald'
         ),
-        verbatimTextOutput("Test"),
+        column(verbatimTextOutput("Test"), width =11, offset = 0.5),
         selectizeInput("cooksCutoff",
                        label = "Please choose either to turn on or off cooks distance cutoff",
                        choices = c('on',
                                    'off'),
                        selected = 'off'
         ),
-        verbatimTextOutput("cooksCutoff")
+        column(verbatimTextOutput("cooksCutoff"), width =11, offset = 0.5)
       ),
       conditionalPanel(
         condition = "input.DEmethod == 'edgeR-robust'",
@@ -91,7 +91,7 @@ output$AnalysisPanel <- renderUI({
                        choices =c("pearson", "deviance", "anscombe"),
                        selected = 'pearson'
         ),
-        verbatimTextOutput("residualType")
+        column(verbatimTextOutput("residualType"), width =11, offset = 0.5)
       ),
       selectizeInput("padjust", 
                      label = "Please select a method for adjusting p values", 
@@ -99,23 +99,23 @@ output$AnalysisPanel <- renderUI({
                                 "bonferroni", "none"),
                      selected = 'BH'
       ),
-      verbatimTextOutput("padjust"),
+      column(verbatimTextOutput("padjust"), width =11, offset = 0.5),
       selectizeInput("pcutoff", 
                      label = "Please set a cutoff of p values for DE genes", 
                      choices =c(0.001, 0.01, 0.05, 0.1, 0.2),
                      selected = 0.05
       ),
-      verbatimTextOutput("pcutoff"),
+      column(verbatimTextOutput("pcutoff"), width =11, offset = 0.5),
       selectizeInput("fccutoff", 
                      label = "Please set a cutoff of fold change for DE genes", 
                      choices =c(1.5, 2, 2.5, 3, 5),
                      selected = 2
       ),
-      verbatimTextOutput("fccutoff"),
+      column(verbatimTextOutput("fccutoff"), width =11, offset = 0.5),
       numericInput("log2bmcutoff", label = "Please set a cutoff for log2 expression intensity (Usually can be determined from density plot)", 
                    value = 5, min = 1
       ),
-      verbatimTextOutput("log2bmcutoff"),
+      column(verbatimTextOutput("log2bmcutoff"), width =11, offset = 0.5),
       actionButton('DEstart', label = 'Start analysis!'),
       textOutput("DEstart"),
       checkboxGroupInput("checkGroup", 
@@ -125,7 +125,6 @@ output$AnalysisPanel <- renderUI({
                                         "Scatter Plot" = 3),
                          selected = 1) 
     )
-    
   )
 })
 
