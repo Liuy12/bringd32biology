@@ -1,19 +1,16 @@
-shinyUI(bootstrapPage(
+shinyUI(fluidPage(
   # Add custom CSS & Javascript;
   tagList(
     tags$head(
-      tags$link(rel="stylesheet", type="text/css",href="style.css"),
       tags$script(type="text/javascript", src = "md5.js"),
-      tags$script(type="text/javascript", src = "passwdInputBinding.js")
-      # 								tags$script(type="text/javascript", src = "PentagonHover.js"),
-      # 								tags$script(type="text/javascript", charset="UTF-8", src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js")
-    )
-  ),
-  HTML("<style>
+      tags$script(type="text/javascript", src = "passwdInputBinding.js"),
+      HTML("<style>
          .tooltip {
            opacity:1;
-         }
-       </style>"),
+           }
+           </style>")
+    )
+  ),
   ## Login module;
   theme = shinytheme("flatly"),
   uiOutput("uiLogin"),
@@ -23,23 +20,26 @@ shinyUI(bootstrapPage(
                      dashboardHeader(title = "RNA-seq Vis"),
                      dashboardSidebar(
                        sidebarMenu(id = 'sidebar', 
+                                   sidebarSearchForm(textId = "searchText", buttonId = "searchButton",
+                                                     label = "Search..."),
                                    menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
-                                   menuItem("Application", tabName = "application", icon = icon("th"),
-                                            menuSubItem('Docomentation', tabName = "doc", icon = icon("file-text")),
-                                            menuSubItem('Start analysis', tabName = 'Analysis', icon = icon("bolt"))
+                                   menuItem("Start analysis", tabName = "Analysis", icon = icon("bolt"),
+                                            menuSubItem("Set input options", tabName = 'SetInput', icon = icon("flag")),
+                                            menuSubItem('Charts', tabName = 'Charts', icon = icon("bar-chart"))
                                    ),
+                                   menuItem('Docomentation', tabName = "doc", icon = icon("file-text")),
                                    menuItem("Account", tabName = "Account", icon = icon('user')),
                                    menuItem("About us", tabName = "aboutus", icon = icon("users"))
-                       ),
-                       conditionalPanel(condition = "input.sidebar == 'Analysis'",
-                                        uiOutput("AnalysisPanel"))
+                       )
                      ),
                      dashboardBody(
                        tabItems(
                          # First tab content
-                         tabItem(tabName = "dashboard", uiOutput("dashboardpage")),
-                         tabItem(tabName = "Analysis", 
-                                 uiOutput("Navpage")),
+                         tabItem(tabName = "dashboard", "To do"),
+                         tabItem(tabName = "SetInput", 
+                                 uiOutput("InputBox")),
+                         tabItem(tabName = "Charts",
+                                 uiOutput("Chartpage")),
                          tabItem(tabName = "Account",
                                  uiOutput("AccountInfo")),
                          tabItem(tabName = "aboutus", "Things to do")

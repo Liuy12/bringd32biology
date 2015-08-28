@@ -1,3 +1,4 @@
+library(googleAuthR)
 library(shiny)
 library(shinydashboard)
 library(googleVis)
@@ -29,6 +30,62 @@ Logged = FALSE
 Group=""
 userData <- read.csv(userFile,header=T,as.is=T)
 GLOBALDATA <- reactiveValues(userData=userData)
+
+# gar_shiny_getAuthUrl <- 
+#   function(redirect.uri,
+#            state = getOption("googleAuthR.securitycode"),
+#            client.id     = getOption("googleAuthR.webapp.client_id"),
+#            client.secret = getOption("googleAuthR.webapp.client_secret"),
+#            scope         = getOption("googleAuthR.scopes.selected")) {
+#     
+#     scopeEnc <- paste(scope, sep='', collapse=' ')
+#     
+#     ## httr friendly version
+#     url <- httr::modify_url(
+#       httr::oauth_endpoints("google")$authorize,
+#       query = list(response_type = "code",
+#                    client_id = client.id,
+#                    redirect_uri = redirect.uri,
+#                    scope = scopeEnc,
+#                    state = state,
+#                    access_type = "online",
+#                    approval_prompt = "auto"))
+#     message("Auth Token URL: ", url)
+#     url
+#   }
+# 
+# 
+# gar_shiny_getUrl <- function(session){
+#   
+#   if(!is.null(session)){
+#     pathname <- session$clientData$url_pathname
+#     ## hack for shinyapps.io
+#     if(session$clientData$url_hostname == "internal.shinyapps.io"){
+#       split_hostname <- strsplit(pathname, "/")[[1]]
+#       hostname <-  paste(split_hostname[2],"shinyapps.io", sep=".")
+#       pathname <- paste0("/",split_hostname[3],"/")
+#       
+#     } else {
+#       hostname <- session$clientData$url_hostname
+#     }
+#     
+#     url <- paste0(session$clientData$url_protocol,
+#                   "//",
+#                   hostname,
+#                   ifelse(hostname == "127.0.0.1",
+#                          ":",
+#                          pathname),
+#                   session$clientData$url_port)
+#     #     message("Shiny URL detected as: ", url)
+#     url
+#   } else {
+#     NULL
+#   }
+#   
+#   
+# }
+
+
 
 
 #Emails

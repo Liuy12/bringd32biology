@@ -1,206 +1,289 @@
-output$AnalysisPanel <- renderUI({
-  fluidPage(
-    theme = shinytheme("flatly"),
+output$InputBox <- renderUI(
     fluidRow(
-      selectizeInput(
-        "DEmethod", 
-        label = 'Please select a method for DE analysis',
-        choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom'),
-        options = list(placeholder = 'select a method below',
-                       onInitialize = I('function() { this.setValue(""); }'))
-      ),
-      column(verbatimTextOutput("value_DE"), width =11, offset = 0.5),
-      fileInput(
-        'file_obs', 'Choose CSV/TXT File for RNA-seq', accept=c('text/csv', 
-                                                                'text/comma-separated-values,text/plain', 
-                                                                '.csv')
-      ),
-      conditionalPanel(
-        condition = "input.DEmethod == 'XBSeq'",
-        fileInput(
-          'file_bg', 'Choose CSV/TXT File for RNA-seq (bg), required if you choose XBSeq', 
-          accept=c('text/csv',
-                   'text/comma-separated-values,text/plain', 
-                   '.csv')
-        )
-      ),
-      fileInput('file_design', 
-                'Choose CSV/TXT File for experiment design',
-                accept=c('text/csv', 
-                         'text/comma-separated-values,text/plain', 
-                         '.csv')
-      ),
-      conditionalPanel(
-        condition = "input.DEmethod == 'DESeq' | input.DEmethod == 'XBSeq'",
-        selectizeInput("SCVmethod", 
-                       label = "Please select a method to estimate dispersion", 
-                       choices =c('pooled', 'per-condition', 'blind'),
-                       selected = 'pooled'
-        ),
-        column(verbatimTextOutput("SCVmethod"), width =11, offset = 0.5),
-        selectizeInput("SharingMode",
-                       label = "Please select a method for sharing mode",
-                       choices = c('maximum', 'fit-only', 'gene-est-only'),
-                       selected = 'maximum'
-        ),
-        column(verbatimTextOutput("SharingMode"), width =11, offset = 0.5),
-        selectizeInput("fitType",
-                       label = "Please select a method for fitType",
-                       choices = c('local', 'parametric'),
-                       selected = 'local'
-        ),
-        column(verbatimTextOutput("fitType"), width =11, offset = 0.5),
-        conditionalPanel(
-          condition = "input.DEmethod == 'XBSeq'",
-          selectizeInput("ParamEst", 
-                         label = "Please select a method to estimate distribution parameters", 
-                         choices =c('Non-parametric' = 'NP', 
-                                    'Maximum liklihood estimation' = 'MLE'),
-                         selected = 'NP'
+      column(width = 12, 
+             box(
+               title = "File input", status = "primary", solidHeader = TRUE,
+               collapsible = TRUE,
+               selectizeInput(
+                 "DEmethod", 
+                 label = 'Please select a method for DE analysis',
+                 choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom'),
+                 options = list(placeholder = 'select a method below',
+                                onInitialize = I('function() { this.setValue(""); }'))
+               ),
+               verbatimTextOutput("value_DE"),
+               fileInput(
+                 'file_obs', 'Choose CSV/TXT File for RNA-seq', accept=c('text/csv', 
+                                                                         'text/comma-separated-values,text/plain', 
+                                                                         '.csv')
+               ),
+               conditionalPanel(
+                 condition = "input.DEmethod == 'XBSeq'",
+                 fileInput(
+                   'file_bg', 'Choose CSV/TXT File for RNA-seq (bg), required if you choose XBSeq', 
+                   accept=c('text/csv',
+                            'text/comma-separated-values,text/plain', 
+                            '.csv')
+                 )
+               ),
+               fileInput('file_design', 
+                         'Choose CSV/TXT File for experiment design',
+                         accept=c('text/csv', 
+                                  'text/comma-separated-values,text/plain', 
+                                  '.csv')
+               )
+             ), 
+             box(
+               title = "Options for DE method", status = "info", solidHeader = TRUE,
+               collapsible = TRUE,
+               conditionalPanel(
+                 condition = "input.DEmethod == 'DESeq' | input.DEmethod == 'XBSeq'",
+                 selectizeInput("SCVmethod", 
+                                label = "Please select a method to estimate dispersion", 
+                                choices =c('pooled', 'per-condition', 'blind'),
+                                selected = 'pooled'
+                 ),
+                 verbatimTextOutput("SCVmethod"),
+                 selectizeInput("SharingMode",
+                                label = "Please select a method for sharing mode",
+                                choices = c('maximum', 'fit-only', 'gene-est-only'),
+                                selected = 'maximum'
+                 ),
+                 verbatimTextOutput("SharingMode"),
+                 selectizeInput("fitType",
+                                label = "Please select a method for fitType",
+                                choices = c('local', 'parametric'),
+                                selected = 'local'
+                 ),
+                 verbatimTextOutput("fitType"),
+                 conditionalPanel(
+                   condition = "input.DEmethod == 'XBSeq'",
+                   selectizeInput("ParamEst", 
+                                  label = "Please select a method to estimate distribution parameters", 
+                                  choices =c('Non-parametric' = 'NP', 
+                                             'Maximum liklihood estimation' = 'MLE'),
+                                  selected = 'NP'
+                   ),
+                   verbatimTextOutput("ParamEst")
+                 )
+               ),
+               conditionalPanel(
+                 condition = "input.DEmethod == 'DESeq2'",
+                 selectizeInput("fitType_DESeq2", 
+                                label = "Please select a method for fit type", 
+                                choices =c('local', 'parametric', 'mean'),
+                                selected = 'local'
+                 ),
+                 verbatimTextOutput("fitType_DESeq2"),
+                 selectizeInput("Test",
+                                label = "Please select a method for statistical test",
+                                choices = c('Wald test' = 'Wald',
+                                            'Log ratio test' = 'LRT'),
+                                selected = 'Wald'
+                 ),
+                 verbatimTextOutput("Test"),
+                 selectizeInput("cooksCutoff",
+                                label = "Please choose either to turn on or off cooks distance cutoff",
+                                choices = c('on',
+                                            'off'),
+                                selected = 'off'
+                 ),
+                 verbatimTextOutput("cooksCutoff")
+               ),
+               conditionalPanel(
+                 condition = "input.DEmethod == 'edgeR-robust'",
+                 selectizeInput("residualType", 
+                                label = "Please select a method for calculating residuals", 
+                                choices =c("pearson", "deviance", "anscombe"),
+                                selected = 'pearson'
+                 ),
+                 verbatimTextOutput("residualType")
+               )
+             )
+             ),
+      column(width = 12, 
+             box(
+               title = "Criteria for DE genes", status = "success", solidHeader = TRUE,
+               collapsible = TRUE,
+               selectizeInput("padjust", 
+                              label = "Please select a method for adjusting p values", 
+                              choices =c("Benj&Hoch" = "BH", 
+                                         "bonferroni", "none"),
+                              selected = 'BH'
+               ),
+               verbatimTextOutput("padjust"),
+               selectizeInput("pcutoff", 
+                              label = "Please set a cutoff of p values for DE genes", 
+                              choices =c(0.001, 0.01, 0.05, 0.1, 0.2),
+                              selected = 0.05
+               ),
+               verbatimTextOutput("pcutoff"),
+               selectizeInput("fccutoff", 
+                              label = "Please set a cutoff of fold change for DE genes", 
+                              choices =c(1.5, 2, 2.5, 3, 5),
+                              selected = 2
+               ),
+               verbatimTextOutput("fccutoff"),
+               numericInput("log2bmcutoff", label = "Please set a cutoff for log2 expression intensity (Usually can be determined from density plot)", 
+                            value = 5, min = 1
+               ),
+               verbatimTextOutput("log2bmcutoff"),
+               actionButton('DEstart', label = 'Start analysis!'),
+               textOutput("DEstart")
+             )
+             )
+    )
+  )
+
+output$Chartpage <- renderUI({
+  fluidPage(
+      tabBox(width = 12,
+        title = tagList(shiny::icon("tag"), "Quality control"),
+        id = "QCtab",
+        tabPanel("Table", dataTableOutput("Table")),
+        tabPanel("Heatmap", d3heatmapOutput('Heatmap')), 
+        tabPanel("Kernel Density Estimation", showOutput("Density", "nvd3")), 
+        tabPanel("Scatter Plot", fluidPage(
+          fluidRow(
+            column(4, offset = 1, textInput("text_S1", label = "Enter first sample name (For example, S1)", 
+                                            value = "S1"
+            )),
+            column(4,offset = 2, textInput("text_S2", label = "Enter second sample name (For example, S2)", 
+                                           value = "S2"
+            ))
+          ), 
+          fluidRow(
+            column(4, offset = 1, verbatimTextOutput("value_S1")),
+            column(4, offset = 2, verbatimTextOutput("value_S2"))
           ),
-          column(verbatimTextOutput("ParamEst"), width =11, offset = 0.5)
+          hr(),
+          showOutput("ScatterPlot", "highcharts")
+        )),
+        tabPanel("Boxplot", showOutput("Boxplot", "highcharts"))
+      ),
+      tabBox(title = tagList(shiny::icon("tag"), 'Gene/Sample relationship'), id = 'relationTab',
+             width = 12,
+             tabPanel("Principal component", tabPanel("Principal Component", fluidPage(
+               fluidRow(
+                 column(4, offset = 1, selectizeInput("cvCutoff", 
+                                                      label = 'Please select a cutoff for cv (coefficient of variation)',
+                                                      choices = c(0.1, 0.3, 0.5))
+                 ),
+                 column(4,offset = 2, selectizeInput("clusterMethod", 
+                                                     label = 'Please select a method for clustering (pca or mds)',
+                                                     choices = c('pca', 'mds'))
+                 )),
+               fluidRow(
+                 column(4, offset = 1, verbatimTextOutput("value_cvcutoff")),
+                 column(4, offset = 2, verbatimTextOutput("value_clustermethod"))
+               )),
+               hr(),
+               showOutput("PrincipalComponent", "dimple")
+             )),
+             tabPanel("Gene interaction network", fluidPage(
+               fluidRow(
+                 column(4, offset = 1, sliderInput("Exprscut", "Expression level cutoff", 
+                                                   min=0, max=20, step = 2, value=8
+                 )),
+                 column(4,offset = 2, sliderInput("Corrcut", "Correlation cutoff", 
+                                                  min=0, max=1, step = 0.1, value=0.9)
+                 )),
+               fluidRow(
+                 column(4, offset = 1, verbatimTextOutput("value_Exprscut")),
+                 column(4, offset = 2, verbatimTextOutput("value_Corrcut"))
+               )),
+               hr(),
+               forceNetworkOutput("forceNetworkGene")
+             )
+      ),
+      tabBox(
+        title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
+        id = 'DEanalysis', width = 12, 
+        tabPanel("DE Table", dataTableOutput('DEtable')),
+        tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
+        tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
+        tabPanel("Dispersion plot", showOutput("DispersionPlot", "polycharts")),
+        conditionalPanel(condition = "input$DEmethod == 'XBSeq'",
+                         tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3"))
         )
-      ),
-      conditionalPanel(
-        condition = "input.DEmethod == 'DESeq2'",
-        selectizeInput("fitType_DESeq2", 
-                       label = "Please select a method for fit type", 
-                       choices =c('local', 'parametric', 'mean'),
-                       selected = 'local'
-        ),
-        column(verbatimTextOutput("fitType_DESeq2"), width =11, offset = 0.5),
-        selectizeInput("Test",
-                       label = "Please select a method for statistical test",
-                       choices = c('Wald test' = 'Wald',
-                                   'Log ratio test' = 'LRT'),
-                       selected = 'Wald'
-        ),
-        column(verbatimTextOutput("Test"), width =11, offset = 0.5),
-        selectizeInput("cooksCutoff",
-                       label = "Please choose either to turn on or off cooks distance cutoff",
-                       choices = c('on',
-                                   'off'),
-                       selected = 'off'
-        ),
-        column(verbatimTextOutput("cooksCutoff"), width =11, offset = 0.5)
-      ),
-      conditionalPanel(
-        condition = "input.DEmethod == 'edgeR-robust'",
-        selectizeInput("residualType", 
-                       label = "Please select a method for calculating residuals", 
-                       choices =c("pearson", "deviance", "anscombe"),
-                       selected = 'pearson'
-        ),
-        column(verbatimTextOutput("residualType"), width =11, offset = 0.5)
-      ),
-      selectizeInput("padjust", 
-                     label = "Please select a method for adjusting p values", 
-                     choices =c("Benj&Hoch" = "BH", 
-                                "bonferroni", "none"),
-                     selected = 'BH'
-      ),
-      column(verbatimTextOutput("padjust"), width =11, offset = 0.5),
-      selectizeInput("pcutoff", 
-                     label = "Please set a cutoff of p values for DE genes", 
-                     choices =c(0.001, 0.01, 0.05, 0.1, 0.2),
-                     selected = 0.05
-      ),
-      column(verbatimTextOutput("pcutoff"), width =11, offset = 0.5),
-      selectizeInput("fccutoff", 
-                     label = "Please set a cutoff of fold change for DE genes", 
-                     choices =c(1.5, 2, 2.5, 3, 5),
-                     selected = 2
-      ),
-      column(verbatimTextOutput("fccutoff"), width =11, offset = 0.5),
-      numericInput("log2bmcutoff", label = "Please set a cutoff for log2 expression intensity (Usually can be determined from density plot)", 
-                   value = 5, min = 1
-      ),
-      column(verbatimTextOutput("log2bmcutoff"), width =11, offset = 0.5),
-      actionButton('DEstart', label = 'Start analysis!'),
-      textOutput("DEstart"),
-      checkboxGroupInput("checkGroup", 
-                         label = h3("Which graphs would you like to save?"), 
-                         choices = list("Heatmap" = 1, 
-                                        "Kernel Density Estimation" = 2, 
-                                        "Scatter Plot" = 3),
-                         selected = 1) 
     )
   )
 })
 
-output$Navpage <- renderUI({
-  navbarPage(title = 'Analytical modules', id = 'page', collapsible=TRUE, inverse=FALSE, 
-             tabPanel('Quanlity control', 
-                      tabsetPanel(
-                        tabPanel("Table", dataTableOutput("Table")),
-                        tabPanel("Heatmap", d3heatmapOutput('Heatmap')), 
-                        tabPanel("Kernel Density Estimation", showOutput("Density", "nvd3")), 
-                        tabPanel("Scatter Plot", fluidPage(
-                          fluidRow(
-                            column(4, offset = 1, textInput("text_S1", label = "Enter first sample name (For example, S1)", 
-                                                            value = "S1"
-                            )),
-                            column(4,offset = 2, textInput("text_S2", label = "Enter second sample name (For example, S2)", 
-                                                           value = "S2"
-                            ))
-                          ), 
-                          fluidRow(
-                            column(4, offset = 1, verbatimTextOutput("value_S1")),
-                            column(4, offset = 2, verbatimTextOutput("value_S2"))
-                          ),
-                          hr(),
-                          showOutput("ScatterPlot", "highcharts")
-                        )),
-                        tabPanel("Boxplot", showOutput("Boxplot", "highcharts")))
-             ),
-             tabPanel('Gene/Sample relationship', 
-                      tabsetPanel(
-                        tabPanel("Principal Component", fluidPage(
-                          fluidRow(
-                            column(4, offset = 1, selectizeInput("cvCutoff", 
-                                                                 label = 'Please select a cutoff for cv (coefficient of variation)',
-                                                                 choices = c(0.1, 0.3, 0.5))
-                            ),
-                            column(4,offset = 2, selectizeInput("clusterMethod", 
-                                                                label = 'Please select a method for clustering (pca or mds)',
-                                                                choices = c('pca', 'mds'))
-                            )),
-                          fluidRow(
-                            column(4, offset = 1, verbatimTextOutput("value_cvcutoff")),
-                            column(4, offset = 2, verbatimTextOutput("value_clustermethod"))
-                          )),
-                          hr(),
-                          showOutput("PrincipalComponent", "dimple")
-                        ),
-                        tabPanel("Gene interaction network", fluidPage(
-                          fluidRow(
-                            column(4, offset = 1, sliderInput("Exprscut", "Expression level cutoff", 
-                                                              min=0, max=20, step = 2, value=8
-                            )),
-                            column(4,offset = 2, sliderInput("Corrcut", "Correlation cutoff", 
-                                                             min=0, max=1, step = 0.1, value=0.9)
-                            )),
-                          fluidRow(
-                            column(4, offset = 1, verbatimTextOutput("value_Exprscut")),
-                            column(4, offset = 2, verbatimTextOutput("value_Corrcut"))
-                          )),
-                          hr(),
-                          forceNetworkOutput("forceNetworkGene")
-                        )
-                      )),
-             tabPanel('Differential expression analysis', 
-                      tabsetPanel(
-                        tabPanel("DE Table", dataTableOutput('DEtable')),
-                        tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
-                        tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
-                        tabPanel("Dispersion plot", showOutput("DispersionPlot", "polycharts")),
-                        conditionalPanel(condition = "input$DEmethod == 'XBSeq'",
-                                         tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3"))
-                        )
-                      )
-             )
-  )
-})
+
+# output$Navpage <- renderUI({
+#   navbarPage(title = 'Analytical modules', id = 'page', collapsible=TRUE, inverse=FALSE, 
+#              tabPanel('Quanlity control', 
+#                       tabsetPanel(
+#                         tabPanel("Table", dataTableOutput("Table")),
+#                         tabPanel("Heatmap", d3heatmapOutput('Heatmap')), 
+#                         tabPanel("Kernel Density Estimation", showOutput("Density", "nvd3")), 
+#                         tabPanel("Scatter Plot", fluidPage(
+#                           fluidRow(
+#                             column(4, offset = 1, textInput("text_S1", label = "Enter first sample name (For example, S1)", 
+#                                                             value = "S1"
+#                             )),
+#                             column(4,offset = 2, textInput("text_S2", label = "Enter second sample name (For example, S2)", 
+#                                                            value = "S2"
+#                             ))
+#                           ), 
+#                           fluidRow(
+#                             column(4, offset = 1, verbatimTextOutput("value_S1")),
+#                             column(4, offset = 2, verbatimTextOutput("value_S2"))
+#                           ),
+#                           hr(),
+#                           showOutput("ScatterPlot", "highcharts")
+#                         )),
+#                         tabPanel("Boxplot", showOutput("Boxplot", "highcharts")))
+#              ),
+#              tabPanel('Gene/Sample relationship', 
+#                       tabsetPanel(
+#                         tabPanel("Principal Component", fluidPage(
+#                           fluidRow(
+#                             column(4, offset = 1, selectizeInput("cvCutoff", 
+#                                                                  label = 'Please select a cutoff for cv (coefficient of variation)',
+#                                                                  choices = c(0.1, 0.3, 0.5))
+#                             ),
+#                             column(4,offset = 2, selectizeInput("clusterMethod", 
+#                                                                 label = 'Please select a method for clustering (pca or mds)',
+#                                                                 choices = c('pca', 'mds'))
+#                             )),
+#                           fluidRow(
+#                             column(4, offset = 1, verbatimTextOutput("value_cvcutoff")),
+#                             column(4, offset = 2, verbatimTextOutput("value_clustermethod"))
+#                           )),
+#                           hr(),
+#                           showOutput("PrincipalComponent", "dimple")
+#                         ),
+#                         tabPanel("Gene interaction network", fluidPage(
+#                           fluidRow(
+#                             column(4, offset = 1, sliderInput("Exprscut", "Expression level cutoff", 
+#                                                               min=0, max=20, step = 2, value=8
+#                             )),
+#                             column(4,offset = 2, sliderInput("Corrcut", "Correlation cutoff", 
+#                                                              min=0, max=1, step = 0.1, value=0.9)
+#                             )),
+#                           fluidRow(
+#                             column(4, offset = 1, verbatimTextOutput("value_Exprscut")),
+#                             column(4, offset = 2, verbatimTextOutput("value_Corrcut"))
+#                           )),
+#                           hr(),
+#                           forceNetworkOutput("forceNetworkGene")
+#                         )
+#                       )),
+#              tabPanel('Differential expression analysis', 
+#                       tabsetPanel(
+#                         tabPanel("DE Table", dataTableOutput('DEtable')),
+#                         tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
+#                         tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
+#                         tabPanel("Dispersion plot", showOutput("DispersionPlot", "polycharts")),
+#                         conditionalPanel(condition = "input$DEmethod == 'XBSeq'",
+#                                          tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3"))
+#                         )
+#                       )
+#              )
+#   )
+# })
 
 StartMessage <- eventReactive(input$DEstart, {
   "Please wait, this might take a while"

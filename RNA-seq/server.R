@@ -5,7 +5,6 @@ shinyServer(function(input, output,session) {
   changePasswordButtonCount <- 0
   delUserButtonCount <- 0
   moveUserButtonCount <- 0
-  SignUpCount <- 0
   editEmailButtonCount <- 0
   
   changePasswordFun <- reactive({
@@ -99,41 +98,13 @@ shinyServer(function(input, output,session) {
     }
   })
   
-  
-  SignupFun <- reactive({
-    if (!is.null(input$Signup) &&
-        input$Signup == SignUpCount) {
-      return(NULL)
-    } else {
-      userName <- isolate(input$userName_signup)
-      userPass1 <- isolate(input$passwd_signup)
-      userPass2 <- isolate(input$passwd_signup2)
-      group <- 'user'
-      
-      if (userPass1 != userPass2) {
-        SignUpCount <<- input$Signup
-        return("The passwords should be same in two inputs.")
-      }
-      
-      temp2 <-
-        c(userName,userPass1, group)
-      userData <<- rbind(userData,temp2)
-      GLOBALDATA$userData <<- userData
-      write.csv(GLOBALDATA$userData,userFile,row.names = F)
-      SignUpCount <<- input$Signup
-      return(paste0(
-        "You have successfully signed up as '", userName , "'. Please log in using your username and password." 
-      ))
-    }
-  })
-  
-  observe({
-    if (input$sidebar == 'Application') {
-      output$AnalysisPanel <- renderUI({
-              uiOutput("AnalysisPanel")
-      })
-    }
-  })
+#   observe({
+#     if (!is.null(input$sidebar) && input$sidebar == 'Application') {
+#       output$AnalysisPanel <- renderUI({
+#               uiOutput("AnalysisPanel")
+#       })
+#     }
+#   })
       
   output$AccountInfo <- renderUI({
     changePasswordTab <-
@@ -290,7 +261,7 @@ shinyServer(function(input, output,session) {
 #       </div>"
 #     )
 #   })
-#   
+  
   output$changePaawordResult <- renderText({
     changePasswordFun()
   })
@@ -301,10 +272,6 @@ shinyServer(function(input, output,session) {
   
   output$moveUserResult <- renderText({
     moveUserFun()
-  })
-  
-  output$Signupresult <- renderText({
-    SignupFun()
   })
   
   output$editEmailResult <- renderText({
