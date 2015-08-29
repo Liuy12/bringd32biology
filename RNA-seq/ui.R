@@ -4,6 +4,7 @@ shinyUI(fluidPage(
     tags$head(
       tags$script(type="text/javascript", src = "md5.js"),
       tags$script(type="text/javascript", src = "passwdInputBinding.js"),
+      tags$link(type="text/css", rel="stylesheet", href="style.css"),
       HTML("<style>
          .tooltip {
            opacity:1;
@@ -17,12 +18,12 @@ shinyUI(fluidPage(
   uiOutput("uiSignup"),
   conditionalPanel(condition = "output.LoginStatus",
                    dashboardPage(skin = 'green',
-                     dashboardHeader(title = "RNA-seq Vis"),
+                     dashboardHeader(title = img(src = 'img/logo.png', style = "max-width:50%")),
                      dashboardSidebar(
                        sidebarMenu(id = 'sidebar', 
                                    sidebarSearchForm(textId = "searchText", buttonId = "searchButton",
                                                      label = "Search..."),
-                                   menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
+                                   menuItem("Introduction", tabName = "introduction", icon = icon("circle-o")),
                                    menuItem("Start analysis", tabName = "Analysis", icon = icon("bolt"),
                                             menuSubItem("Set input options", tabName = 'SetInput', icon = icon("flag")),
                                             menuSubItem('Charts', tabName = 'Charts', icon = icon("bar-chart"))
@@ -35,7 +36,9 @@ shinyUI(fluidPage(
                      dashboardBody(
                        tabItems(
                          # First tab content
-                         tabItem(tabName = "dashboard", "To do"),
+                         tabItem(tabName = "introduction", 
+                                 includeHTML('www/carousel.html'),
+                                 includeHTML('www/Introduction.html')),
                          tabItem(tabName = "SetInput", 
                                  uiOutput("InputBox")),
                          tabItem(tabName = "Charts",

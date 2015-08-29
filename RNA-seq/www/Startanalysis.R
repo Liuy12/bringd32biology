@@ -199,7 +199,7 @@ output$Chartpage <- renderUI({
       tabBox(
         title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
         id = 'DEanalysis', width = 12, 
-        tabPanel("DE Table", dataTableOutput('DEtable')),
+        tabPanel("DE Table", dataTableOutput('DEtable'), style = "max-width:50%"),
         tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
         tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
         tabPanel("Dispersion plot", showOutput("DispersionPlot", "polycharts")),
