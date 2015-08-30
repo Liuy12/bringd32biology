@@ -1,7 +1,7 @@
 <section id="introduction" style="clear: both">
   <h2 class="page-header"><a href="#introduction">Introduction</a></h2>
   <p class="lead">
-    <b>RNA-seq Vis</b> is a shiny application that is hosted on shiny server for analyzing RNA-seq datasets. Different from traditional application for processing RNA-seq data, RNA-seq Vis provides an easy way to generate dynamic visualization for RNA-seq pre-processing and differential expression analysis. 
+    <b>RNA-seq Vis</b> is a web application for analyzing RNA-seq datasets. Different from traditional application for processing RNA-seq data, by using multiple javascript library (see in <a href="#dependency">Dependency</a> section), RNA-seq Vis provides an easy way to generate dynamic visualization for RNA-seq pre-processing and differential expression analysis. 
        </p>
     <p>
       To use RNA-seq Vis, please firstly check the documentation on the left panel and make sure you follow every step by uploading your RNA-seq expression count file and experimental design file and setting all the options required for the analysis. After you submit all required inputs, the output figures will be automatically loaded into Charts subpanel on the left whenever the analysis has finished. You will have options to save selected figures as html report and/or pdf files.
@@ -13,3 +13,34 @@
 
 <!-- ============================================================= -->
 
+<section id="dependency">
+    <h2 class="page-header"><a href="#dependency">Dependency</a></h2>
+    <p class = "lead">
+        RNA-seq Vis is constructed based on <a target="_blank" href="http://shiny.rstudio.com/">shiny framework</a> from R studio. To generate interactive visualization, we incorporate multiple javascript libraries, including <a target="_blank" href="https://www.polychart.com/">Polychart</a>, <a target="_blank" href="http://www.highcharts.com/">Highcharts</a> and <a target="_blank" href="http://nvd3.org/">NVD3</a>. These javascript libraries are in turn based on <a target="_blank" href="http://d3js.org/">D3</a> javascript library. To use these javascript libraries within shiny framework, we adopt <a target="_blank" href="http://rcharts.io/">rCharts</a> package which is essentially an application programming interface (API) for these libraries. Additionally, we also utilize several packages from <a target="_blank" href="http://www.htmlwidgets.org/">htmlwidgets</a> project, including <a target="_blank" href="https://github.com/rstudio/d3heatmap">d3heatmap</a>, <a target="_blank" href="http://rstudio.github.io/DT/">DataTables</a>, <a target="_blank" href="http://christophergandrud.github.io/networkD3/">networkD3</a>, <a target="_blank" href="http://hrbrmstr.github.io/metricsgraphics/">MetricsGraphics</a> and <a target="_blank" href="https://github.com/bwlewis/rthreejs">threejs</a>. Google authentification functionality is adopted from <a target="_blank" href="https://cran.r-project.org/web/packages/googleAuthR/">googleAuthR</a> package. 
+    </p>
+    
+</section>
+
+<section id="difference">
+    <h2 class="page-header"><a href="#difference">Difference in me</a></h2>
+    <h3>Differences with <a target="_blank" href="http://www.broadinstitute.org/cancer/software/genepattern/">GenePattern</a></h3>
+    <ul>
+        <li> 
+            <b>Input files format:</b> GenePattern requires certain formats of <a target="_blank" href="http://www.broadinstitute.org/cancer/software/genepattern/file-formats-guide">input files</a>. Users need to go through several steps just to get the correct format. However, RNA-seq Vis accepts input files in txt/csv format, which will save users some time in converting input files.
+        </li>
+        <li>
+            <b>Analysis procedure:</b> GenePattern uses cuffdiff for testing differential expression by default. Some popular R packages, such as DESeq, edgeR, limma, etc., are not incorporated. On the other side, RNA-seq Vis provides users with access to major differential expression testing R packages. We also include an R package called <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a> that is developed in our own lab. Last but not least, users will have the freedom to change options for differential expression analysis to fit their own needs.  
+        </li>
+        <li>
+            <b>Dynamic visualization:</b> RNA-seq Vis incorporated several popular javascript libraries for visualization which in turn depend on D3 javascript library. Users will have a different perspective of their datasets by interactive visualization. 
+        </li>
+    </ul>
+    <h3>Differences with <a target="_blank" href="https://usegalaxy.org/">Galaxy</a></h3>
+    <ul>
+        <li>
+            
+        </li>
+    </ul>
+
+    
+</section>
