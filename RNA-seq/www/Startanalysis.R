@@ -400,7 +400,7 @@ output$Table <- renderDataTable({
   temp <- datatable(dataMat, options = list(pageLength = 5))
   saveWidget(temp, 'datatable.html')
   temp
-})
+}, server = T)
 
 output$Heatmap <- renderD3heatmap({
   if (is.null(input$file_obs))

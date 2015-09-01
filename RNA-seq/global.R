@@ -134,7 +134,7 @@ DESeq2_pfun <-
       RawCount = counts,
       NormCount = NormCount,
       Dispersion = as.data.frame(mcols(dse)[,4:6]),
-      TestStat = res[, c(1,2,5)]
+      TestStat = as.data.frame(res[, c(1,2,5)])
     )
   }
 
