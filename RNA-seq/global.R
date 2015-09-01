@@ -1,3 +1,5 @@
+library(slidify)
+library(slidifyLibraries)
 library(googleAuthR)
 library(shiny)
 library(shinydashboard)
@@ -124,9 +126,13 @@ DESeq2_pfun <-
       res <- results(dse)
     else
       res <- results(dse, cooksCutoff = FALSE)
+    NormCount = counts(dse, normalized = TRUE)
+    dataout <- cbind(NormCount, as.data.frame(res[, c(1,2,5)]))
+    colnames(dataout) <- c(colnames(counts), 'baseMean', 'Log2 Fold change', 'p value')
+    write.csv(dataout, 'www/report/TestStat.csv', quote = F)
     list(
       RawCount = counts,
-      NormCount = counts(dse, normalized = TRUE),
+      NormCount = NormCount,
       Dispersion = as.data.frame(mcols(dse)[,4:6]),
       TestStat = res[, c(1,2,5)]
     )

@@ -1,0 +1,86 @@
+---
+title       : RNA-seq Vis Report
+subtitle    : 
+author      : 
+job         : 
+framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : []            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+---
+
+<style type="text/css">
+body {background:none transparent;
+}
+</style>
+
+## Data table
+```{r results = 'asis', comment = NA, cache = F, message=FALSE, warning=FALSE, echo=FALSE}
+cat('<iframe src="htmlFiles/datatable.html" width=100% height=100% allowtransparency="true"> </iframe>')
+```
+
+---
+
+## Density plot
+```{r results = 'asis', comment = NA, cache = F, message=FALSE, warning=FALSE, echo=FALSE}
+cat('<iframe src="htmlFiles/density.html" width=100% height=100% allowtransparency="true"> </iframe>')
+```
+
+---
+
+## Scatter plot
+
+```{r echo=FALSE, warning=FALSE,cache=FALSE,results='asis'}
+cat('<iframe src="htmlFiles/Scatterplot.html" width=100% height=100% allowtransparency="true"> </iframe>')
+```
+
+---
+
+## Box plot
+
+```{r echo=FALSE, warning=FALSE,cache=FALSE,results='asis'}
+cat('<iframe src="htmlFiles/Boxplot.html" width=100% height=100% allowtransparency="true"> </iframe>')
+```
+
+---
+
+## Principal component
+
+```{r echo=FALSE, warning=FALSE,cache=FALSE,results='asis'}
+cat('<iframe src="htmlFiles/pcaplot.html" width=100% height=100% allowtransparency="true"> </iframe>')
+```
+
+---
+
+## Gene-gene interaction
+
+```{r echo=FALSE, warning=FALSE,cache=FALSE,results='asis'}
+cat('<iframe src="htmlFiles/forceNet.html" width=100% height=100% allowtransparency="true"> </iframe>')
+```
+
+---
+
+## DE data table
+
+```{r echo=FALSE, warning=FALSE,cache=FALSE,results='asis'}
+cat('<iframe src="htmlFiles/DEdatatable.html" width=100% height=100% allowtransparency="true"> </iframe>')
+```
+
+---
+
+## MA plot
+
+```{r echo=FALSE, warning=FALSE,cache=FALSE,results='asis'}
+cat('<iframe src="htmlFiles/MAplot.html" width=100% height=100% allowtransparency="true"> </iframe>')
+```
+
+---
+
+## Dispersion plot
+
+```{r echo=FALSE, warning=FALSE,cache=FALSE,results='asis'}
+cat('<iframe src="htmlFiles/DispersionPlot.html" width=100% height=100% allowtransparency="true"> </iframe>')
+```
+

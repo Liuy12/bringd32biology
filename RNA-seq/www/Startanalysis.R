@@ -206,10 +206,23 @@ output$Chartpage <- renderUI({
         conditionalPanel(condition = "input$DEmethod == 'XBSeq'",
                          tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3"))
         )
-    )
+    ),
+    box(title = 'File exports', collapsible = T, status = 'success', width = 12,
+    downloadButton('StartDownload', label = "Download")
+)
   )
 })
 
+
+output$StartDownload <- downloadHandler(
+  filename <- 'Report.zip',
+  content <- function(file) {
+    file.copy(c('./forceNet.html', './MAplot.html', './datatable.html', './DEdatatable.html'), 'www/report/htmlFiles')
+    slidify('www/report/Report.Rmd')
+    zip(file, files = c('www/report/'))
+  },
+  contentType = 'application/zip'
+)
 
 # output$Navpage <- renderUI({
 #   navbarPage(title = 'Analytical modules', id = 'page', collapsible=TRUE, inverse=FALSE, 
@@ -384,7 +397,9 @@ output$Table <- renderDataTable({
   dataMat <- log2(dataComb[[2]])
   dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
-  datatable(dataMat, options = list(pageLength = 5))
+  temp <- datatable(dataMat, options = list(pageLength = 5))
+  saveWidget(temp, 'datatable.html')
+  temp
 })
 
 output$Heatmap <- renderD3heatmap({
@@ -427,6 +442,7 @@ output$Density <- renderChart({
   np$chart(useInteractiveGuideline = TRUE)
   np$xAxis(axisLabel = 'Log2 intensity')
   np$yAxis(axisLabel = 'Density')
+  np$save('www/report/htmlFiles/density.html', standalone = TRUE)
   return(np)
 })
 
@@ -453,6 +469,7 @@ output$ScatterPlot <- renderChart({
   #                                                 'y: '    + this.point.y  +
   #                                                 'name: '  + this.point.GeneName; } !#")
   hp$colors('black')
+  hp$save('www/report/htmlFiles/Scatterplot.html', standalone = TRUE)
   hp
 })
 
@@ -480,6 +497,7 @@ output$Boxplot <- renderChart({
   hp$yAxis(title = list(text = 'Log2 intensity'))
   hp$chart(type = 'boxplot')
   hp$addParams(dom = "Boxplot")
+  hp$save('www/report/htmlFiles/Boxplot.html', standalone = TRUE)
   hp
 })
 
@@ -518,6 +536,7 @@ output$PrincipalComponent <- renderChart({
     )
   dp$xAxis(type = 'addMeasureAxis')
   dp$addParams(dom = "PrincipalComponent")
+  dp$save('www/report/htmlFiles/pcaplot.html', cdn = TRUE)
   dp
 })
 
@@ -558,11 +577,13 @@ output$forceNetworkGene <- renderForceNetwork({
       group = rep(1, length(name)),
       size = rep(15, length(name))
     )
-    forceNetwork(
+    forceNet <- forceNetwork(
       Links = MisLinks, Nodes = MisNodes, Source = "source",
       Target = "target", Value = "value", NodeID = "name",
       Group = "group", opacity = 0.4
     )
+    saveWidget(forceNet, 'forceNet.html')
+    return(forceNet)
   }
 })
 
@@ -587,7 +608,9 @@ output$DEtable <- renderDataTable({
     cbind(dataMat[DE_index,], dataMat1[DE_index,2], p_adjust[DE_index])
   colnames(dataMat1) <-
     c(paste('S', 1:ncol(dataMat), sep = ''), 'Log2 fold change', 'p adjusted value')
-  datatable(dataMat1, options = list(pageLength = 5))
+  temp <- datatable(dataMat1, options = list(pageLength = 5))
+  saveWidget(temp, 'DEdatatable.html')
+  temp
 })
 
 output$MAplot <- renderMetricsgraphics({
@@ -606,6 +629,7 @@ output$MAplot <- renderMetricsgraphics({
         "DE", "Not DE"
       )
     )
+  write.csv(dataMat[col=='DE',], 'www/report/DEstat.csv')
   dataMat <- cbind(Genename = rownames(dataMat), dataMat, col)
   dataMat$baseMean <- log2(dataMat$baseMean + 1)
   mp <-
@@ -616,6 +640,7 @@ output$MAplot <- renderMetricsgraphics({
     ) %>%
     mjs_add_baseline(y_value = 0, label = 'baseline') %>%
     mjs_labs(x_label = "Log2 normalized intensity", y_label = "Log2 fold change")
+  saveWidget(mp, file = 'MAplot.html')
   mp
 })
 
@@ -648,6 +673,7 @@ output$DispersionPlot <- renderChart3({
     )
   )
   rp$addParams(dom = "DispersionPlot")
+  rp$save('www/report/htmlFiles/DispersionPlot.html', standalone = TRUE)
   rp
 })
 
