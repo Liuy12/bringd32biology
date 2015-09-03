@@ -114,10 +114,10 @@ shinyServer(function(input, output,session) {
     emailAdminTab <-
       tabPanel("Email Management",uiOutput("emailAdmin"))
     if(USER$Group == "admin"){
-      tabsetPanel(changePasswordTab,userAdminTab,emailAdminTab)
+      tabBox(changePasswordTab,userAdminTab,emailAdminTab, width =12)
     }
     else{
-      tabsetPanel(changePasswordTab)
+      tabBox(changePasswordTab, width = 12)
     }
   })
   
@@ -280,12 +280,5 @@ shinyServer(function(input, output,session) {
   
   output$usersTableDisplay <- renderGvis({
     gvisTable(GLOBALDATA$userData[,-2])
-  })
-  
-  design <- reactive({
-    inFile <- input$file_design
-    if (is.null(inFile))
-      return(NULL)
-    fread(inFile$datapath, data.table = F)
   })
 })

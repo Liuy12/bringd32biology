@@ -35,11 +35,12 @@ output$uiSignup <- renderUI({
                       actionButton("Signup", "Sign up"),
                       h4(textOutput("Signupresult"))
                ),
-               style = "background-color: #F0F8FF"
+               style = "background-color: #F0F8FF; height: 1000px;"
       )
     )
     }
   })
+
 
 output$ForceNetdemo <- renderForceNetwork({
   data(MisLinks, MisNodes)

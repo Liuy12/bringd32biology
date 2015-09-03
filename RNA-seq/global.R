@@ -114,7 +114,6 @@ sendEmail <- function(subject="New Assignment",body="New Assignment Content",to=
 DESeq2_pfun <-
   function(counts, group, design = NULL, cookcutoff, fittype, test)
   {   
-    options(mc.cores = min(10, detectCores()))
     colData <- data.frame(group)
     dse <- DESeqDataSetFromMatrix(countData = counts, colData = colData, design = ~ group)
     colData(dse)$group <- as.factor(colData(dse)$group)
@@ -139,10 +138,9 @@ DESeq2_pfun <-
   }
 
 DESeq_pfun <-
-  function(counts, group, design = NULL, mc.cores = 4)
+  function(counts, group)
   {   
     ## implement DESeq using pooled method to estimate dispersion ##
-    library(DESeq)
     de <- newCountDataSet(counts, group)
     de <- estimateSizeFactors(de)
     de <- estimateDispersions(de, method = "pooled",fitType='local')

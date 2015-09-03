@@ -33,7 +33,7 @@ body {background:none transparent;
 
 ## Data table
 
-<iframe src="htmlFiles/datatable.html" width=10000px height=10000px allowtransparency="true"> </iframe>
+<iframe src="htmlFiles/datatable.html" width=1000px height=1000px allowtransparency="true"> </iframe>
 
 ---
 

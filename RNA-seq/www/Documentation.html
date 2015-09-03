@@ -1,0 +1,157 @@
+<section id="Preprocess">
+    <h2 class="page-header"><a href="#Preprocess">Pre-process steps</a></h2>
+    <p class="lead">
+        Before <a href="#inputfiles">starting analysis</a> with RNA-seq Vis, you firstly will need to go through several steps to generate expression count matrix for your RNA-seq experiment. 
+    </p>
+    <p>
+        After sequencing and <a target="_blank" href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/">sequence quality control</a> procedure, you will get the sequence files in <a target="_blank" href="https://en.wikipedia.org/wiki/FASTQ_format">FASTQ</a> format, which generally contains sequence and its quality information. You need to go through alignment and counting procesure in order to generate expression count matrix for your experiments: 
+    </p>
+    <img src="img/pipeline.png" alt="Figure cannot be shown" style="position: relative; left: 40%;"></img>
+<p>
+    After sequencing, you will need to align the sequences to your corresponding genome of interest. Currently, many tools have been designed for sequence alignment of RNA-seq experiments. Among those, <a target="_blank" href="https://ccb.jhu.edu/software/tophat/index.shtml">Tophat</a> and <a target="_blank" href="https://github.com/alexdobin/STAR">STAR</a> aligner are probably the most widely used ones. More details regarding the differences and performances of different RNA-seq aligners can be found <a target="_blank" href="https://en.wikipedia.org/wiki/List_of_RNA-Seq_bioinformatics_tools#Alignment_Tools">here</a> and <a target="_blank" href="http://www.nature.com/nmeth/journal/v10/n12/full/nmeth.2722.html">here</a>.
+</p>
+<p>
+    After sequences have successfully aligned to the corresponding genome. You need to quantify the expression level of each gene by counting the number of reads mapped to each gene/transcript. Also, there are many tools that have been developed for this purpose, such as <a target="_blank" href="http://www-huber.embl.de/users/anders/HTSeq/doc/overview.html">HTSeq</a> and <a target="_blank" href="http://cole-trapnell-lab.github.io/cufflinks/">Cufflinks</a>. 
+</p>
+<div class="callout callout-danger lead">
+    <h4>Tip!</h4>
+    <p>You could also use integrated platforms like <a target="_blank" href="http://www.broadinstitute.org/cancer/software/genepattern/">GenePattern</a> and <a target="_blank" href="https://galaxyproject.org/">Galaxy</a> for pre-process analysis</p>
+  </div>
+</section>
+
+<section id="inputfiles">
+  <h2 class="page-header"><a href="#inputfiles">Input format</a></h2>
+  <p class="lead">
+    After you go through the pre-process steps using your favourite pipeline and generate the expression matrix for RNA-seq, you are now ready to use RNA-seq Vis! <b>RNA-seq Vis</b> require two input files (except that if you choose <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a> as DE method). One is expression matrix for RNA-seq. The other is design matrix for the experiment. Both files are required in a format of either tab seperated txt files or csv files. Sample files can be downloaded here: <a id="sampleexpression" class="shiny-download-link" href="Sampledata/test.txt" target="_blank">Expression dataset</a> and <a id="sampledesign" class="shiny-download-link" href="Sampledata/design.txt" target="_blank">design matrix</a>.
+       </p>
+ <div class="callout callout-info lead">
+    <h4>Reminder!</h4>
+    <p> 
+        <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a> requires one additional input file in the same format as the expression matrix. For details, please refer to the package <a target="_blank" href="https://www.bioconductor.org/packages/devel/bioc/vignettes/XBSeq/inst/doc/XBSeq.html">Vignette</a>.
+     </p>
+  </div>
+</section>
+
+<section id="Analysisoptions">
+  <h2 class="page-header"><a href="#Analysisoptions">Set input options</a></h2>
+  <p class="lead">
+    Click <b>Start analysis</b> panel and then <b>Set input options</b> subpanel to start your analysis. Firstly, you need to choose which statistical method you wanna use for your analysis. Available options include: <a target="_blank" href="http://bioconductor.org/packages/DESeq/">DESeq</a>, <a target="_blank" href="http://bioconductor.org/packages/DESeq2/">DESeq2</a>, <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a>, <a target="_blank" href="http://bioconductor.org/packages/edgeR/">edgeR</a>, <a target="_blank" href="http://omictools.com/edger-robust-s4759.html">edgeR-robust</a> and <a target="_blank" href="http://www.genomebiology.com/2014/15/2/R29">limma-voom</a>. Then you can upload your expression matrix file and experimental design file of your RNA-seq experiment through the file uploading system.
+       </p>
+ <div class="callout callout-success lead">
+    <h4>Suggestions!</h4>
+    <p>For detailed information comparing differnt differential expression statistical method for analysing RNA-seq data, please refer to <a target="_blank" href="http://liuy12.github.io/2015/08/02/Comparison%20of%20differential%20expression%20methods.html">this blog of mine</a></p>
+  </div>
+<h3>Options for <a target="_blank" href="http://bioconductor.org/packages/DESeq/">DESeq</a> and <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a></h3>
+    <b>Method to estimate dispersion:</b> Three options are available to estimate gene-wise dispersions. 
+    <ul>
+        <li>
+            <b>pooled:</b> Use the samples from all conditions with replicates to estimate a single pooled empirical dispersion value, called "pooled", and assign it to all samples.
+        </li>
+        <li>
+            <b>per-condition:</b> For each condition with replicates, compute a gene's empirical dispersion value by considering the data from samples for this condition. For samples of unreplicated conditions, the maximum of empirical dispersion values from the other conditions is used.
+        </li>
+        <li>
+            <b>blind:</b> Ignore the sample labels and compute a gene's empirical dispersion value as if all samples were replicates of a single condition. This can be done even if there are no biological replicates. This method can lead to loss of power.
+        </li>
+    </ul>
+    <b>Sharing mode for dispersion estimation:</b> For each gene, we have two values: the empirical value (derived only from this gene's data), and the fitted value (i.e., the dispersion value typical for genes with an average expression similar to those of this gene).Three options are available to determine the mode of sharing information across genes in order to reduce variability of the dispersion estimates.
+    <ul>
+        <li>
+            <b>fit-only:</b> Use only the fitted value, i.e., the empirical value is used only as input to the fitting, and then ignored. Use this only with very few replicates, and when you are not too concerned about false positives from dispersion outliers, i.e. genes with an unusually high variability.
+        </li>
+        <li>
+            <b>maximum:</b> Take the maximum of the two values. This is the conservative or prudent choice, recommended once you have at least three or four replicates and maybe even with only two replicates
+        </li>
+        <li>
+            <b>gene-est-only:</b> No fitting or sharing, use only the empirical value. This method is preferable when the number of replicates is large and the empirical dispersion values are sufficiently reliable. If the number of replicates is small, this option may lead to many cases where the dispersion of a gene is accidentally underestimated and a false positive arises in the subsequent testing
+        </li>
+    </ul>
+    <b>Method to fit Dispersion-mean relation:</b> Two options are available:
+    <ul>
+        <li>
+            <b>local:</b> Use the <a target="_blank" href="https://cran.r-project.org/web/packages/locfit/index.html">locfit</a> package to fit a dispersion-mean relation.
+        </li>
+        <li>
+            <b>parametric:</b> Fit a dispersion-mean relation of the form dispersion = asymptDisp + extraPois / mean via a robust gamma-family GLM.
+        </li>
+    </ul>
+    <h3>Additional options for <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a></h3>
+    <b>Method to estimate distribution parameters:</b> Two options are available:
+    <ul>
+        <li>
+            <b>Non-parametric:</b> Use non-parametric method to estimate per-gene parameters for nagative binomial and Poisson distribution. This option is generally recommended for experiments with replicates smaller than 5.
+        </li>
+        <li>
+            <b>Maximum liklihod estimation:</b> Use MLE to estimate parameters for the distributions.
+        </li>
+    </ul>
+    <h3>Options for <a target="_blank" href="http://bioconductor.org/packages/DESeq2/">DESeq2</a></h3>
+    <b>Method to fit Dispersion-mean relation:</b> The same parameter as in DESeq but with one additional option:
+    <ul>
+        <li>
+            <b>local:</b> Use the <a target="_blank" href="https://cran.r-project.org/web/packages/locfit/index.html">locfit</a> package to fit a dispersion-mean relation.
+        </li>
+        <li>
+            <b>parametric:</b> Fit a dispersion-mean relation of the form dispersion = asymptDisp + extraPois / mean via a robust gamma-family GLM.
+        </li>
+        <li>
+            <b>mean:</b> use the mean of gene-wise dispersion estimates.
+        </li>
+    </ul>
+    <b>Choice of statistical test:</b> 
+    <ul>
+        <li>
+            <b>wald test:</b> ward test with default parameters
+        </li>
+        <li>
+            <b>Likelihood ratio test:</b> The difference in deviance is compared to a chi-squared distribution to infer significance
+        </li>
+    </ul>
+    <b>Outlier detection:</b> Whether to turn on the outlier detection functionality
+    <ul>
+        <li>
+            <b>on:</b> Use default setting to detect outliers. If outlier is found for a gene, then the p value will be set to NA.
+        </li>
+        <li>
+            <b>off:</b> Turn off outlier detection functionality and use p values as it is. 
+        </li>
+    </ul>
+    <h3>Criteria for differentially expressed genes</h3>
+    <b>Method for multiple test correction:</b> Three options are available:
+    <ul>
+        <li>
+            <b>Benj&Hoch:</b> Details regarding this method can be found <a target="_blank" href="http://www.dnastar.com/arraystar_help/index.html#!Documents/fdrbenjaminihochberg1.htm">here</a>
+        </li>
+        <li>
+            <b>Bonferroni:</b> Details regarding this method can be found <a target="_blank" href="http://www.dnastar.com/arraystar_help/index.html#!Documents/bonferroni1.htm">here</a> 
+        </li>
+        <li>
+            <b>none:</b> Do not adjust for multiple testing.
+        </li>
+    </ul>
+    <p><b>P value cutoff for DE genes:</b> Five options are available, 0.001, 0.01, 0.05, 0.1, 0.2.</p>
+    <p><b>Fold change cutoff for DE genes:</b> Five options are available, 1.5, 2, 2.5, 3, 5.</p>
+    <p><b>Log2 intensity cufoff for DE genes:</b> A value that can generally be determined from density plot.</p>
+</section>
+
+<section id="Chartdownload">
+  <h2 class="page-header"><a href="#Chartdownload">Start visualizing! </a></h2>
+  <p class="lead">
+      After you have filled in all required input options, click start analysis buttion, then the analysis will run automatically using your input options. Click on the charts subpanel. All the figures will automatically be loaded once the analysis finished. There are three modules of charts: Quality control charts, gene/sample relationship charts and differential expression analysis charts. After the analysis has finished, you can switch among different charts by clicking the tabpanels. 
+    </p>
+    <div class="callout callout-info lead">
+    <h4>Reminder!</h4>
+    <p> 
+        Currently, you will need to click on all tabpanels and wait for all the figures to show up in order to download the report that contains all the figures.
+     </p>
+  </div>
+    <p>
+        Finally, you can click the bottom download button to download the report files. Within the download files there is a file called 'report.html' which is the final reveal.js based report that contains all the figures. 
+    </p>
+    <div class="callout callout-danger lead">
+    <h4>Tip!</h4>
+    <p>The 'report.html' need to stay with the sub folder 'libraries' and 'htmlFiles' in order to be functional. For instance, if you drag the 'report.html' file to another without dragging the two subfolders, it will not be functional.</p>
+  </div>
+        <p>And that's it. Enjoy visualizing!
+    </p>
+</section>
