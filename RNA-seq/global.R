@@ -33,83 +33,48 @@ Group=""
 userData <- read.csv(userFile,header=T,as.is=T)
 GLOBALDATA <- reactiveValues(userData=userData)
 
-# gar_shiny_getAuthUrl <- 
-#   function(redirect.uri,
-#            state = getOption("googleAuthR.securitycode"),
-#            client.id     = getOption("googleAuthR.webapp.client_id"),
-#            client.secret = getOption("googleAuthR.webapp.client_secret"),
-#            scope         = getOption("googleAuthR.scopes.selected")) {
-#     
-#     scopeEnc <- paste(scope, sep='', collapse=' ')
-#     
-#     ## httr friendly version
-#     url <- httr::modify_url(
-#       httr::oauth_endpoints("google")$authorize,
-#       query = list(response_type = "code",
-#                    client_id = client.id,
-#                    redirect_uri = redirect.uri,
-#                    scope = scopeEnc,
-#                    state = state,
-#                    access_type = "online",
-#                    approval_prompt = "auto"))
-#     message("Auth Token URL: ", url)
-#     url
-#   }
-# 
-# 
-# gar_shiny_getUrl <- function(session){
-#   
-#   if(!is.null(session)){
-#     pathname <- session$clientData$url_pathname
-#     ## hack for shinyapps.io
-#     if(session$clientData$url_hostname == "internal.shinyapps.io"){
-#       split_hostname <- strsplit(pathname, "/")[[1]]
-#       hostname <-  paste(split_hostname[2],"shinyapps.io", sep=".")
-#       pathname <- paste0("/",split_hostname[3],"/")
-#       
-#     } else {
-#       hostname <- session$clientData$url_hostname
-#     }
-#     
-#     url <- paste0(session$clientData$url_protocol,
-#                   "//",
-#                   hostname,
-#                   ifelse(hostname == "127.0.0.1",
-#                          ":",
-#                          pathname),
-#                   session$clientData$url_port)
-#     #     message("Shiny URL detected as: ", url)
-#     url
-#   } else {
-#     NULL
-#   }
-#   
-#   
-# }
-
-
-
 
 #Emails
-emailList<-readLines(emailFile)
-sendEmailSign<-TRUE
+# emailList<-readLines(emailFile)
+# sendEmailSign<-TRUE
+# 
+# SMTP_FROM = "Yuanhang <yuanhangliu.ok@gmail.com>"
+# SMTP_SETTINGS = list(host.name='aspmx.l.google.com',
+# 		port='2525',
+# 		user.name='yuanhangliu.ok@gmail.com',
+# 		passwd='')
+# SMTP_AUTHENTICATE=TRUE
+# 
+# sendEmail <- function(subject="New Assignment",body="New Assignment Content",to=emailList) {
+# 	send.mail(from = SMTP_FROM,
+# 			to = to,
+# 			subject = subject,
+# 			body = body,
+# 			smtp = SMTP_SETTINGS,
+# 			authenticate = SMTP_AUTHENTICATE,
+# 			send = TRUE)
+# }
 
-SMTP_FROM = "Yuanhang <yuanhangliu.ok@gmail.com>"
-SMTP_SETTINGS = list(host.name='aspmx.l.google.com',
-		port='2525',
-		user.name='yuanhangliu.ok@gmail.com',
-		passwd='')
-SMTP_AUTHENTICATE=TRUE
-
-sendEmail <- function(subject="New Assignment",body="New Assignment Content",to=emailList) {
-	send.mail(from = SMTP_FROM,
-			to = to,
-			subject = subject,
-			body = body,
-			smtp = SMTP_SETTINGS,
-			authenticate = SMTP_AUTHENTICATE,
-			send = TRUE)
-}
+XBSeq_pfun <- 
+  function(counts, bgcounts, group, disp_method, sharing_mode, fit_type, paraMethod){
+    XB <- XBSeqDataSet(counts, bgcounts, group)
+    XB <- estimateRealCount(XB)
+    XB <- estimateSizeFactors(XB)
+    XB <- estimateSCV(XB, method = disp_method, sharingMode = sharing_mode, fitType = fit_type)
+    Teststas <- XBSeqTest( XB, levels(conditions)[1L], levels(conditions)[2L], method =paraMethod)
+    Disp <- XBSeq::fitInfo(XB)
+    Dispersion <- data.frame(
+      PerGeneEst <- Disp$perGeneSCVEsts,
+      FittedDispEst <- Disp$fittedSCVEsts
+    )
+    colnames(Dispersion) <- c('PerGeneEst', 'FittedDispEst')
+    list(
+      RawCount = counts,
+      NormCount = counts(XB, normalized = TRUE),
+      Dispersion = Dispersion,
+      TestStat = Teststas[,c(2,6,7)]
+    )
+  }
 
 DESeq2_pfun <-
   function(counts, group, design = NULL, cookcutoff, fittype, test)
@@ -125,45 +90,50 @@ DESeq2_pfun <-
       res <- results(dse)
     else
       res <- results(dse, cooksCutoff = FALSE)
-    NormCount = counts(dse, normalized = TRUE)
-    dataout <- cbind(NormCount, as.data.frame(res[, c(1,2,5)]))
-    colnames(dataout) <- c(colnames(counts), 'baseMean', 'Log2 Fold change', 'p value')
-    write.csv(dataout, 'www/report/TestStat.csv', quote = F)
     list(
       RawCount = counts,
-      NormCount = NormCount,
+      NormCount = counts(dse, normalized = TRUE),
       Dispersion = as.data.frame(mcols(dse)[,4:6]),
       TestStat = as.data.frame(res[, c(1,2,5)])
     )
   }
 
 DESeq_pfun <-
-  function(counts, group)
+  function(counts, group, disp_method, sharing_mode, fit_type)
   {   
     ## implement DESeq using pooled method to estimate dispersion ##
     de <- newCountDataSet(counts, group)
     de <- estimateSizeFactors(de)
-    de <- estimateDispersions(de, method = "pooled",fitType='local')
+    de <- DESeq::estimateDispersions(de, method = disp_method, sharingMode = sharing_mode, fitType = fit_type)
     res <- nbinomTest(de, levels(group)[1], levels(group)[2])
-    cbind(pval = res$pval, padj = res$padj)
+    Disp <- DESeq::fitInfo(de)
+    Dispersion <- data.frame(
+      PerGeneEst <- Disp$perGeneDispEsts,
+      FittedDispEst <- Disp$fittedDispEsts
+    )
+    colnames(Dispersion) <- c('PerGeneEst', 'FittedDispEst')
+    list(
+      RawCount = counts,
+      NormCount = counts(de, normalized = TRUE),
+      Dispersion = Dispersion,
+      TestStat = as.data.frame(res[, c(2,6,7)])
+    )
   }
 
 edgeR.pfun <-
-  function(counts, group, design = NULL, mc.cores = 4, prior.df=10)
+  function(counts, group, design = NULL)
   {
     ## edgeR standard pipeline ##
     library(edgeR)
-    d <- DGEList(counts = counts, group = group )
+    d <- DGEList(counts = counts, group = group)
     d <- calcNormFactors(d)
     d <- estimateGLMCommonDisp(d, design = design)
     d <- estimateGLMTrendedDisp(d,design=design)
-    d <- estimateGLMTagwiseDisp(d, design = design, prior.df = prior.df)
+    d <- estimateGLMTagwiseDisp(d, design = design)
     f <- glmFit(d, design = design)
     lr <- glmLRT(f, coef=2)
     pval = lr$table$PValue
-    padj = p.adjust(pval, "BH")
     logfc = lr$table$logFC
-    cbind(pval = pval, padj = padj, logfc = logfc)
   }
 
 edgeR_robust.pfun <-

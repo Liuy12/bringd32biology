@@ -250,10 +250,17 @@ dataComb <- eventReactive(input$DEstart, {
   group <- design()
   group <- as.factor(group)
   if (input$DEmethod == 'XBSeq') {
-    
+    data_bg <- fread(input$file_bg$datapath, data.table = F)
+    rownames(data_bg) <- data_bg[,1]
+    data_bg <- data_bg[,-1]
+    XBSeq_pfun(data_obs, data_bg, group, disp_method = input$SCVmethod, 
+               sharing_mode = input$SharingMode, fit_type = input$fitType,
+               paraMethod = input$ParamEst)
   }
   else if (input$DEmethod == 'DESeq') {
-    DESeq_pfun(data_obs, group, disp_method = input$)
+    DESeq_pfun(data_obs, group, disp_method = input$SCVmethod,
+               sharing_mode = input$SharingMode, 
+               fit_type = input$fitType)
   }
   else if (input$DEmethod == 'DESeq2') {
     DESeq2_pfun(
@@ -551,7 +558,7 @@ output$MAplot <- renderMetricsgraphics({
   if (is.null(input$file_obs))
     return(NULL)
   dataComb <- dataComb()
-  dataMat <- as.data.frame(dataComb[[4]])
+  dataMat <- dataComb[[4]]
   p_adjust <- p.adjust(dataMat[,3], method = input$padjust)
   p_adjust[is.na(p_adjust)] <- 1
   col <-
@@ -563,7 +570,10 @@ output$MAplot <- renderMetricsgraphics({
         "DE", "Not DE"
       )
     )
-  write.csv(dataMat[col=='DE',], 'www/report/DEstat.csv')
+  dataout <- cbind(dataComb[[2]], dataMat[,2], p_adjust)
+  colnames(dataout) <- c(colnames(dataComb[[2]]), 'Log2 Fold change', 'p value')
+  write.csv(dataout, 'www/report/TestStat.csv', quote = F)
+  write.csv(dataout[col=='DE',], 'www/report/DEstat.csv', quote = F)
   dataMat <- cbind(Genename = rownames(dataMat), dataMat, col)
   dataMat$baseMean <- log2(dataMat$baseMean + 1)
   mp <-
@@ -580,33 +590,52 @@ output$MAplot <- renderMetricsgraphics({
 
 output$DispersionPlot <- renderChart3({
   dataComb <- dataComb()
-  Dispersion <- as.data.frame(dataComb[[3]])
+  Dispersion <- dataComb[[3]]
   Dispersion$baseMean <- dataComb[[4]][,1] + 1
-  Dispersion1 <- stack(Dispersion[,c(1,3)])
-  colnames(Dispersion1) <- c('Disp', 'Type')
-  Dispersion1$baseMean <- rep(Dispersion$baseMean, times = 2)
-  Dispersion1$Dispfit <- rep(Dispersion$dispFit, times = 2)
-  Dispersion1$GeneName <- rownames(dataComb[[2]])
-  rp <-
-    rPlot(
-      Disp ~ baseMean, data = Dispersion1, color = 'Type', type = 'point', size = list(const = 2),
-      tooltip = "#!function(item){ return 'x: ' + item.baseMean + '\\n' +
+  if(input$DEmethod == 'DESeq2'){
+    Dispersion1 <- stack(Dispersion[,c(1,3)])
+    colnames(Dispersion1) <- c('Disp', 'Type')
+    Dispersion1$baseMean <- rep(Dispersion$baseMean, times = 2)
+    Dispersion1$Dispfit <- rep(Dispersion$dispFit, times = 2)
+    Dispersion1$GeneName <- rep(rownames(dataComb[[2]]), times = 2)
+    rp <-
+      rPlot(
+        Disp ~ baseMean, data = Dispersion1, color = 'Type', type = 'point', size = list(const = 2),
+        tooltip = "#!function(item){ return 'x: ' + item.baseMean + '\\n' +
         ' y: ' + item.Disp + '\\n' + ' GeneName: ' + item.GeneName  + '\\n' + 'Type: ' + item.Type}!#"
+      )
+    rp$layer(
+      y = 'Dispfit', type = 'line', color = list(const = 'red'),
+      copy_layer = T
     )
-  rp$layer(
-    y = 'Dispfit', type = 'line', color = list(const = 'red'),
-    copy_layer = T
-  )
-  rp$guides("{x: { scale: {type: 'log'}}}")
-  rp$guides(
-    color = list(
-      scale = "#! function(value){
+    rp$guides("{x: { scale: {type: 'log'}}}")
+    rp$guides(
+      color = list(
+        scale = "#! function(value){
         color_mapping = {dispersion: 'blue', dispGeneEst: 'grey'}
         return color_mapping[value];
   } !#"
+      )
     )
-  )
-  rp$addParams(dom = "DispersionPlot")
+    rp$addParams(dom = "DispersionPlot")
+  }
+  if(input$DEmethod == 'DESeq' | input$DEmethod == 'XBSeq')
+  {
+    Dispersion$GeneName <- rownames(dataComb[[2]])
+    colnames(Dispersion) <- c('PerGeneEst', 'FittedDispEst', 'baseMean', 'GeneName')
+    rp <-
+      rPlot(
+        PerGeneEst ~ baseMean, data = Dispersion, type = 'point', size = list(const = 2),
+        tooltip = "#!function(item){ return 'x: ' + item.baseMean + '\\n' +
+        ' y: ' + item.PerGeneEst + '\\n' + ' GeneName: ' + item.GeneName}!#"
+      )
+    rp$guides("{x: { scale: {type: 'log'}}}")
+    rp$layer(
+      y = 'FittedDispEst', type = 'line', color = list(const = 'red'),
+      copy_layer = T
+    )
+    rp$addParams(dom = "DispersionPlot")
+  }
   rp$save('www/report/htmlFiles/DispersionPlot.html', standalone = TRUE)
   rp
 })
