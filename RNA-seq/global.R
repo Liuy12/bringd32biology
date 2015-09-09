@@ -61,7 +61,7 @@ XBSeq_pfun <-
     XB <- estimateRealCount(XB)
     XB <- estimateSizeFactors(XB)
     XB <- estimateSCV(XB, method = disp_method, sharingMode = sharing_mode, fitType = fit_type)
-    Teststas <- XBSeqTest( XB, levels(conditions)[1L], levels(conditions)[2L], method =paraMethod)
+    Teststas <- XBSeqTest( XB, levels(group)[1L], levels(group)[2L], method =paraMethod)
     Disp <- XBSeq::fitInfo(XB)
     Dispersion <- data.frame(
       PerGeneEst <- Disp$perGeneSCVEsts,
@@ -132,29 +132,57 @@ edgeR.pfun <-
     d <- estimateGLMTagwiseDisp(d, design = design)
     f <- glmFit(d, design = design)
     lr <- glmLRT(f, coef=2)
-    pval = lr$table$PValue
-    logfc = lr$table$logFC
+    Dispersion <- data.frame(
+      CommonDisp <- d$common.dispersion,
+      TagwiseDisp <- d$tagwise.dispersion,
+      FittedDisp <- d$trended.dispersion
+    )
+    colnames(Dispersion) <- c('CommonDisp', 'TagwiseDisp', 'FittedDisp')
+    TestStat <- data.frame(
+      AveCPM = 2^(d$AveLogCPM),
+      logfc = lr$table$logFC,
+      pval = lr$table$PValue
+      )
+    colnames(TestStat) <- c('AveCPM', 'logFC', 'p value')
+    list(
+      RawCount = counts,
+      NormCount = cpm(d),
+      Dispersion = Dispersion,
+      TestStat = TestStat
+        )
   }
 
 edgeR_robust.pfun <-
-  function(counts, group, design = NULL, mc.cores = 4, prior.df=10)
+  function(counts, group, design = NULL)
   {   
     ## edgeR-robsut pipeline ##
-    library(edgeR)
-    d <- DGEList(counts = counts, group = group )
+    d <- DGEList(counts = counts, group = group)
     d <- calcNormFactors(d)
-    dw <- estimateGLMRobustDisp(d,design=design, prior.df=prior.df, maxit = 6)
+    dw <- estimateGLMRobustDisp(d,design=design)
     fw <- glmFit(dw, design=design)
     lrw <- glmLRT(fw,coef=2)
-    pval = lrw$table$PValue
-    padj = p.adjust(pval, "BH")
-    logfc = lrw$table$logFC
-    cbind(pval = pval, padj = padj, logfc=logfc)
+    Dispersion <- data.frame(
+      TagwiseDisp <- dw$tagwise.dispersion,
+      FittedDisp <- dw$trended.dispersion
+    )
+    colnames(Dispersion) <- c('TagwiseDisp', 'FittedDisp')
+    TestStat <- data.frame(
+      AveCPM = 2^(dw$AveLogCPM),
+      logfc = lr$table$logFC,
+      pval = lr$table$PValue
+    )
+    colnames(TestStat) <- c('AveCPM', 'logFC', 'p value')
+    list(
+      RawCount = counts,
+      NormCount = cpm(d),
+      Dispersion = Dispersion,
+      TestStat = TestStat
+    )
   }
 
 
 limma_voom.pfun <-
-  function(counts, group, design = NULL, mc.cores = 4) 
+  function(counts, group, design = NULL) 
   {   
     ## limma voom pipeline ##
     library(limma)
@@ -162,9 +190,19 @@ limma_voom.pfun <-
     y <- voom(counts, design, plot=FALSE, lib.size = colSums(counts)*nf)
     fit <- lmFit(y, design)
     fit <- eBayes(fit)
-    pval <- topTable(fit,coef=2,n=nrow(counts), sort.by = "none")$P.Value
-    padj <- topTable(fit,coef=2,n=nrow(counts), sort.by = "none")$adj.P.Val
-    cbind(pval = padj, padj = padj)
+    TestStat <- topTable(fit,coef=2,n=nrow(counts), sort.by = "none")
+    TestStat <- data.frame(
+      AveExpr = 2^(TestStat$AveExpr),
+      logfc = TestStat$logFC,
+      pval = TestStat$P.Value
+    )
+    colnames(TestStat) <- c('AveExpr',  'logFC', 'p value')
+    list(
+      RawCount = counts,
+      NormCount = as.matrix(2^(y$E)),
+      Dispersion = c(),
+      TestStat = TestStat
+    )
   }
 
 renderChart3 <- function(expr, env = parent.frame(), quoted = FALSE) {

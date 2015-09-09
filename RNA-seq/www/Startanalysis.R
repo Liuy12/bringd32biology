@@ -89,16 +89,16 @@ output$InputBox <- renderUI(
                                 selected = 'off'
                  ),
                  verbatimTextOutput("cooksCutoff")
-               ),
-               conditionalPanel(
-                 condition = "input.DEmethod == 'edgeR-robust'",
-                 selectizeInput("residualType", 
-                                label = "Please select a method for calculating residuals", 
-                                choices =c("pearson", "deviance", "anscombe"),
-                                selected = 'pearson'
-                 ),
-                 verbatimTextOutput("residualType")
                )
+#                conditionalPanel(
+#                  condition = "input.DEmethod == 'edgeR-robust'",
+#                  selectizeInput("residualType", 
+#                                 label = "Please select a method for calculating residuals", 
+#                                 choices =c("pearson", "deviance", "anscombe"),
+#                                 selected = 'pearson'
+#                  ),
+#                  verbatimTextOutput("residualType")
+#                )
              )
              ),
       column(width = 12, 
@@ -202,10 +202,9 @@ output$Chartpage <- renderUI({
         tabPanel("DE Table", dataTableOutput('DEtable'), style = "max-width:50%"),
         tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
         tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
-        tabPanel("Dispersion plot", showOutput("DispersionPlot", "polycharts")),
-        conditionalPanel(condition = "input$DEmethod == 'XBSeq'",
-                         tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3"))
-        )
+        tabPanel("Dispersion plot", showOutput("DispersionPlot", "polycharts"))
+#         conditionalPanel(condition = "input.DEmethod == 'XBSeq'",
+#                          tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3")))
     ),
     box(title = 'File exports', collapsible = T, status = 'success', width = 12,
     downloadButton('StartDownload', label = "Download")
@@ -269,13 +268,13 @@ dataComb <- eventReactive(input$DEstart, {
     )
   }
   else if (input$DEmethod == 'edgeR') {
-    
+    edgeR.pfun(data_obs, group, model.matrix(~group))
   }
   else if (input$DEmethod == 'edgeR-robust') {
-    
+    edgeR_robust.pfun(data_obs, group, model.matrix(~group))
   }
   else if (input$DEmethod == 'limma-voom') {
-    
+    limma_voom.pfun(data_obs, group, model.matrix(~group))
   }
 })
 
@@ -381,7 +380,11 @@ output$Density <- renderChart({
     nPlot(Density ~ Exprs, group = 'ind', data = denStat, type = 'lineChart')
   np$addParams(dom = "Density")
   np$chart(useInteractiveGuideline = TRUE)
-  np$xAxis(axisLabel = 'Log2 intensity')
+  if(input$DEmethod == 'edgeR' | input$DEmethod == 'edgeR-robust')
+    xlab <- 'Log2 normalized cpm (counts per million)'
+  else
+    xlab <- 'Log2 normalized intensity'
+  np$xAxis(axisLabel = xlab)
   np$yAxis(axisLabel = 'Density')
   np$save('www/report/htmlFiles/density.html', standalone = TRUE)
   return(np)
@@ -435,7 +438,11 @@ output$Boxplot <- renderChart({
                             data = bwstats)))
   hp$xAxis(categories = colnames(dataMat),
            title = list(text = 'Sample'))
-  hp$yAxis(title = list(text = 'Log2 intensity'))
+  if(input$DEmethod == 'edgeR' | input$DEmethod == 'edgeR-robust')
+    ylab <- 'Log2 normalized cpm (counts per million)'
+  else
+    ylab <- 'Log2 normalized intensity'
+  hp$yAxis(title = list(text = ylab))
   hp$chart(type = 'boxplot')
   hp$addParams(dom = "Boxplot")
   hp$save('www/report/htmlFiles/Boxplot.html', standalone = TRUE)
@@ -537,19 +544,20 @@ output$DEtable <- renderDataTable({
   dataMat <- as.data.frame(dataMat)
   dataMat1 <- dataComb[[4]]
   p_adjust <- p.adjust(dataMat1[,3], method = input$padjust)
+  p_adjust[is.na(p_adjust)] <- 1
   DE_index <-
     which(
-      log2(dataMat1[,1]) > as.numeric(input$log2bmcutoff) &
-        dataMat1[,2] > log2(as.numeric(input$fccutoff)) &
+      log2(dataMat1[,1] + 1) > as.numeric(input$log2bmcutoff) &
+        abs(dataMat1[,2]) > log2(as.numeric(input$fccutoff)) &
         p_adjust < as.numeric(input$pcutoff)
     )
   if (length(DE_index) == 0)
     return(datatable(data.frame(), options = list(pageLength = 5)))
-  dataMat1 <-
+  dataMat2 <-
     cbind(dataMat[DE_index,], dataMat1[DE_index,2], p_adjust[DE_index])
-  colnames(dataMat1) <-
+  colnames(dataMat2) <-
     c(paste('S', 1:ncol(dataMat), sep = ''), 'Log2 fold change', 'p adjusted value')
-  temp <- datatable(dataMat1, options = list(pageLength = 5))
+  temp <- datatable(dataMat2, options = list(pageLength = 5))
   saveWidget(temp, 'DEdatatable.html')
   temp
 })
@@ -559,14 +567,15 @@ output$MAplot <- renderMetricsgraphics({
     return(NULL)
   dataComb <- dataComb()
   dataMat <- dataComb[[4]]
-  p_adjust <- p.adjust(dataMat[,3], method = input$padjust)
-  p_adjust[is.na(p_adjust)] <- 1
+  colnames(dataMat) <- c('baseMean', 'log2FoldChange', 'p_adjust')
+  p_adjust1 <- p.adjust(dataMat[,3], method = input$padjust)
+  p_adjust1[is.na(p_adjust1)] <- 1
   col <-
     with(
       data = dataMat, ifelse(
         log2(baseMean + 1) > as.numeric(input$log2bmcutoff) &
           abs(log2FoldChange) > log2(as.numeric(input$fccutoff)) &
-          p_adjust < as.numeric(input$pcutoff),
+          p_adjust1 < as.numeric(input$pcutoff),
         "DE", "Not DE"
       )
     )
@@ -576,14 +585,22 @@ output$MAplot <- renderMetricsgraphics({
   write.csv(dataout[col=='DE',], 'www/report/DEstat.csv', quote = F)
   dataMat <- cbind(Genename = rownames(dataMat), dataMat, col)
   dataMat$baseMean <- log2(dataMat$baseMean + 1)
+  if(input$DEmethod == 'edgeR' | input$DEmethod == 'edgeR-robust')
+    xlab <- 'Log2 normalized cpm (counts per million)'
+  else
+    xlab <- 'Log2 normalized intensity'
+  if(length(unique(col)) == 1)
+    color_rg <- 'grey32'
+  else
+    color_rg <- c('red', 'grey32')
   mp <-
     mjs_plot(dataMat, baseMean, log2FoldChange, decimals = 6) %>%
     mjs_point(
-      color_accessor = col, color_range = c('red', 'grey32'), color_type = "category", x_rug =
+      color_accessor = col, color_range = color_rg, color_type = "category", x_rug =
         TRUE, y_rug = TRUE
     ) %>%
     mjs_add_baseline(y_value = 0, label = 'baseline') %>%
-    mjs_labs(x_label = "Log2 normalized intensity", y_label = "Log2 fold change")
+    mjs_labs(x_label = xlab, y_label = "Log2 fold change")
   saveWidget(mp, file = 'MAplot.html')
   mp
 })
@@ -636,6 +653,44 @@ output$DispersionPlot <- renderChart3({
     )
     rp$addParams(dom = "DispersionPlot")
   }
+  if(input$DEmethod == 'edgeR'){
+    Dispersion$GeneName <- rownames(dataComb[[2]])
+    colnames(Dispersion) <- c('CommonDisp', 'TagwiseDisp', 'FittedDisp', 'baseMean', 'GeneName')
+    rp <-
+      rPlot(
+        TagwiseDisp ~ baseMean, data = Dispersion, type = 'point', size = list(const = 2),
+        tooltip = "#!function(item){ return 'x: ' + item.baseMean + '\\n' +
+        ' y: ' + item.TagwiseDisp + '\\n' + ' GeneName: ' + item.GeneName}!#"
+      )
+    rp$guides("{x: { scale: {type: 'log'}}}")
+    rp$layer(
+      y = 'FittedDisp', type = 'line', color = list(const = 'red'),
+      copy_layer = T
+    )
+    rp$layer(
+      y = 'CommonDisp', type = 'line', color = list(const = 'blue'),
+      copy_layer = T
+    )    
+    rp$addParams(dom = "DispersionPlot")
+  }
+  if(input$DEmethod == 'edgeR-robust'){
+    Dispersion$GeneName <- rownames(dataComb[[2]])
+    colnames(Dispersion) <- c('TagwiseDisp', 'FittedDisp', 'baseMean', 'GeneName')
+    rp <-
+      rPlot(
+        TagwiseDisp ~ baseMean, data = Dispersion, type = 'point', size = list(const = 2),
+        tooltip = "#!function(item){ return 'x: ' + item.baseMean + '\\n' +
+        ' y: ' + item.TagwiseDisp + '\\n' + ' GeneName: ' + item.GeneName}!#"
+      )
+    rp$guides("{x: { scale: {type: 'log'}}}")
+    rp$layer(
+      y = 'FittedDisp', type = 'line', color = list(const = 'red'),
+      copy_layer = T
+    )
+    rp$addParams(dom = "DispersionPlot")
+  }
+  if(input$DEmethod == 'limma-voom')
+    return(NULL)
   rp$save('www/report/htmlFiles/DispersionPlot.html', standalone = TRUE)
   rp
 })
