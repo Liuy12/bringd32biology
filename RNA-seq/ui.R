@@ -5,12 +5,12 @@ shinyUI(fluidPage(
       tags$script(type="text/javascript", src = "md5.js"),
       tags$script(type="text/javascript", src = "passwdInputBinding.js"),
       tags$link(type="text/css", rel="stylesheet", href="style.css"),
-      tags$link(type="text/css", rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css"),
-      HTML("<style>
-         .tooltip {
-           opacity:1;
-           }
-           </style>")
+      tags$link(type="text/css", rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css")
+#       HTML("<style>
+#          .tooltip {
+#            opacity:1;
+#            }
+#            </style>")
     )
   ),
   ## Login module;

@@ -163,7 +163,7 @@ output$Chartpage <- renderUI({
       ),
       tabBox(title = tagList(shiny::icon("tag"), 'Gene/Sample relationship'), id = 'relationTab',
              width = 12,
-             tabPanel("Principal Component", fluidPage(
+             tabPanel("Principal Component",
                fluidRow(
                  column(4, offset = 1, selectizeInput("cvCutoff", 
                                                       label = 'Please select a cutoff for cv (coefficient of variation)',
@@ -176,10 +176,12 @@ output$Chartpage <- renderUI({
                fluidRow(
                  column(4, offset = 1, verbatimTextOutput("value_cvcutoff")),
                  column(4, offset = 2, verbatimTextOutput("value_clustermethod"))
-               )),
+               ),
                hr(),
-               showOutput("PrincipalComponent", "dimple")
-             ),
+               fluidRow(
+                 column(12, showOutput("PrincipalComponent", "dimple"))
+                 )
+               ),
              tabPanel("Gene interaction network", fluidPage(
                fluidRow(
                  column(4, offset = 1, sliderInput("Exprscut", "Expression level cutoff", 
@@ -196,16 +198,27 @@ output$Chartpage <- renderUI({
                forceNetworkOutput("forceNetworkGene")
              )
       ),
-      tabBox(
-        title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
-        id = 'DEanalysis', width = 12, 
-        tabPanel("DE Table", dataTableOutput('DEtable'), style = "max-width:50%"),
-        tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
-        tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
-        tabPanel("Dispersion plot", showOutput("DispersionPlot", "polycharts"))
-#         conditionalPanel(condition = "input.DEmethod == 'XBSeq'",
-#                          tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3")))
-    ),
+      if(input$DEmethod != 'limma-voom')
+        tabBox(
+          title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
+          id = 'DEanalysis', width = 12, 
+          tabPanel("DE Table", dataTableOutput('DEtable'), style = "max-width:50%"),
+          tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
+          tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
+          tabPanel("Dispersion plot", showOutput("DispersionPlot", "polycharts"))
+          #         conditionalPanel(condition = "input.DEmethod == 'XBSeq'",
+          #                          tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3")))
+        )
+      else
+        tabBox(
+          title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
+          id = 'DEanalysis', width = 12, 
+          tabPanel("DE Table", dataTableOutput('DEtable'), style = "max-width:50%"),
+          tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
+          tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap'))
+          #         conditionalPanel(condition = "input.DEmethod == 'XBSeq'",
+          #                          tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3")))
+        ),
     box(title = 'File exports', collapsible = T, status = 'success', width = 12,
     downloadButton('StartDownload', label = "Download")
 )
@@ -340,7 +353,7 @@ output$Table <- renderDataTable({
   temp <- datatable(dataMat, options = list(pageLength = 5))
   saveWidget(temp, 'datatable.html')
   temp
-}, server = T)
+})
 
 output$Heatmap <- renderD3heatmap({
   if (is.null(input$file_obs))
@@ -404,15 +417,26 @@ output$ScatterPlot <- renderChart({
   dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
   dataMat <- as.data.frame(dataMat)
+  dataMat$GeneName <- rownames(dataMat)
   hp <-
     hPlot(
       x = input$text_S1, y = input$text_S2, data = dataMat, type = 'scatter', radius = 3
     )
   hp$addParams(dom = "ScatterPlot")
-  #     hp$tooltip(formatter = "#! function() { return 'x: '     + this.point.x +
-  #                                                 'y: '    + this.point.y  +
-  #                                                 'name: '  + this.point.GeneName; } !#")
   hp$colors('black')
+#       hp$tooltip(useHTML = T, formatter = "#! function() { return 'x: '     + this.point.x +
+#                                                   'y: '    + this.point.y  +
+#                                                   'name: '  + this.point.GeneName; } !#")
+#   hp <- Highcharts$new()
+#   hp$chart(type = "scatter")
+#   temp <- input$text_S1
+#   temp1 <- input$text_S2
+#   dataMat$y <- dataMat$S1
+#   dataMat$x <- dataMat$S2
+#   hp$series(data = toJSONArray2(dataMat, json = F), name = "Observation")
+#   hp$tooltip(useHTML = T, formatter = "#! function() { return 'x:' + this.point.x + '<br>' + 'y:' + this.point.y + '<br>' + 'Genename:' + this.point.GeneName ; } !#")
+#   hp$colors('black')
+#   hp$addParams(dom = "ScatterPlot")
   hp$save('www/report/htmlFiles/Scatterplot.html', standalone = TRUE)
   hp
 })
@@ -480,8 +504,8 @@ output$PrincipalComponent <- renderChart({
   colnames(ppoints) <- c('PC1', 'PC2', 'Design', 'Samplename')
   dp <-
     dPlot(
-      PC2 ~ PC1, data = as.data.frame(ppoints), groups = c('Samplename', 'Design'), type = 'bubble'
-    )
+      PC2 ~ PC1, data = as.data.frame(ppoints), 
+      groups = c('Samplename', 'Design'), type = 'bubble')
   dp$xAxis(type = 'addMeasureAxis')
   dp$addParams(dom = "PrincipalComponent")
   dp$save('www/report/htmlFiles/pcaplot.html', cdn = TRUE)
@@ -543,18 +567,18 @@ output$DEtable <- renderDataTable({
   dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
   dataMat <- as.data.frame(dataMat)
   dataMat1 <- dataComb[[4]]
-  p_adjust <- p.adjust(dataMat1[,3], method = input$padjust)
-  p_adjust[is.na(p_adjust)] <- 1
+  p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
+  p_adjust1[is.na(p_adjust1)] <- 1
   DE_index <-
     which(
       log2(dataMat1[,1] + 1) > as.numeric(input$log2bmcutoff) &
         abs(dataMat1[,2]) > log2(as.numeric(input$fccutoff)) &
-        p_adjust < as.numeric(input$pcutoff)
+        p_adjust1 < as.numeric(input$pcutoff)
     )
   if (length(DE_index) == 0)
     return(datatable(data.frame(), options = list(pageLength = 5)))
   dataMat2 <-
-    cbind(dataMat[DE_index,], dataMat1[DE_index,2], p_adjust[DE_index])
+    cbind(dataMat[DE_index,], dataMat1[DE_index,2], p_adjust1[DE_index])
   colnames(dataMat2) <-
     c(paste('S', 1:ncol(dataMat), sep = ''), 'Log2 fold change', 'p adjusted value')
   temp <- datatable(dataMat2, options = list(pageLength = 5))
@@ -579,7 +603,7 @@ output$MAplot <- renderMetricsgraphics({
         "DE", "Not DE"
       )
     )
-  dataout <- cbind(dataComb[[2]], dataMat[,2], p_adjust)
+  dataout <- cbind(dataComb[[2]], dataMat[,2], p_adjust1)
   colnames(dataout) <- c(colnames(dataComb[[2]]), 'Log2 Fold change', 'p value')
   write.csv(dataout, 'www/report/TestStat.csv', quote = F)
   write.csv(dataout[col=='DE',], 'www/report/DEstat.csv', quote = F)
@@ -689,8 +713,6 @@ output$DispersionPlot <- renderChart3({
     )
     rp$addParams(dom = "DispersionPlot")
   }
-  if(input$DEmethod == 'limma-voom')
-    return(NULL)
   rp$save('www/report/htmlFiles/DispersionPlot.html', standalone = TRUE)
   rp
 })

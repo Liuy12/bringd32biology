@@ -19,6 +19,7 @@ library(DESeq2)
 library(XBSeq)
 library(edgeR)
 library(limma)
+library(scde)
 
 #Texts
 WEBTITLE <- "RNA-seq Viz"
