@@ -80,6 +80,8 @@ output$pass <- renderText({
 
 options("googleAuthR.webapp.client_id" = "254033886814-u7g1elsitroqliemldh3bmoei906vsf0.apps.googleusercontent.com")
 options("googleAuthR.webapp.client_secret" = "AO04YcCbnWXp6d5DDj-SaUk3")
+options("googleAuthR.scopes.selected" = "https://www.googleapis.com/auth/analytics")
+
 
 ## Get auth code from return URL
 access_token  <- reactiveAccessToken(session)

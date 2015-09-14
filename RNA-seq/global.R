@@ -19,6 +19,7 @@ library(DESeq2)
 library(XBSeq)
 library(edgeR)
 library(limma)
+library(rga)
 #library(scde)
 
 #Texts

@@ -51,8 +51,9 @@ shinyUI(fluidPage(
                                  uiOutput("AccountInfo")),
                          tabItem(tabName = "aboutus", 
                                  fluidRow(
-                                   valueBox(20, 'page views', icon = icon('eye')),
-                                   valueBox(100, 'registered users', icon = icon('user'), color = 'yellow')),
+                                   valueBoxOutput('totalvisits'),
+                                   valueBoxOutput('thismonthvisits'),
+                                   valueBoxOutput('totalusers')),
                                  includeHTML('www/timeline.html')
                      )
                    )

@@ -281,4 +281,33 @@ shinyServer(function(input, output,session) {
   output$usersTableDisplay <- renderGvis({
     gvisTable(GLOBALDATA$userData[,-2])
   })
+  
+  output$totalvisits <- renderValueBox({
+    load("www/ga.rga")
+    if (ga$isTokenExpired()){
+      ga$refreshToken()
+    }
+    id <- "108354935"
+    today <- Sys.Date()
+    myresults <- ga$getData(id, start.date="2015-09-13", end.date=today, metrics = "ga:visits", dimensions = "ga:month")
+    valueBox(sum(myresults$visits), 'Total page visits', icon = icon('eye'))
+  })
+  
+  output$thismonthvisits <- renderValueBox({
+    load("www/ga.rga")
+    if (ga$isTokenExpired()){
+      ga$refreshToken()
+    }
+    id <- "108354935"
+    today <- Sys.Date()
+    myresults <- ga$getData(id, start.date=today-30, end.date=today, metrics = "ga:visits", dimensions = "ga:month")
+    valueBox(sum(myresults$visits), 'Page visits last month', icon = icon('eye'), color = 'blue')
+  })
+  
+  output$totalusers <- renderValueBox({
+    valueBox(100, 'registered users', icon = icon('user'), color = 'yellow')
+  })
 })
+
+
+

@@ -140,9 +140,12 @@ output$Chartpage <- renderUI({
       tabBox(width = 12,
         title = tagList(shiny::icon("tag"), "Quality control"),
         id = "QCtab",
-        tabPanel("Table", dataTableOutput("Table")),
-        tabPanel("Heatmap", d3heatmapOutput('Heatmap')), 
-        tabPanel("Kernel Density Estimation", showOutput("Density", "nvd3")), 
+        tabPanel("Table", 
+                 fluidRow(column(12, dataTableOutput("Table")))),
+        tabPanel("Heatmap", 
+                 fluidRow(column(12, d3heatmapOutput('Heatmap')))), 
+        tabPanel("Kernel Density Estimation", 
+                 fluidRow(column(12, showOutput("Density", "nvd3")))), 
         tabPanel("Scatter Plot", fluidPage(
           fluidRow(
             column(4, offset = 1, textInput("text_S1", label = "Enter first sample name (For example, S1)", 
@@ -157,9 +160,10 @@ output$Chartpage <- renderUI({
             column(4, offset = 2, verbatimTextOutput("value_S2"))
           ),
           hr(),
-          showOutput("ScatterPlot", "highcharts")
+          fluidRow(column(12, showOutput("ScatterPlot", "highcharts")))
           )),
-        tabPanel("Boxplot", showOutput("Boxplot", "highcharts"))
+        tabPanel("Boxplot", 
+                 fluidRow(column(12, showOutput("Boxplot", "highcharts"))))
       ),
       tabBox(title = tagList(shiny::icon("tag"), 'Gene/Sample relationship'), id = 'relationTab',
              width = 12,
@@ -195,29 +199,34 @@ output$Chartpage <- renderUI({
                  column(4, offset = 2, verbatimTextOutput("value_Corrcut"))
                )),
                hr(),
-               forceNetworkOutput("forceNetworkGene")
+               fluidRow(
+                 column(12, forceNetworkOutput("forceNetworkGene"))
+               )
              )
       ),
       if(input$DEmethod != 'limma-voom')
         tabBox(
           title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
           id = 'DEanalysis', width = 12, 
-          tabPanel("DE Table", dataTableOutput('DEtable'), style = "max-width:50%"),
-          tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
-          tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap')),
-          tabPanel("Dispersion plot", showOutput("DispersionPlot", "polycharts"))
-          #         conditionalPanel(condition = "input.DEmethod == 'XBSeq'",
-          #                          tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3")))
+          tabPanel("DE Table", 
+                   fluidRow(column(12, dataTableOutput('DEtable')))),
+          tabPanel("MAplot", 
+                   fluidRow(column(12, metricsgraphicsOutput("MAplot")))),
+          tabPanel("DE Heatmap", 
+                   fluidRow(column(12, d3heatmapOutput('DEheatmap')))),
+          tabPanel("Dispersion plot", 
+                   fluidRow(column(12, showOutput("DispersionPlot", "polycharts"))))
         )
       else
         tabBox(
           title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
           id = 'DEanalysis', width = 12, 
-          tabPanel("DE Table", dataTableOutput('DEtable'), style = "max-width:50%"),
-          tabPanel("MAplot", metricsgraphicsOutput("MAplot")),
-          tabPanel("DE Heatmap", d3heatmapOutput('DEheatmap'))
-          #         conditionalPanel(condition = "input.DEmethod == 'XBSeq'",
-          #                          tabPanel("XBSeq plot", showOutput("XBSeqPlot", "nvd3")))
+          tabPanel("DE Table", 
+                   fluidRow(column(12, dataTableOutput('DEtable')))),
+          tabPanel("MAplot", 
+                   fluidRow(column(12, metricsgraphicsOutput("MAplot")))),
+          tabPanel("DE Heatmap", 
+                   fluidRow(column(12, d3heatmapOutput('DEheatmap'))))
         ),
     box(title = 'File exports', collapsible = T, status = 'success', width = 12,
     downloadButton('StartDownload', label = "Download")
@@ -230,8 +239,17 @@ output$StartDownload <- downloadHandler(
   filename <- 'Report.zip',
   content <- function(file) {
     file.copy(c('./forceNet.html', './MAplot.html', './datatable.html', './DEdatatable.html'), 'www/report/htmlFiles')
-    slidify('www/report/Report.Rmd')
-    zip(file, files = c('www/report/'))
+    basedir <- getwd()
+    setwd('www/report/')
+    on.exit(setwd(basedir))
+    if(input$DEmethod != 'limma-voom'){
+      slidify('Report.Rmd')
+      zip(file, files = c('./Report.html', './libraries/', './htmlFiles/'))
+    }
+    else{
+      slidify('Report_limma.Rmd')
+      zip(file, files = c('./Report_limma.html', './libraries/', './htmlFiles/'))
+    }
   },
   contentType = 'application/zip'
 )
