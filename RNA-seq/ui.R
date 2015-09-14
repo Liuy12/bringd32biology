@@ -50,9 +50,12 @@ shinyUI(fluidPage(
                          tabItem(tabName = "Account",
                                  uiOutput("AccountInfo")),
                          tabItem(tabName = "aboutus", 
-                                 includeHTML('www/timeline.html'))
-                       )
+                                 fluidRow(
+                                   valueBox(20, 'page views', icon = icon('eye')),
+                                   valueBox(100, 'registered users', icon = icon('user'), color = 'yellow')),
+                                 includeHTML('www/timeline.html')
                      )
                    )
     )
+))
 ))
