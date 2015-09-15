@@ -7,7 +7,7 @@ output$InputBox <- renderUI(
                selectizeInput(
                  "DEmethod", 
                  label = 'Please select a method for DE analysis',
-                 choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom'),
+                 choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde'),
                  options = list(placeholder = 'select a method below',
                                 onInitialize = I('function() { this.setValue(""); }'))
                ),
@@ -216,7 +216,7 @@ output$Chartpage <- renderUI({
                )
              )
       ),
-      if(input$DEmethod != 'limma-voom')
+      if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde')
         tabBox(
           title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
           id = 'DEanalysis', width = 12, 
@@ -254,13 +254,13 @@ output$StartDownload <- downloadHandler(
     basedir <- getwd()
     setwd('www/report/')
     on.exit(setwd(basedir))
-    if(input$DEmethod != 'limma-voom'){
+    if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde'){
       slidify('Report.Rmd')
-      zip(file, files = c('./Report.html', './libraries/', './htmlFiles/'))
+      zip(file, files = c('./Report.html', './libraries/', './htmlFiles/', './DEstat.csv', './TestStat.csv'))
     }
     else{
-      slidify('Report_limma.Rmd')
-      zip(file, files = c('./Report_limma.html', './libraries/', './htmlFiles/'))
+      slidify('Reports.Rmd')
+      zip(file, files = c('./Reports.html', './libraries/', './htmlFiles/', './DEstat.csv', './TestStat.csv'))
     }
   },
   contentType = 'application/zip'
@@ -318,6 +318,9 @@ dataComb <- eventReactive(input$DEstart, {
   }
   else if (input$DEmethod == 'limma-voom') {
     limma_voom.pfun(data_obs, group, model.matrix(~group))
+  }
+  else if (input$DEmethod == 'scde') {
+    scde.pfun(data_obs, group)
   }
 })
 

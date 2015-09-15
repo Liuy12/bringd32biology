@@ -21,7 +21,7 @@ library(edgeR)
 library(limma)
 library(rga)
 library(threejs)
-#library(scde)
+library(scde)
 
 #Texts
 WEBTITLE <- "RNA-seq Viz"
@@ -207,6 +207,38 @@ limma_voom.pfun <-
       TestStat = TestStat
     )
   }
+
+scde.pfun <- function(counts, design, cores = 4){
+  err_mod <- scde.error.models(counts = counts, groups = design, n.cores = cores,
+                             threshold.segmentation=T, save.crossfit.plots=F, 
+                             save.model.plots=F,verbose=0)
+  valid_cells <- err_mod$corr.a >0
+  err_mod <- err_mod[valid_cells, ]
+  counts <- counts[, valid_cells]
+  design <- design[valid_cells]
+  exprs_prior <- scde.expression.prior(models = err_mod,
+                                       counts = counts,
+                                       length.out=400,
+                                       show.plot=F)
+  names(design) <- row.names(err_mod)
+  ediff <- scde.expression.difference(models = err_mod, counts = counts, 
+                                      prior =  exprs_prior, groups = design,
+                                      n.randomizations=100, n.cores = cores,verbose=1, 
+                                      return.posteriors = F)
+  norm_counts <- as.matrix(2^(scde.expression.magnitude(models = err_mod, counts = counts)))
+  TestStat <- data.frame(
+    AveExpr = apply(norm_counts, 1, mean),
+    logfc = ediff$mle,
+    pval = 2*pnorm(-abs(ediff$Z))
+  )
+  colnames(TestStat) <- c('AveExpr',  'logFC', 'p value')
+  list(
+    RawCount = counts,
+    NormCount = norm_counts,
+    Dispersion = c(),
+    TestStat = TestStat
+  )
+}
 
 renderChart3 <- function(expr, env = parent.frame(), quoted = FALSE) {
   func <- shiny::exprToFunction(expr, env, quoted)
