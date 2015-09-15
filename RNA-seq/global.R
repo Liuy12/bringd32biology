@@ -20,6 +20,7 @@ library(XBSeq)
 library(edgeR)
 library(limma)
 library(rga)
+library(threejs)
 #library(scde)
 
 #Texts

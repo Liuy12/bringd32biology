@@ -169,21 +169,33 @@ output$Chartpage <- renderUI({
              width = 12,
              tabPanel("Principal Component",
                fluidRow(
-                 column(4, offset = 1, selectizeInput("cvCutoff", 
+                 column(3, offset = 1, selectizeInput("cvCutoff", 
                                                       label = 'Please select a cutoff for cv (coefficient of variation)',
                                                       choices = c(0.1, 0.3, 0.5))
                  ),
-                 column(4,offset = 2, selectizeInput("clusterMethod", 
+                 column(3,offset = 1, selectizeInput("clusterMethod", 
                                                      label = 'Please select a method for clustering (pca or mds)',
                                                      choices = c('pca', 'mds'))
-                 )),
+                 ),
+                 column(3, offset = 1, selectizeInput("plotdim", 
+                                                      label = 'Please select either 2d or 3d',
+                                                      choices = c('2d', '3d')))
+                 ),
                fluidRow(
-                 column(4, offset = 1, verbatimTextOutput("value_cvcutoff")),
-                 column(4, offset = 2, verbatimTextOutput("value_clustermethod"))
+                 column(3, offset = 1, verbatimTextOutput("value_cvcutoff")),
+                 column(3, offset = 1, verbatimTextOutput("value_clustermethod")),
+                 column(3, offset = 1, verbatimTextOutput("value_plotdim"))
                ),
                hr(),
+#                if(input$value_plotdim == '2d')
+#                  fluidRow(column(12, showOutput("PrincipalComponent2d", "dimple")))
+#                else
+#                  fluidRow(column(12, scatterplotThreeOutput("PrincipalComponent3d")))
                fluidRow(
-                 column(12, showOutput("PrincipalComponent", "dimple"))
+                 conditionalPanel(condition = "input.plotdim =='2d'",
+                                  column(12, showOutput("PrincipalComponent2d", "dimple"))),
+                 conditionalPanel(condition = "input.plotdim =='3d'",
+                                  column(12, scatterplotThreeOutput("PrincipalComponent3d")))
                  )
                ),
              tabPanel("Gene interaction network", fluidPage(
@@ -468,6 +480,11 @@ output$value_clustermethod <-
     input$clusterMethod
   })
 
+output$value_plotdim <- 
+  renderPrint({
+    input$plotdim
+  })
+
 output$Boxplot <- renderChart({
   dataComb <- dataComb()
   dataMat <- log2(dataComb[[2]])
@@ -491,12 +508,7 @@ output$Boxplot <- renderChart({
   hp
 })
 
-output$PrincipalComponent <- renderChart({
-  colors <-
-    c(
-      '#00FFFF', '#FFE4C4', '#D2691E', '#6495ED', '#9932CC', '#8B0000',
-      '#FF00FF', '#FFD700'
-    )
+Principalstats <- reactive({
   dataComb <- dataComb()
   dataMat <- log2(dataComb[[2]])
   dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
@@ -510,24 +522,65 @@ output$PrincipalComponent <- renderChart({
   dataMat <- scale(dataMat)
   if (clusterMethod == 'mds') {
     dd <- dist(t(dataMat))
-    mds.result <- cmdscale(dd, k = 2, eig = TRUE)
+    mds.result <- cmdscale(dd, k = 3, eig = TRUE)
     ppoints <- mds.result$points
+    eig <- mds.result$eig
+    percent <- round(eig/sum(eig) * 100, 1)
   }
   else{
     pca.result <- prcomp(t(dataMat))
-    ppoints <- pca.result$x[,1:2]
+    ppoints <- pca.result$x[,1:3]
+    percent<-round((pca.result$sdev^2/sum(pca.result$sdev^2))*100,1)
   }
   ppoints <-
     cbind(ppoints, design, paste('S', 1:ncol(dataMat), sep = ''))
-  colnames(ppoints) <- c('PC1', 'PC2', 'Design', 'Samplename')
-  dp <-
-    dPlot(
-      PC2 ~ PC1, data = as.data.frame(ppoints), 
-      groups = c('Samplename', 'Design'), type = 'bubble')
-  dp$xAxis(type = 'addMeasureAxis')
-  dp$addParams(dom = "PrincipalComponent")
-  dp$save('www/report/htmlFiles/pcaplot.html', cdn = TRUE)
-  dp
+  colnames(ppoints) <- c('PC1', 'PC2', 'PC3', 'Design', 'Samplename')
+  ppoints <- as.data.frame(ppoints)
+  return(list(ppoints, percent))
+})
+
+output$PrincipalComponent2d <- 
+  renderChart({
+    prinstat <- Principalstats()
+    ppoints <- prinstat[[1]]
+    percent <- prinstat[[2]]
+    xlab <- paste('PC1 (', percent[1],'%)', sep = '')
+    ylab <- paste('PC2 (', percent[2], '%)', sep = '')
+  xlab <- paste('PC1 (', percent[1],'%)', sep = '')
+  ylab <- paste('PC2 (', percent[2], '%)', sep = '')
+    dp <-
+      dPlot(
+        PC2 ~ PC1, data = as.data.frame(ppoints), 
+        groups = c('Samplename', 'Design'), type = 'bubble',
+        xlab = xlab, ylab = ylab)
+    dp$xAxis(type = 'addMeasureAxis')
+    dp$addParams(dom = "PrincipalComponent2d")
+    dp$save('www/report/htmlFiles/pcaplot.html', cdn = TRUE)
+    dp
+  })
+
+output$PrincipalComponent3d <- renderScatterplotThree({
+  prinstat <- Principalstats()
+  ppoints <- prinstat[[1]]
+  percent <- prinstat[[2]]
+  xlab <- paste('PC1 (', percent[1],'%)', sep = '')
+  ylab <- paste('PC2 (', percent[2], '%)', sep = '')
+  zlab <- paste('PC3 (', percent[3], '%)', sep = '')
+  colors <-
+    c(
+      '#00FFFF', '#FFE4C4', '#D2691E', '#6495ED', '#9932CC', '#8B0000',
+      '#FF00FF', '#FFD700'
+    )
+  design <- design()
+  col <- colors[1:length(unique(design))]
+  col <- rep(col, c(as.numeric(table(design))))
+  scatter3d <- scatterplot3js(ppoints[,1], ppoints[,2], ppoints[,3], 
+                 labels = ppoints$Samplename, 
+                 axisLabels = c(xlab, ylab, zlab),
+                 color = col,
+                 renderer = 'canvas')
+  saveWidget(scatter3d, 'pcaplot.html')
+  return(scatter3d)
 })
 
 output$value_Exprscut <- renderPrint({
