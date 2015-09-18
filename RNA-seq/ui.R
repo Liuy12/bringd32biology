@@ -2,10 +2,10 @@ shinyUI(fluidPage(
   # Add custom CSS & Javascript;
   tagList(
     tags$head(
-      tags$script(type="text/javascript", src = "md5.js"),
-      tags$script(type="text/javascript", src = "passwdInputBinding.js"),
-      tags$script(type="text/javascript", src = "GoogleAnalytics.js"),
-      tags$link(type="text/css", rel="stylesheet", href="style.css"),
+      tags$script(type="text/javascript", src = "JavaScript/md5.js"),
+      tags$script(type="text/javascript", src = "JavaScript/passwdInputBinding.js"),
+      tags$script(type="text/javascript", src = "JavaScript/GoogleAnalytics.js"),
+      tags$link(type="text/css", rel="stylesheet", href="CSS/style.css"),
       tags$link(type="text/css", rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css"),
       HTML("<style>
          .tooltip {
@@ -39,14 +39,14 @@ shinyUI(fluidPage(
                        tabItems(
                          # First tab content
                          tabItem(tabName = "introduction", 
-                                 includeHTML('www/carousel.html'),
-                                 includeHTML('www/Introduction.html')),
+                                 includeHTML('www/HTML/carousel.html'),
+                                 includeHTML('www/HTML/Introduction.html')),
                          tabItem(tabName = "SetInput", 
                                  uiOutput("InputBox")),
                          tabItem(tabName = "Charts",
                                  uiOutput("Chartpage")),
                          tabItem(tabName = 'doc',
-                                 includeHTML('www/Documentation.html')),
+                                 includeHTML('www/HTML/Documentation.html')),
                          tabItem(tabName = "Account",
                                  uiOutput("AccountInfo")),
                          tabItem(tabName = "aboutus", 
@@ -54,7 +54,7 @@ shinyUI(fluidPage(
                                    valueBoxOutput('totalvisits'),
                                    valueBoxOutput('thismonthvisits'),
                                    valueBoxOutput('totalusers')),
-                                 includeHTML('www/timeline.html')
+                                 includeHTML('www/HTML/timeline.html')
                      )
                    )
     )

@@ -1,248 +1,248 @@
 output$InputBox <- renderUI(
-    fluidRow(
-      column(width = 12, 
-             box(
-               title = "File input", status = "primary", solidHeader = TRUE,
-               collapsible = TRUE,
-               selectizeInput(
-                 "DEmethod", 
-                 label = 'Please select a method for DE analysis',
-                 choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde'),
-                 options = list(placeholder = 'select a method below',
-                                onInitialize = I('function() { this.setValue(""); }'))
-               ),
-               verbatimTextOutput("value_DE"),
+  fluidRow(
+    column(width = 12, 
+           box(
+             title = "File input", status = "primary", solidHeader = TRUE,
+             collapsible = TRUE,
+             selectizeInput(
+               "DEmethod", 
+               label = 'Please select a method for DE analysis',
+               choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde'),
+               options = list(placeholder = 'select a method below',
+                              onInitialize = I('function() { this.setValue(""); }'))
+             ),
+             verbatimTextOutput("value_DE"),
+             fileInput(
+               'file_obs', 'Choose CSV/TXT File for RNA-seq', accept=c('text/csv', 
+                                                                       'text/comma-separated-values,text/plain', 
+                                                                       '.csv')
+             ),
+             conditionalPanel(
+               condition = "input.DEmethod == 'XBSeq'",
                fileInput(
-                 'file_obs', 'Choose CSV/TXT File for RNA-seq', accept=c('text/csv', 
-                                                                         'text/comma-separated-values,text/plain', 
-                                                                         '.csv')
+                 'file_bg', 'Choose CSV/TXT File for RNA-seq (bg), required if you choose XBSeq', 
+                 accept=c('text/csv',
+                          'text/comma-separated-values,text/plain', 
+                          '.csv')
+               )
+             ),
+             fileInput('file_design', 
+                       'Choose CSV/TXT File for experiment design',
+                       accept=c('text/csv', 
+                                'text/comma-separated-values,text/plain', 
+                                '.csv')
+             )
+           ), 
+           box(
+             title = "Options for DE method", status = "info", solidHeader = TRUE,
+             collapsible = TRUE,
+             conditionalPanel(
+               condition = "input.DEmethod == 'DESeq' | input.DEmethod == 'XBSeq'",
+               selectizeInput("SCVmethod", 
+                              label = "Please select a method to estimate dispersion", 
+                              choices =c('pooled', 'per-condition', 'blind'),
+                              selected = 'pooled'
                ),
+               verbatimTextOutput("SCVmethod"),
+               selectizeInput("SharingMode",
+                              label = "Please select a method for sharing mode",
+                              choices = c('maximum', 'fit-only', 'gene-est-only'),
+                              selected = 'maximum'
+               ),
+               verbatimTextOutput("SharingMode"),
+               selectizeInput("fitType",
+                              label = "Please select a method for fitType",
+                              choices = c('local', 'parametric'),
+                              selected = 'local'
+               ),
+               verbatimTextOutput("fitType"),
                conditionalPanel(
                  condition = "input.DEmethod == 'XBSeq'",
-                 fileInput(
-                   'file_bg', 'Choose CSV/TXT File for RNA-seq (bg), required if you choose XBSeq', 
-                   accept=c('text/csv',
-                            'text/comma-separated-values,text/plain', 
-                            '.csv')
-                 )
-               ),
-               fileInput('file_design', 
-                         'Choose CSV/TXT File for experiment design',
-                         accept=c('text/csv', 
-                                  'text/comma-separated-values,text/plain', 
-                                  '.csv')
+                 selectizeInput("ParamEst", 
+                                label = "Please select a method to estimate distribution parameters", 
+                                choices =c('Non-parametric' = 'NP', 
+                                           'Maximum liklihood estimation' = 'MLE'),
+                                selected = 'NP'
+                 ),
+                 verbatimTextOutput("ParamEst")
                )
-             ), 
-             box(
-               title = "Options for DE method", status = "info", solidHeader = TRUE,
-               collapsible = TRUE,
-               conditionalPanel(
-                 condition = "input.DEmethod == 'DESeq' | input.DEmethod == 'XBSeq'",
-                 selectizeInput("SCVmethod", 
-                                label = "Please select a method to estimate dispersion", 
-                                choices =c('pooled', 'per-condition', 'blind'),
-                                selected = 'pooled'
-                 ),
-                 verbatimTextOutput("SCVmethod"),
-                 selectizeInput("SharingMode",
-                                label = "Please select a method for sharing mode",
-                                choices = c('maximum', 'fit-only', 'gene-est-only'),
-                                selected = 'maximum'
-                 ),
-                 verbatimTextOutput("SharingMode"),
-                 selectizeInput("fitType",
-                                label = "Please select a method for fitType",
-                                choices = c('local', 'parametric'),
-                                selected = 'local'
-                 ),
-                 verbatimTextOutput("fitType"),
-                 conditionalPanel(
-                   condition = "input.DEmethod == 'XBSeq'",
-                   selectizeInput("ParamEst", 
-                                  label = "Please select a method to estimate distribution parameters", 
-                                  choices =c('Non-parametric' = 'NP', 
-                                             'Maximum liklihood estimation' = 'MLE'),
-                                  selected = 'NP'
-                   ),
-                   verbatimTextOutput("ParamEst")
-                 )
-               ),
-               conditionalPanel(
-                 condition = "input.DEmethod == 'DESeq2'",
-                 selectizeInput("fitType_DESeq2", 
-                                label = "Please select a method for fit type", 
-                                choices =c('local', 'parametric', 'mean'),
-                                selected = 'local'
-                 ),
-                 verbatimTextOutput("fitType_DESeq2"),
-                 selectizeInput("Test",
-                                label = "Please select a method for statistical test",
-                                choices = c('Wald test' = 'Wald',
-                                            'Log ratio test' = 'LRT'),
-                                selected = 'Wald'
-                 ),
-                 verbatimTextOutput("Test"),
-                 selectizeInput("cooksCutoff",
-                                label = "Please choose either to turn on or off cooks distance cutoff",
-                                choices = c('on',
-                                            'off'),
-                                selected = 'off'
-                 ),
-                 verbatimTextOutput("cooksCutoff")
-               )
-#                conditionalPanel(
-#                  condition = "input.DEmethod == 'edgeR-robust'",
-#                  selectizeInput("residualType", 
-#                                 label = "Please select a method for calculating residuals", 
-#                                 choices =c("pearson", "deviance", "anscombe"),
-#                                 selected = 'pearson'
-#                  ),
-#                  verbatimTextOutput("residualType")
-#                )
-             )
              ),
-      column(width = 12, 
-             box(
-               title = "Criteria for DE genes", status = "success", solidHeader = TRUE,
-               collapsible = TRUE,
-               selectizeInput("padjust", 
-                              label = "Please select a method for adjusting p values", 
-                              choices =c("Benj&Hoch" = "BH", 
-                                         "bonferroni", "none"),
-                              selected = 'BH'
+             conditionalPanel(
+               condition = "input.DEmethod == 'DESeq2'",
+               selectizeInput("fitType_DESeq2", 
+                              label = "Please select a method for fit type", 
+                              choices =c('local', 'parametric', 'mean'),
+                              selected = 'local'
                ),
-               verbatimTextOutput("padjust"),
-               selectizeInput("pcutoff", 
-                              label = "Please set a cutoff of p values for DE genes", 
-                              choices =c(0.001, 0.01, 0.05, 0.1, 0.2),
-                              selected = 0.05
+               verbatimTextOutput("fitType_DESeq2"),
+               selectizeInput("Test",
+                              label = "Please select a method for statistical test",
+                              choices = c('Wald test' = 'Wald',
+                                          'Log ratio test' = 'LRT'),
+                              selected = 'Wald'
                ),
-               verbatimTextOutput("pcutoff"),
-               selectizeInput("fccutoff", 
-                              label = "Please set a cutoff of fold change for DE genes", 
-                              choices =c(1.5, 2, 2.5, 3, 5),
-                              selected = 2
+               verbatimTextOutput("Test"),
+               selectizeInput("cooksCutoff",
+                              label = "Please choose either to turn on or off cooks distance cutoff",
+                              choices = c('on',
+                                          'off'),
+                              selected = 'off'
                ),
-               verbatimTextOutput("fccutoff"),
-               numericInput("log2bmcutoff", label = "Please set a cutoff for log2 expression intensity (Usually can be determined from density plot)", 
-                            value = 5, min = 1
-               ),
-               verbatimTextOutput("log2bmcutoff"),
-               actionButton('DEstart', label = 'Start analysis!'),
-               textOutput("DEstart")
+               verbatimTextOutput("cooksCutoff")
              )
-             )
+             #                conditionalPanel(
+             #                  condition = "input.DEmethod == 'edgeR-robust'",
+             #                  selectizeInput("residualType", 
+             #                                 label = "Please select a method for calculating residuals", 
+             #                                 choices =c("pearson", "deviance", "anscombe"),
+             #                                 selected = 'pearson'
+             #                  ),
+             #                  verbatimTextOutput("residualType")
+             #                )
+           )
+    ),
+    column(width = 12, 
+           box(
+             title = "Criteria for DE genes", status = "success", solidHeader = TRUE,
+             collapsible = TRUE,
+             selectizeInput("padjust", 
+                            label = "Please select a method for adjusting p values", 
+                            choices =c("Benj&Hoch" = "BH", 
+                                       "bonferroni", "none"),
+                            selected = 'BH'
+             ),
+             verbatimTextOutput("padjust"),
+             selectizeInput("pcutoff", 
+                            label = "Please set a cutoff of p values for DE genes", 
+                            choices =c(0.001, 0.01, 0.05, 0.1, 0.2),
+                            selected = 0.05
+             ),
+             verbatimTextOutput("pcutoff"),
+             selectizeInput("fccutoff", 
+                            label = "Please set a cutoff of fold change for DE genes", 
+                            choices =c(1.5, 2, 2.5, 3, 5),
+                            selected = 2
+             ),
+             verbatimTextOutput("fccutoff"),
+             numericInput("log2bmcutoff", label = "Please set a cutoff for log2 expression intensity (Usually can be determined from density plot)", 
+                          value = 5, min = 1
+             ),
+             verbatimTextOutput("log2bmcutoff"),
+             actionButton('DEstart', label = 'Start analysis!'),
+             textOutput("DEstart")
+           )
     )
   )
+)
 
 output$Chartpage <- renderUI({
   fluidPage(
-      tabBox(width = 12,
-        title = tagList(shiny::icon("tag"), "Quality control"),
-        id = "QCtab",
-        tabPanel("Table", 
-                 fluidRow(column(12, dataTableOutput("Table")))),
-        tabPanel("Heatmap", 
-                 fluidRow(column(12, d3heatmapOutput('Heatmap')))), 
-        tabPanel("Kernel Density Estimation", 
-                 fluidRow(column(12, showOutput("Density", "nvd3")))), 
-        tabPanel("Scatter Plot", fluidPage(
-          fluidRow(
-            column(4, offset = 1, textInput("text_S1", label = "Enter first sample name (For example, S1)", 
-                                            value = "S1"
-            )),
-            column(4,offset = 2, textInput("text_S2", label = "Enter second sample name (For example, S2)", 
-                                           value = "S2"
-            ))
-          ), 
-          fluidRow(
-            column(4, offset = 1, verbatimTextOutput("value_S1")),
-            column(4, offset = 2, verbatimTextOutput("value_S2"))
-          ),
-          hr(),
-          fluidRow(column(12, showOutput("ScatterPlot", "highcharts")))
-          )),
-        tabPanel("Boxplot", 
-                 fluidRow(column(12, showOutput("Boxplot", "highcharts"))))
-      ),
-      tabBox(title = tagList(shiny::icon("tag"), 'Gene/Sample relationship'), id = 'relationTab',
-             width = 12,
-             tabPanel("Principal Component",
-               fluidRow(
-                 column(3, offset = 1, selectizeInput("cvCutoff", 
-                                                      label = 'Please select a cutoff for cv (coefficient of variation)',
-                                                      choices = c(0.1, 0.3, 0.5))
-                 ),
-                 column(3,offset = 1, selectizeInput("clusterMethod", 
-                                                     label = 'Please select a method for clustering (pca or mds)',
-                                                     choices = c('pca', 'mds'))
-                 ),
-                 column(3, offset = 1, selectizeInput("plotdim", 
-                                                      label = 'Please select either 2d or 3d',
-                                                      choices = c('2d', '3d')))
-                 ),
-               fluidRow(
-                 column(3, offset = 1, verbatimTextOutput("value_cvcutoff")),
-                 column(3, offset = 1, verbatimTextOutput("value_clustermethod")),
-                 column(3, offset = 1, verbatimTextOutput("value_plotdim"))
-               ),
-               hr(),
-#                if(input$value_plotdim == '2d')
-#                  fluidRow(column(12, showOutput("PrincipalComponent2d", "dimple")))
-#                else
-#                  fluidRow(column(12, scatterplotThreeOutput("PrincipalComponent3d")))
-               fluidRow(
-                 conditionalPanel(condition = "input.plotdim =='2d'",
-                                  column(12, showOutput("PrincipalComponent2d", "dimple"))),
-                 conditionalPanel(condition = "input.plotdim =='3d'",
-                                  column(12, scatterplotThreeOutput("PrincipalComponent3d")))
-                 )
-               ),
-             tabPanel("Gene interaction network", fluidPage(
-               fluidRow(
-                 column(4, offset = 1, sliderInput("Exprscut", "Expression level cutoff", 
-                                                   min=0, max=20, step = 2, value=8
-                 )),
-                 column(4,offset = 2, sliderInput("Corrcut", "Correlation cutoff", 
-                                                  min=0, max=1, step = 0.1, value=0.9)
-                 )),
-               fluidRow(
-                 column(4, offset = 1, verbatimTextOutput("value_Exprscut")),
-                 column(4, offset = 2, verbatimTextOutput("value_Corrcut"))
+    tabBox(width = 12,
+           title = tagList(shiny::icon("tag"), "Quality control"),
+           id = "QCtab",
+           tabPanel("Table", 
+                    fluidRow(column(12, dataTableOutput("Table")))),
+           tabPanel("Heatmap", 
+                    fluidRow(column(12, d3heatmapOutput('Heatmap')))), 
+           tabPanel("Kernel Density Estimation", 
+                    fluidRow(column(12, showOutput("Density", "nvd3")))), 
+           tabPanel("Scatter Plot", fluidPage(
+             fluidRow(
+               column(4, offset = 1, textInput("text_S1", label = "Enter first sample name (For example, S1)", 
+                                               value = "S1"
                )),
-               hr(),
-               fluidRow(
-                 column(12, forceNetworkOutput("forceNetworkGene"))
-               )
+               column(4,offset = 2, textInput("text_S2", label = "Enter second sample name (For example, S2)", 
+                                              value = "S2"
+               ))
+             ), 
+             fluidRow(
+               column(4, offset = 1, verbatimTextOutput("value_S1")),
+               column(4, offset = 2, verbatimTextOutput("value_S2"))
+             ),
+             hr(),
+             fluidRow(column(12, showOutput("ScatterPlot", "highcharts")))
+           )),
+           tabPanel("Boxplot", 
+                    fluidRow(column(12, showOutput("Boxplot", "highcharts"))))
+    ),
+    tabBox(title = tagList(shiny::icon("tag"), 'Gene/Sample relationship'), id = 'relationTab',
+           width = 12,
+           tabPanel("Principal Component",
+                    fluidRow(
+                      column(3, offset = 1, selectizeInput("cvCutoff", 
+                                                           label = 'Please select a cutoff for cv (coefficient of variation)',
+                                                           choices = c(0.1, 0.3, 0.5))
+                      ),
+                      column(3,offset = 1, selectizeInput("clusterMethod", 
+                                                          label = 'Please select a method for clustering (pca or mds)',
+                                                          choices = c('pca', 'mds'))
+                      ),
+                      column(3, offset = 1, selectizeInput("plotdim", 
+                                                           label = 'Please select either 2d or 3d',
+                                                           choices = c('2d', '3d')))
+                    ),
+                    fluidRow(
+                      column(3, offset = 1, verbatimTextOutput("value_cvcutoff")),
+                      column(3, offset = 1, verbatimTextOutput("value_clustermethod")),
+                      column(3, offset = 1, verbatimTextOutput("value_plotdim"))
+                    ),
+                    hr(),
+                    #                if(input$value_plotdim == '2d')
+                    #                  fluidRow(column(12, showOutput("PrincipalComponent2d", "dimple")))
+                    #                else
+                    #                  fluidRow(column(12, scatterplotThreeOutput("PrincipalComponent3d")))
+                    fluidRow(
+                      conditionalPanel(condition = "input.plotdim =='2d'",
+                                       column(12, showOutput("PrincipalComponent2d", "dimple"))),
+                      conditionalPanel(condition = "input.plotdim =='3d'",
+                                       column(12, scatterplotThreeOutput("PrincipalComponent3d")))
+                    )
+           ),
+           tabPanel("Gene interaction network", fluidPage(
+             fluidRow(
+               column(4, offset = 1, sliderInput("Exprscut", "Expression level cutoff", 
+                                                 min=0, max=20, step = 2, value=8
+               )),
+               column(4,offset = 2, sliderInput("Corrcut", "Correlation cutoff", 
+                                                min=0, max=1, step = 0.1, value=0.9)
+               )),
+             fluidRow(
+               column(4, offset = 1, verbatimTextOutput("value_Exprscut")),
+               column(4, offset = 2, verbatimTextOutput("value_Corrcut"))
+             )),
+             hr(),
+             fluidRow(
+               column(12, forceNetworkOutput("forceNetworkGene"))
              )
+           )
+    ),
+    if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde')
+      tabBox(
+        title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
+        id = 'DEanalysis', width = 12, 
+        tabPanel("DE Table", 
+                 fluidRow(column(12, dataTableOutput('DEtable')))),
+        tabPanel("MAplot", 
+                 fluidRow(column(12, metricsgraphicsOutput("MAplot")))),
+        tabPanel("DE Heatmap", 
+                 fluidRow(column(12, d3heatmapOutput('DEheatmap')))),
+        tabPanel("Dispersion plot", 
+                 fluidRow(column(12, showOutput("DispersionPlot", "polycharts"))))
+      )
+    else
+      tabBox(
+        title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
+        id = 'DEanalysis', width = 12, 
+        tabPanel("DE Table", 
+                 fluidRow(column(12, dataTableOutput('DEtable')))),
+        tabPanel("MAplot", 
+                 fluidRow(column(12, metricsgraphicsOutput("MAplot")))),
+        tabPanel("DE Heatmap", 
+                 fluidRow(column(12, d3heatmapOutput('DEheatmap'))))
       ),
-      if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde')
-        tabBox(
-          title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
-          id = 'DEanalysis', width = 12, 
-          tabPanel("DE Table", 
-                   fluidRow(column(12, dataTableOutput('DEtable')))),
-          tabPanel("MAplot", 
-                   fluidRow(column(12, metricsgraphicsOutput("MAplot")))),
-          tabPanel("DE Heatmap", 
-                   fluidRow(column(12, d3heatmapOutput('DEheatmap')))),
-          tabPanel("Dispersion plot", 
-                   fluidRow(column(12, showOutput("DispersionPlot", "polycharts"))))
-        )
-      else
-        tabBox(
-          title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
-          id = 'DEanalysis', width = 12, 
-          tabPanel("DE Table", 
-                   fluidRow(column(12, dataTableOutput('DEtable')))),
-          tabPanel("MAplot", 
-                   fluidRow(column(12, metricsgraphicsOutput("MAplot")))),
-          tabPanel("DE Heatmap", 
-                   fluidRow(column(12, d3heatmapOutput('DEheatmap'))))
-        ),
     box(title = 'File exports', collapsible = T, status = 'success', width = 12,
-    downloadButton('StartDownload', label = "Download")
-)
+        downloadButton('StartDownload', label = "Download")
+    )
   )
 })
 
@@ -250,12 +250,15 @@ output$Chartpage <- renderUI({
 output$StartDownload <- downloadHandler(
   filename <- 'Report.zip',
   content <- function(file) {
-    file.copy(c('./forceNet.html', './MAplot.html', './datatable.html', './DEdatatable.html'), 'www/report/htmlFiles')
+    Username <- isolate(input$userName)
+    path <- paste('www/report/user/', Username, sep = '')
+    setwd(path)
     if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde'){
-      slidify('www/report/Report.Rmd')
-      zip(file, files = c('www/report/Report.html', 'www/report/libraries/', 'www/report/htmlFiles/', 'www/report/DEstat.csv', 'www/report/TestStat.csv'))
+      slidify('Report.Rmd')
+      zip(file, files = c('Report.html', 'libraries/', 'htmlFiles/', 'DEstat.csv', 'TestStat.csv'))
     }
     else{
+      path1 <- paste(path, '/Reports.Rmd', sep='')
       slidify('www/report/Reports.Rmd')
       zip(file, files = c('www/report/Reports.html', 'www/report/libraries/', 'www/report/htmlFiles/', 'www/report/DEstat.csv', 'www/report/TestStat.csv'))
     }
@@ -288,6 +291,13 @@ dataComb <- eventReactive(input$DEstart, {
   data_obs <- data_obs[,-1]
   group <- design()
   group <- as.factor(group)
+  Username <- isolate(input$userName)
+  path <- paste('www/report/user/', Username, sep = '')
+  if(!dir.exists(path)){
+    dir.create(path)
+    dir.create(paste(path, '/htmlFiles', sep = ''))
+    file.copy(c('www/report/Report.Rmd', 'www/report/Reports.Rmd', 'www/report/libraries'), path, recursive = TRUE)
+  }
   if (input$DEmethod == 'XBSeq') {
     data_bg <- fread(input$file_bg$datapath, data.table = F)
     rownames(data_bg) <- data_bg[,1]
@@ -382,6 +392,10 @@ output$Table <- renderDataTable({
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
   temp <- datatable(dataMat, options = list(pageLength = 5))
   saveWidget(temp, 'datatable.html')
+  Username <- isolate(input$userName)
+  path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
+  file.copy('./datatable.html', path)
+  file.remove('./datatable.html')
   temp
 })
 
@@ -429,7 +443,9 @@ output$Density <- renderChart({
     xlab <- 'Log2 normalized intensity'
   np$xAxis(axisLabel = xlab)
   np$yAxis(axisLabel = 'Density')
-  np$save('www/report/htmlFiles/density.html', standalone = TRUE)
+  Username <- isolate(input$userName)
+  path <- paste('www/report/user/', Username, '/htmlFiles/density.html', sep = '')
+  np$save(path, standalone = TRUE)
   return(np)
 })
 
@@ -454,20 +470,22 @@ output$ScatterPlot <- renderChart({
     )
   hp$addParams(dom = "ScatterPlot")
   hp$colors('black')
-#       hp$tooltip(useHTML = T, formatter = "#! function() { return 'x: '     + this.point.x +
-#                                                   'y: '    + this.point.y  +
-#                                                   'name: '  + this.point.GeneName; } !#")
-#   hp <- Highcharts$new()
-#   hp$chart(type = "scatter")
-#   temp <- input$text_S1
-#   temp1 <- input$text_S2
-#   dataMat$y <- dataMat$S1
-#   dataMat$x <- dataMat$S2
-#   hp$series(data = toJSONArray2(dataMat, json = F), name = "Observation")
-#   hp$tooltip(useHTML = T, formatter = "#! function() { return 'x:' + this.point.x + '<br>' + 'y:' + this.point.y + '<br>' + 'Genename:' + this.point.GeneName ; } !#")
-#   hp$colors('black')
-#   hp$addParams(dom = "ScatterPlot")
-  hp$save('www/report/htmlFiles/Scatterplot.html', standalone = TRUE)
+  #       hp$tooltip(useHTML = T, formatter = "#! function() { return 'x: '     + this.point.x +
+  #                                                   'y: '    + this.point.y  +
+  #                                                   'name: '  + this.point.GeneName; } !#")
+  #   hp <- Highcharts$new()
+  #   hp$chart(type = "scatter")
+  #   temp <- input$text_S1
+  #   temp1 <- input$text_S2
+  #   dataMat$y <- dataMat$S1
+  #   dataMat$x <- dataMat$S2
+  #   hp$series(data = toJSONArray2(dataMat, json = F), name = "Observation")
+  #   hp$tooltip(useHTML = T, formatter = "#! function() { return 'x:' + this.point.x + '<br>' + 'y:' + this.point.y + '<br>' + 'Genename:' + this.point.GeneName ; } !#")
+  #   hp$colors('black')
+  #   hp$addParams(dom = "ScatterPlot")
+  Username <- isolate(input$userName)
+  path <- paste('www/report/user/', Username, '/htmlFiles/Scatterplot.html', sep = '')
+  hp$save(path, standalone = TRUE)
   hp
 })
 
@@ -504,7 +522,9 @@ output$Boxplot <- renderChart({
   hp$yAxis(title = list(text = ylab))
   hp$chart(type = 'boxplot')
   hp$addParams(dom = "Boxplot")
-  hp$save('www/report/htmlFiles/Boxplot.html', standalone = TRUE)
+  Username <- isolate(input$userName)
+  path <- paste('www/report/user/', Username, '/htmlFiles/Boxplot.html', sep = '')
+  hp$save(path, standalone = TRUE)
   hp
 })
 
@@ -546,8 +566,8 @@ output$PrincipalComponent2d <-
     percent <- prinstat[[2]]
     xlab <- paste('PC1 (', percent[1],'%)', sep = '')
     ylab <- paste('PC2 (', percent[2], '%)', sep = '')
-  xlab <- paste('PC1 (', percent[1],'%)', sep = '')
-  ylab <- paste('PC2 (', percent[2], '%)', sep = '')
+    xlab <- paste('PC1 (', percent[1],'%)', sep = '')
+    ylab <- paste('PC2 (', percent[2], '%)', sep = '')
     dp <-
       dPlot(
         PC2 ~ PC1, data = as.data.frame(ppoints), 
@@ -555,7 +575,9 @@ output$PrincipalComponent2d <-
         xlab = xlab, ylab = ylab)
     dp$xAxis(type = 'addMeasureAxis')
     dp$addParams(dom = "PrincipalComponent2d")
-    dp$save('www/report/htmlFiles/pcaplot.html', cdn = TRUE)
+    Username <- isolate(input$userName)
+    path <- paste('www/report/user/', Username, '/htmlFiles/pcaplot.html', sep = '')
+    dp$save(path, cdn = TRUE)
     dp
   })
 
@@ -575,11 +597,15 @@ output$PrincipalComponent3d <- renderScatterplotThree({
   col <- colors[1:length(unique(design))]
   col <- rep(col, c(as.numeric(table(design))))
   scatter3d <- scatterplot3js(ppoints[,1], ppoints[,2], ppoints[,3], 
-                 labels = ppoints$Samplename, 
-                 axisLabels = c(xlab, ylab, zlab),
-                 color = col,
-                 renderer = 'canvas')
+                              labels = ppoints$Samplename, 
+                              axisLabels = c(xlab, ylab, zlab),
+                              color = col,
+                              renderer = 'canvas')
   saveWidget(scatter3d, 'pcaplot.html')
+  Username <- isolate(input$userName)
+  path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
+  file.copy('./pcaplot.html', path)
+  file.remove('./pcaplot.html')
   return(scatter3d)
 })
 
@@ -626,6 +652,10 @@ output$forceNetworkGene <- renderForceNetwork({
       Group = "group", opacity = 0.4
     )
     saveWidget(forceNet, 'forceNet.html')
+    Username <- isolate(input$userName)
+    path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
+    file.copy('./forceNet.html', path)
+    file.remove('./forceNet.html')
     return(forceNet)
   }
 })
@@ -654,6 +684,10 @@ output$DEtable <- renderDataTable({
     c(paste('S', 1:ncol(dataMat), sep = ''), 'Log2 fold change', 'p adjusted value')
   temp <- datatable(dataMat2, options = list(pageLength = 5))
   saveWidget(temp, 'DEdatatable.html')
+  Username <- isolate(input$userName)
+  path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
+  file.copy('./DEdatatable.html', path)
+  file.remove('./DEdatatable.html')
   temp
 })
 
@@ -676,8 +710,10 @@ output$MAplot <- renderMetricsgraphics({
     )
   dataout <- cbind(dataComb[[2]], dataMat[,2], p_adjust1)
   colnames(dataout) <- c(colnames(dataComb[[2]]), 'Log2 Fold change', 'p value')
-  write.csv(dataout, 'www/report/TestStat.csv', quote = F)
-  write.csv(dataout[col=='DE',], 'www/report/DEstat.csv', quote = F)
+  Username <- isolate(input$userName)
+  path <- paste('www/report/user/', Username, sep = '')
+  write.csv(dataout, paste(path, '/TestStat.csv', sep =''), quote = F)
+  write.csv(dataout[col=='DE',], paste(path, '/DEstat.csv', sep =''), quote = F)
   dataMat <- cbind(Genename = rownames(dataMat), dataMat, col)
   dataMat$baseMean <- log2(dataMat$baseMean + 1)
   if(input$DEmethod == 'edgeR' | input$DEmethod == 'edgeR-robust')
@@ -697,6 +733,10 @@ output$MAplot <- renderMetricsgraphics({
     mjs_add_baseline(y_value = 0, label = 'baseline') %>%
     mjs_labs(x_label = xlab, y_label = "Log2 fold change")
   saveWidget(mp, file = 'MAplot.html')
+  Username <- isolate(input$userName)
+  path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
+  file.copy('./MAplot.html', path)
+  file.remove('./MAplot.html')
   mp
 })
 
@@ -784,7 +824,9 @@ output$DispersionPlot <- renderChart3({
     )
     rp$addParams(dom = "DispersionPlot")
   }
-  rp$save('www/report/htmlFiles/DispersionPlot.html', standalone = TRUE)
+  Username <- isolate(input$userName)
+  path <- paste('www/report/user/', Username, '/htmlFiles/DispersionPlot.html', sep = '')
+  rp$save(path, standalone = TRUE)
   rp
 })
 

@@ -1,7 +1,7 @@
 # Define server logic required to summarize and view the selected dataset
 shinyServer(function(input, output,session) {
-  source("www/Login.R",  local = TRUE)
-  source('www/Startanalysis.R', local = TRUE)
+  source("www/R/Login.R",  local = TRUE)
+  source('www/R/Startanalysis.R', local = TRUE)
   changePasswordButtonCount <- 0
   delUserButtonCount <- 0
   moveUserButtonCount <- 0
