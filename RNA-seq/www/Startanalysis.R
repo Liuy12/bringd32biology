@@ -251,16 +251,13 @@ output$StartDownload <- downloadHandler(
   filename <- 'Report.zip',
   content <- function(file) {
     file.copy(c('./forceNet.html', './MAplot.html', './datatable.html', './DEdatatable.html'), 'www/report/htmlFiles')
-    basedir <- getwd()
-    setwd('www/report/')
-    on.exit(setwd(basedir))
     if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde'){
-      slidify('Report.Rmd')
-      zip(file, files = c('./Report.html', './libraries/', './htmlFiles/', './DEstat.csv', './TestStat.csv'))
+      slidify('www/report/Report.Rmd')
+      zip(file, files = c('www/report/Report.html', 'www/report/libraries/', 'www/report/htmlFiles/', 'www/report/DEstat.csv', 'www/report/TestStat.csv'))
     }
     else{
-      slidify('Reports.Rmd')
-      zip(file, files = c('./Reports.html', './libraries/', './htmlFiles/', './DEstat.csv', './TestStat.csv'))
+      slidify('www/report/Reports.Rmd')
+      zip(file, files = c('www/report/Reports.html', 'www/report/libraries/', 'www/report/htmlFiles/', 'www/report/DEstat.csv', 'www/report/TestStat.csv'))
     }
   },
   contentType = 'application/zip'

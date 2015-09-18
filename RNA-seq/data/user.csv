@@ -1,7 +1,3 @@
-"user","password","group"
-"user1","6ad14ba9986e3615423dfca256d04e3f","user"
-"admin1","0192023a7bbd73250516f069df18b500","admin"
-"user2","6ad14ba9986e3615423dfca256d04e3f","user"
-"haha","88979dc9f25d7360ab6ea59b21d695b2","haha"
-"test","098f6bcd4621d373cade4e832627b4f6","user"
-"","d41d8cd98f00b204e9800998ecf8427e","user"
+user,password,group
+user1,6ad14ba9986e3615423dfca256d04e3f,user
+admin1,0192023a7bbd73250516f069df18b500,admin
