@@ -18,9 +18,12 @@ shinyUI(fluidPage(
   theme = shinytheme("flatly"),
   uiOutput("uiLogin"),
   uiOutput("uiSignup"),
-  conditionalPanel(condition = "output.LoginStatus",
-                   dashboardPage(skin = 'green',
-                     dashboardHeader(title = img(src = 'img/logo.png', style = "max-width:50%")),
+  conditionalPanel(condition = "output.LoginStatus", 
+                   #style = "width:'100%';margin: 0px; padding: 0px;",
+                   fluidRow(
+                   dashboardPage(skin = 'blue',
+                     dashboardHeader(uiOutput('test'), title = img(src = 'img/logo.png', style = "max-width:50%")
+                                     ),
                      dashboardSidebar(
                        sidebarMenu(id = 'sidebar', 
                                    sidebarSearchForm(textId = "searchText", buttonId = "searchButton",
@@ -58,5 +61,5 @@ shinyUI(fluidPage(
                      )
                    )
     )
-))
+)))
 ))

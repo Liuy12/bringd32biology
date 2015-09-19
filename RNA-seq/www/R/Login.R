@@ -161,12 +161,15 @@ SignupFun <- reactive({
     userPass1 <- isolate(input$passwd_signup)
     userPass2 <- isolate(input$passwd_signup2)
     group <- 'user'
-    
+    if(userName == '')
+      return('Please enter your username first!')
+    if(length(which(GLOBALDATA$userData$user == userName))){
+      return("This username has already been taken.")
+    }
     if (userPass1 != userPass2) {
       SignUpCount <<- input$Signup
       return("The passwords should be same in two inputs.")
     }
-    
     temp2 <-
       c(userName,userPass1, group)
     userData <<- rbind(userData,temp2)
@@ -183,4 +186,10 @@ output$Signupresult <- renderText({
   SignupFun()
 })
 
+observe({
+  if(!is.null(input$signout))
+    if(input$signout >=1) {
+      USER$Logged <- FALSE
+}
+  })
 

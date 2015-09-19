@@ -307,7 +307,10 @@ shinyServer(function(input, output,session) {
   output$totalusers <- renderValueBox({
     valueBox(100, 'registered users', icon = icon('user'), color = 'yellow')
   })
+  
+  output$test <- renderUI({
+    includeHTML('www/HTML/Signout.html')
+  })
 })
-
 
 
