@@ -12,11 +12,11 @@ output$uiLogin <- renderUI({
 	return(
 	  fluidRow(column(3, tags$header(strong("RNA-seq Vis"), style = "font-size: 50px;margin-top: 25px; 
                                   ")),
-	           column(2, offset = 1, textInput("userName", "User Name:"), style = "margin-top: 25px"),
+	           column(2, offset = 3, textInput("userName", "User Name:"), style = "margin-top: 25px"),
 	           column(2, offset = 0.5, passwordInput("passwd", "Password:"), style = "margin-top: 25px"),
 	           column(1, offset = 0.5, actionButton("Login", "Log in"), style = "margin-top: 50px"),
-	           column(1, offset = 0.5, tags$p(strong('or')), style = "margin-top: 55px;font-size: 20px"),
-	           column(2, loginOutput("loginButton"), style = "margin-top: 50px;"),
+	           #column(1, offset = 0.5, tags$p(strong('or')), style = "margin-top: 55px;font-size: 20px"),
+	           #column(2, loginOutput("loginButton"), style = "margin-top: 50px;"),
 	           column(2, offset = 0.5, textOutput("pass")),
 	           style = "background-color: #87CEFA;"
 	           )
@@ -49,35 +49,8 @@ output$ForceNetdemo <- renderForceNetwork({
                Group = "group", opacity = 0.8)
 })
 
-# output$pass <- renderText({  
-#   if (USER$Logged == FALSE) {
-#       if (!is.null(input$Login)) {
-#         if (input$Login > 0) {
-#           Username <- isolate(input$userName)
-#           Password <- isolate(input$passwd)
-#           usernameInd <- which(GLOBALDATA$userData$user == Username)
-#           if (length(usernameInd) > 0) {
-#             if (GLOBALDATA$userData$password[usernameInd[1]]==Password) {
-#               USER$Logged <- TRUE
-#               USER$Group <- GLOBALDATA$userData$group[usernameInd[1]]
-#             }
-#             else  {
-#               "Password failed!"
-#             }
-#           } else  {
-#             "User name doesn't exist!"
-#           }
-#         }
-#       }
-#     }
-# })
-
 output$pass <- renderText({  
   if (USER$Logged == FALSE) {
-    if(!is.null(shiny::isolate(access_token()))){
-      USER$Logged <- TRUE
-    }
-    else{
       if (!is.null(input$Login)) {
         if (input$Login > 0) {
           Username <- isolate(input$userName)
@@ -86,7 +59,6 @@ output$pass <- renderText({
           if (length(usernameInd) > 0) {
             if (GLOBALDATA$userData$password[usernameInd[1]]==Password) {
               USER$Logged <- TRUE
-              
               USER$Group <- GLOBALDATA$userData$group[usernameInd[1]]
             }
             else  {
@@ -98,20 +70,48 @@ output$pass <- renderText({
         }
       }
     }
-  }
 })
 
-options("googleAuthR.webapp.client_id" = "254033886814-u7g1elsitroqliemldh3bmoei906vsf0.apps.googleusercontent.com")
-options("googleAuthR.webapp.client_secret" = "AO04YcCbnWXp6d5DDj-SaUk3")
-options("googleAuthR.scopes.selected" = "https://www.googleapis.com/auth/analytics")
+# output$pass <- renderText({  
+#   if (USER$Logged == FALSE) {
+#     if(!is.null(shiny::isolate(access_token()))){
+#       USER$Logged <- TRUE
+#     }
+#     else{
+#       if (!is.null(input$Login)) {
+#         if (input$Login > 0) {
+#           Username <- isolate(input$userName)
+#           Password <- isolate(input$passwd)
+#           usernameInd <- which(GLOBALDATA$userData$user == Username)
+#           if (length(usernameInd) > 0) {
+#             if (GLOBALDATA$userData$password[usernameInd[1]]==Password) {
+#               USER$Logged <- TRUE
+#               
+#               USER$Group <- GLOBALDATA$userData$group[usernameInd[1]]
+#             }
+#             else  {
+#               "Password failed!"
+#             }
+#           } else  {
+#             "User name doesn't exist!"
+#           }
+#         }
+#       }
+#     }
+#   }
+# })
 
-
-## Get auth code from return URL
-access_token  <- reactiveAccessToken(session)
-
-
-## Make a loginButton to display using loginOutput
-output$loginButton <- renderLogin(session, access_token())
+# options("googleAuthR.webapp.client_id" = "254033886814-u7g1elsitroqliemldh3bmoei906vsf0.apps.googleusercontent.com")
+# options("googleAuthR.webapp.client_secret" = "AO04YcCbnWXp6d5DDj-SaUk3")
+# options("googleAuthR.scopes.selected" = "https://www.googleapis.com/auth/analytics")
+# 
+# 
+# ## Get auth code from return URL
+# access_token  <- reactiveAccessToken(session)
+# 
+# 
+# ## Make a loginButton to display using loginOutput
+# output$loginButton <- renderLogin(session, access_token())
 
 
 # output$loginButton <- shiny::renderUI({
