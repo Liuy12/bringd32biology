@@ -1,6 +1,6 @@
 library(slidify)
 library(slidifyLibraries)
-library(googleAuthR)
+#library(googleAuthR)
 library(shiny)
 library(shinydashboard)
 library(googleVis)
