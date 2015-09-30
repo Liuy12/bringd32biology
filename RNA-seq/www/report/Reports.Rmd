@@ -39,6 +39,14 @@ cat('<iframe src="htmlFiles/datatable.html" width=1000px height=1000px allowtran
 
 ---
 
+## Heatmap
+
+```{r results = 'asis', comment = NA, cache = F, message=FALSE, warning=FALSE, echo=FALSE}
+cat('<iframe src="htmlFiles/heatmap.html" width=1000px height=1000px allowtransparency="true"> </iframe>')
+```
+
+---
+
 ## Density plot
 ```{r results = 'asis', comment = NA, cache = F, message=FALSE, warning=FALSE, echo=FALSE}
 cat('<iframe src="htmlFiles/density.html" width=1000px height=1000px allowtransparency="true"> </iframe>')
@@ -82,6 +90,14 @@ cat('<iframe src="htmlFiles/forceNet.html" width=1000px height=1000px allowtrans
 
 ```{r echo=FALSE, warning=FALSE,cache=FALSE,results='asis'}
 cat('<iframe src="htmlFiles/DEdatatable.html" width=1000px height=1000px allowtransparency="true"> </iframe>')
+```
+
+---
+
+## DE heatmap
+
+```{r echo=FALSE, warning=FALSE,cache=FALSE,results='asis'}
+cat('<iframe src="htmlFiles/DEheatmap.html" width=1000px height=1000px allowtransparency="true"> </iframe>')
 ```
 
 ---

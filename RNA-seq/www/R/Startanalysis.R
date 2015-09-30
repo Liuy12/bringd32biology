@@ -1,139 +1,140 @@
-output$InputBox <- renderUI(
-  fluidRow(
-    column(width = 12, 
-           box(
-             title = "File input", status = "primary", solidHeader = TRUE,
-             collapsible = TRUE,
-             selectizeInput(
-               "DEmethod", 
-               label = 'Please select a method for DE analysis',
-               choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde'),
-               options = list(placeholder = 'select a method below',
-                              onInitialize = I('function() { this.setValue(""); }'))
-             ),
-             verbatimTextOutput("value_DE"),
-             fileInput(
-               'file_obs', 'Choose CSV/TXT File for RNA-seq', accept=c('text/csv', 
-                                                                       'text/comma-separated-values,text/plain', 
-                                                                       '.csv')
-             ),
-             conditionalPanel(
-               condition = "input.DEmethod == 'XBSeq'",
-               fileInput(
-                 'file_bg', 'Choose CSV/TXT File for RNA-seq (bg), required if you choose XBSeq', 
-                 accept=c('text/csv',
-                          'text/comma-separated-values,text/plain', 
-                          '.csv')
-               )
-             ),
-             fileInput('file_design', 
-                       'Choose CSV/TXT File for experiment design',
-                       accept=c('text/csv', 
-                                'text/comma-separated-values,text/plain', 
-                                '.csv')
-             )
-           ), 
-           box(
-             title = "Options for DE method", status = "info", solidHeader = TRUE,
-             collapsible = TRUE,
-             conditionalPanel(
-               condition = "input.DEmethod == 'DESeq' | input.DEmethod == 'XBSeq'",
-               selectizeInput("SCVmethod", 
-                              label = "Please select a method to estimate dispersion", 
-                              choices =c('pooled', 'per-condition', 'blind'),
-                              selected = 'pooled'
-               ),
-               verbatimTextOutput("SCVmethod"),
-               selectizeInput("SharingMode",
-                              label = "Please select a method for sharing mode",
-                              choices = c('maximum', 'fit-only', 'gene-est-only'),
-                              selected = 'maximum'
-               ),
-               verbatimTextOutput("SharingMode"),
-               selectizeInput("fitType",
-                              label = "Please select a method for fitType",
-                              choices = c('local', 'parametric'),
-                              selected = 'local'
-               ),
-               verbatimTextOutput("fitType"),
-               conditionalPanel(
-                 condition = "input.DEmethod == 'XBSeq'",
-                 selectizeInput("ParamEst", 
-                                label = "Please select a method to estimate distribution parameters", 
-                                choices =c('Non-parametric' = 'NP', 
-                                           'Maximum liklihood estimation' = 'MLE'),
-                                selected = 'NP'
-                 ),
-                 verbatimTextOutput("ParamEst")
-               )
-             ),
-             conditionalPanel(
-               condition = "input.DEmethod == 'DESeq2'",
-               selectizeInput("fitType_DESeq2", 
-                              label = "Please select a method for fit type", 
-                              choices =c('local', 'parametric', 'mean'),
-                              selected = 'local'
-               ),
-               verbatimTextOutput("fitType_DESeq2"),
-               selectizeInput("Test",
-                              label = "Please select a method for statistical test",
-                              choices = c('Wald test' = 'Wald',
-                                          'Log ratio test' = 'LRT'),
-                              selected = 'Wald'
-               ),
-               verbatimTextOutput("Test"),
-               selectizeInput("cooksCutoff",
-                              label = "Please choose either to turn on or off cooks distance cutoff",
-                              choices = c('on',
-                                          'off'),
-                              selected = 'off'
-               ),
-               verbatimTextOutput("cooksCutoff")
-             )
-             #                conditionalPanel(
-             #                  condition = "input.DEmethod == 'edgeR-robust'",
-             #                  selectizeInput("residualType", 
-             #                                 label = "Please select a method for calculating residuals", 
-             #                                 choices =c("pearson", "deviance", "anscombe"),
-             #                                 selected = 'pearson'
-             #                  ),
-             #                  verbatimTextOutput("residualType")
-             #                )
-           )
-    ),
-    column(width = 12, 
-           box(
-             title = "Criteria for DE genes", status = "success", solidHeader = TRUE,
-             collapsible = TRUE,
-             selectizeInput("padjust", 
-                            label = "Please select a method for adjusting p values", 
-                            choices =c("Benj&Hoch" = "BH", 
-                                       "bonferroni", "none"),
-                            selected = 'BH'
-             ),
-             verbatimTextOutput("padjust"),
-             selectizeInput("pcutoff", 
-                            label = "Please set a cutoff of p values for DE genes", 
-                            choices =c(0.001, 0.01, 0.05, 0.1, 0.2),
-                            selected = 0.05
-             ),
-             verbatimTextOutput("pcutoff"),
-             selectizeInput("fccutoff", 
-                            label = "Please set a cutoff of fold change for DE genes", 
-                            choices =c(1.5, 2, 2.5, 3, 5),
-                            selected = 2
-             ),
-             verbatimTextOutput("fccutoff"),
-             numericInput("log2bmcutoff", label = "Please set a cutoff for log2 expression intensity (Usually can be determined from density plot)", 
-                          value = 5, min = 1
-             ),
-             verbatimTextOutput("log2bmcutoff"),
-             actionButton('DEstart', label = 'Start analysis!'),
-             textOutput("DEstart")
-           )
-    )
-  )
-)
+# output$InputBox <- renderUI(
+#   fluidRow(
+#     column(width = 12, 
+#            box(
+#              title = "File input", status = "primary", solidHeader = TRUE,
+#              collapsible = TRUE,
+#              selectizeInput(
+#                "DEmethod", 
+#                label = 'Please select a method for DE analysis',
+#                choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde'),
+#                options = list(placeholder = 'select a method below',
+#                               onInitialize = I('function() { this.setValue(""); }'))
+#              ),
+#              verbatimTextOutput("value_DE"),
+#              fileInput(
+#                'file_obs', 'Choose CSV/TXT File for RNA-seq', accept=c('text/csv', 
+#                                                                        'text/comma-separated-values,text/plain', 
+#                                                                        '.csv')
+#              ),
+#              conditionalPanel(
+#                condition = "input.DEmethod == 'XBSeq'",
+#                fileInput(
+#                  'file_bg', 'Choose CSV/TXT File for RNA-seq (bg), required if you choose XBSeq', 
+#                  accept=c('text/csv',
+#                           'text/comma-separated-values,text/plain', 
+#                           '.csv')
+#                )
+#              ),
+#              fileInput('file_design', 
+#                        'Choose CSV/TXT File for experiment design',
+#                        accept=c('text/csv', 
+#                                 'text/comma-separated-values,text/plain', 
+#                                 '.csv')
+#              )
+#            ), 
+#            box(
+#              title = "Options for DE method", status = "info", solidHeader = TRUE,
+#              collapsible = TRUE,
+#              conditionalPanel(
+#                condition = "input.DEmethod == 'DESeq' | input.DEmethod == 'XBSeq'",
+#                selectizeInput("SCVmethod", 
+#                               label = "Please select a method to estimate dispersion", 
+#                               choices =c('pooled', 'per-condition', 'blind'),
+#                               selected = 'pooled'
+#                ),
+#                verbatimTextOutput("SCVmethod"),
+#                selectizeInput("SharingMode",
+#                               label = "Please select a method for sharing mode",
+#                               choices = c('maximum', 'fit-only', 'gene-est-only'),
+#                               selected = 'maximum'
+#                ),
+#                verbatimTextOutput("SharingMode"),
+#                selectizeInput("fitType",
+#                               label = "Please select a method for fitType",
+#                               choices = c('local', 'parametric'),
+#                               selected = 'local'
+#                ),
+#                verbatimTextOutput("fitType"),
+#                conditionalPanel(
+#                  condition = "input.DEmethod == 'XBSeq'",
+#                  selectizeInput("ParamEst", 
+#                                 label = "Please select a method to estimate distribution parameters", 
+#                                 choices =c('Non-parametric' = 'NP', 
+#                                            'Maximum liklihood estimation' = 'MLE'),
+#                                 selected = 'NP'
+#                  ),
+#                  verbatimTextOutput("ParamEst")
+#                )
+#              ),
+#              conditionalPanel(
+#                condition = "input.DEmethod == 'DESeq2'",
+#                selectizeInput("fitType_DESeq2", 
+#                               label = "Please select a method for fit type", 
+#                               choices =c('local', 'parametric', 'mean'),
+#                               selected = 'local'
+#                ),
+#                verbatimTextOutput("fitType_DESeq2"),
+#                selectizeInput("Test",
+#                               label = "Please select a method for statistical test",
+#                               choices = c('Wald test' = 'Wald',
+#                                           'Log ratio test' = 'LRT'),
+#                               selected = 'Wald'
+#                ),
+#                verbatimTextOutput("Test"),
+#                selectizeInput("cooksCutoff",
+#                               label = "Please choose either to turn on or off cooks distance cutoff",
+#                               choices = c('on',
+#                                           'off'),
+#                               selected = 'off'
+#                ),
+#                verbatimTextOutput("cooksCutoff")
+#              )
+#              #                conditionalPanel(
+#              #                  condition = "input.DEmethod == 'edgeR-robust'",
+#              #                  selectizeInput("residualType", 
+#              #                                 label = "Please select a method for calculating residuals", 
+#              #                                 choices =c("pearson", "deviance", "anscombe"),
+#              #                                 selected = 'pearson'
+#              #                  ),
+#              #                  verbatimTextOutput("residualType")
+#              #                )
+#            )
+#     ),
+#     column(width = 12, 
+#            box(
+#              title = "Criteria for DE genes", status = "success", solidHeader = TRUE,
+#              collapsible = TRUE,
+#              selectizeInput("padjust", 
+#                             label = "Please select a method for adjusting p values", 
+#                             choices =c("Benj&Hoch" = "BH", 
+#                                        "bonferroni", "none"),
+#                             selected = 'BH'
+#              ),
+#              verbatimTextOutput("padjust"),
+#              selectizeInput("pcutoff", 
+#                             label = "Please set a cutoff of p values for DE genes", 
+#                             choices =c(0.001, 0.01, 0.05, 0.1, 0.2),
+#                             selected = 0.05
+#              ),
+#              verbatimTextOutput("pcutoff"),
+#              selectizeInput("fccutoff", 
+#                             label = "Please set a cutoff of fold change for DE genes", 
+#                             choices =c(1.5, 2, 2.5, 3, 5),
+#                             selected = 2
+#              ),
+#              verbatimTextOutput("fccutoff"),
+#              numericInput("log2bmcutoff", label = "Please set a cutoff for log2 expression intensity (Usually can be determined from density plot)", 
+#                           value = 5, min = 1
+#              ),
+#              verbatimTextOutput("log2bmcutoff"),
+#              actionButton('DEstart', label = 'Start analysis!'),
+#              textOutput("DEstart")
+#            )
+#     )
+#   )
+# )
+
 
 output$Chartpage <- renderUI({
   fluidPage(
@@ -387,15 +388,14 @@ output$Table <- renderDataTable({
   if (is.null(input$file_obs))
     return(NULL)
   dataComb <- dataComb()
-  dataMat <- log2(dataComb[[2]])
-  dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
+  dataMat <- log2(dataComb[[2]] + 0.25)
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
   temp <- datatable(dataMat, options = list(pageLength = 5))
-  saveWidget(temp, 'datatable.html')
-  Username <- isolate(input$userName)
-  path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
-  file.copy('./datatable.html', path)
-  file.remove('./datatable.html')
+#   saveWidget(temp, 'datatable.html')
+#   Username <- isolate(input$userName)
+#   path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
+#   file.copy('./datatable.html', path)
+#   file.remove('./datatable.html')
   temp
 })
 
@@ -403,22 +403,26 @@ output$Heatmap <- renderD3heatmap({
   if (is.null(input$file_obs))
     return(NULL)
   dataComb <- dataComb()
-  dataMat <- log2(dataComb[[2]])
-  dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
-  colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
+  dataMat <- log2(dataComb[[2]] + 0.25)
   mean_gene <- apply(dataMat, 1, mean)
   var_gene <- apply(dataMat, 1, var)
-  index <- which(log2(mean_gene) > input$log2bmcutoff)
+  index <- which(mean_gene > as.numeric(input$log2bmcutoff))
   dataMat1 <- dataMat[order(var_gene[index]),]
-  if (length(index) < 100)
+  if (!length(index))
     return(NULL)
-  d3heatmap(dataMat1[1:100,], scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000))
+  uplim <- ifelse(length(index) < 1000, length(index), 1000)
+  h1 <- d3heatmap(as.data.frame(dataMat1[1:uplim,]), scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE)
+#   saveWidget(h1, 'heatmap.html')
+#   Username <- isolate(input$userName)
+#   path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
+#   file.copy('./heatmap.html', path)
+#   file.remove('./heatmap.html')
+  h1
 })
 
 output$Density <- renderChart({
   dataComb <- dataComb()
-  dataMat <- log2(dataComb[[2]])
-  dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
+  dataMat <- log2(dataComb[[2]] + 0.25)
   denStat <-
     density(dataMat[,1], from = min(dataMat), to = max(dataMat))
   denStat <- data.frame(x = denStat$x,
@@ -443,9 +447,9 @@ output$Density <- renderChart({
     xlab <- 'Log2 normalized intensity'
   np$xAxis(axisLabel = xlab)
   np$yAxis(axisLabel = 'Density')
-  Username <- isolate(input$userName)
-  path <- paste('www/report/user/', Username, '/htmlFiles/density.html', sep = '')
-  np$save(path, standalone = TRUE)
+#   Username <- isolate(input$userName)
+#   path <- paste('www/report/user/', Username, '/htmlFiles/density.html', sep = '')
+#   np$save(path, standalone = TRUE)
   return(np)
 })
 
@@ -459,8 +463,7 @@ output$value_S2 <- renderPrint({
 
 output$ScatterPlot <- renderChart({
   dataComb <- dataComb()
-  dataMat <- log2(dataComb[[2]])
-  dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
+  dataMat <- log2(dataComb[[2]] + 0.25)
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
   dataMat <- as.data.frame(dataMat)
   dataMat$GeneName <- rownames(dataMat)
@@ -483,9 +486,9 @@ output$ScatterPlot <- renderChart({
   #   hp$tooltip(useHTML = T, formatter = "#! function() { return 'x:' + this.point.x + '<br>' + 'y:' + this.point.y + '<br>' + 'Genename:' + this.point.GeneName ; } !#")
   #   hp$colors('black')
   #   hp$addParams(dom = "ScatterPlot")
-  Username <- isolate(input$userName)
-  path <- paste('www/report/user/', Username, '/htmlFiles/Scatterplot.html', sep = '')
-  hp$save(path, standalone = TRUE)
+#   Username <- isolate(input$userName)
+#   path <- paste('www/report/user/', Username, '/htmlFiles/Scatterplot.html', sep = '')
+#   hp$save(path, standalone = TRUE)
   hp
 })
 
@@ -505,8 +508,7 @@ output$value_plotdim <-
 
 output$Boxplot <- renderChart({
   dataComb <- dataComb()
-  dataMat <- log2(dataComb[[2]])
-  dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
+  dataMat <- log2(dataComb[[2]] + 0.25)
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
   bwstats <- setNames(as.data.frame(boxplot(dataMat, plot = F)$stats),
                       nm = NULL)
@@ -522,16 +524,15 @@ output$Boxplot <- renderChart({
   hp$yAxis(title = list(text = ylab))
   hp$chart(type = 'boxplot')
   hp$addParams(dom = "Boxplot")
-  Username <- isolate(input$userName)
-  path <- paste('www/report/user/', Username, '/htmlFiles/Boxplot.html', sep = '')
-  hp$save(path, standalone = TRUE)
+#   Username <- isolate(input$userName)
+#   path <- paste('www/report/user/', Username, '/htmlFiles/Boxplot.html', sep = '')
+#   hp$save(path, standalone = TRUE)
   hp
 })
 
 Principalstats <- reactive({
   dataComb <- dataComb()
-  dataMat <- log2(dataComb[[2]])
-  dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
+  dataMat <- log2(dataComb[[2]] + 0.25)
   design <- design()
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
   cvcutoff <- input$cvCutoff
@@ -575,9 +576,9 @@ output$PrincipalComponent2d <-
         xlab = xlab, ylab = ylab)
     dp$xAxis(type = 'addMeasureAxis')
     dp$addParams(dom = "PrincipalComponent2d")
-    Username <- isolate(input$userName)
-    path <- paste('www/report/user/', Username, '/htmlFiles/pcaplot.html', sep = '')
-    dp$save(path, cdn = TRUE)
+#     Username <- isolate(input$userName)
+#     path <- paste('www/report/user/', Username, '/htmlFiles/pcaplot.html', sep = '')
+#     dp$save(path, cdn = TRUE)
     dp
   })
 
@@ -601,11 +602,11 @@ output$PrincipalComponent3d <- renderScatterplotThree({
                               axisLabels = c(xlab, ylab, zlab),
                               color = col,
                               renderer = 'canvas')
-  saveWidget(scatter3d, 'pcaplot.html')
-  Username <- isolate(input$userName)
-  path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
-  file.copy('./pcaplot.html', path)
-  file.remove('./pcaplot.html')
+#   saveWidget(scatter3d, 'pcaplot.html')
+#   Username <- isolate(input$userName)
+#   path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
+#   file.copy('./pcaplot.html', path)
+#   file.remove('./pcaplot.html')
   return(scatter3d)
 })
 
@@ -621,8 +622,7 @@ output$forceNetworkGene <- renderForceNetwork({
   if (is.null(input$file_obs))
     return(NULL)
   dataComb <- dataComb()
-  dataMat <- log2(dataComb[[2]])
-  dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
+  dataMat <- log2(dataComb[[2]] + 0.25)
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
   mean.gene <- apply(dataMat, 1, mean)
   dataMat <- dataMat[mean.gene > input$Exprscut,]
@@ -651,11 +651,11 @@ output$forceNetworkGene <- renderForceNetwork({
       Target = "target", Value = "value", NodeID = "name",
       Group = "group", opacity = 0.4
     )
-    saveWidget(forceNet, 'forceNet.html')
-    Username <- isolate(input$userName)
-    path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
-    file.copy('./forceNet.html', path)
-    file.remove('./forceNet.html')
+#     saveWidget(forceNet, 'forceNet.html')
+#     Username <- isolate(input$userName)
+#     path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
+#     file.copy('./forceNet.html', path)
+#     file.remove('./forceNet.html')
     return(forceNet)
   }
 })
@@ -664,8 +664,7 @@ output$DEtable <- renderDataTable({
   if (is.null(input$file_obs))
     return(NULL)
   dataComb <- dataComb()
-  dataMat <- log2(dataComb[[2]])
-  dataMat[is.na(dataMat) | is.infinite(dataMat)] <- 0
+  dataMat <- log2(dataComb[[2]] + 0.25)
   dataMat <- as.data.frame(dataMat)
   dataMat1 <- dataComb[[4]]
   p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
@@ -683,12 +682,38 @@ output$DEtable <- renderDataTable({
   colnames(dataMat2) <-
     c(paste('S', 1:ncol(dataMat), sep = ''), 'Log2 fold change', 'p adjusted value')
   temp <- datatable(dataMat2, options = list(pageLength = 5))
-  saveWidget(temp, 'DEdatatable.html')
-  Username <- isolate(input$userName)
-  path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
-  file.copy('./DEdatatable.html', path)
-  file.remove('./DEdatatable.html')
+#   saveWidget(temp, 'DEdatatable.html')
+#   Username <- isolate(input$userName)
+#   path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
+#   file.copy('./DEdatatable.html', path)
+#   file.remove('./DEdatatable.html')
   temp
+})
+
+output$DEheatmap <- renderD3heatmap({
+  dataComb <- dataComb()
+  dataMat <- log2(dataComb[[2]] + 0.25)
+  dataMat <- as.data.frame(dataMat)
+  dataMat1 <- dataComb[[4]]
+  p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
+  p_adjust1[is.na(p_adjust1)] <- 1
+  DE_index <-
+    which(
+      log2(dataMat1[,1] + 1) > as.numeric(input$log2bmcutoff) &
+        abs(dataMat1[,2]) > log2(as.numeric(input$fccutoff)) &
+        p_adjust1 < as.numeric(input$pcutoff)
+    )
+  if (length(DE_index) == 0)
+    return(NULL)
+  dataMat2 <-dataMat[DE_index,]
+  colnames(dataMat2) <- paste('S', 1:ncol(dataMat), sep = '')
+  h1 <- d3heatmap(dataMat2, scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE)
+#   saveWidget(h1, 'DEheatmap.html')
+#   Username <- isolate(input$userName)
+#   path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
+#   file.copy('./DEheatmap.html', path)
+#   file.remove('./DEheatmap.html')
+  h1
 })
 
 output$MAplot <- renderMetricsgraphics({
@@ -702,7 +727,7 @@ output$MAplot <- renderMetricsgraphics({
   col <-
     with(
       data = dataMat, ifelse(
-        log2(baseMean + 1) > as.numeric(input$log2bmcutoff) &
+        log2(baseMean + 0.25) > as.numeric(input$log2bmcutoff) &
           abs(log2FoldChange) > log2(as.numeric(input$fccutoff)) &
           p_adjust1 < as.numeric(input$pcutoff),
         "DE", "Not DE"
@@ -732,18 +757,18 @@ output$MAplot <- renderMetricsgraphics({
     ) %>%
     mjs_add_baseline(y_value = 0, label = 'baseline') %>%
     mjs_labs(x_label = xlab, y_label = "Log2 fold change")
-  saveWidget(mp, file = 'MAplot.html')
-  Username <- isolate(input$userName)
-  path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
-  file.copy('./MAplot.html', path)
-  file.remove('./MAplot.html')
+#   saveWidget(mp, file = 'MAplot.html')
+#   Username <- isolate(input$userName)
+#   path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
+#   file.copy('./MAplot.html', path)
+#   file.remove('./MAplot.html')
   mp
 })
 
 output$DispersionPlot <- renderChart3({
   dataComb <- dataComb()
   Dispersion <- dataComb[[3]]
-  Dispersion$baseMean <- dataComb[[4]][,1] + 1
+  Dispersion$baseMean <- dataComb[[4]][,1] + 0.25
   if(input$DEmethod == 'DESeq2'){
     Dispersion1 <- stack(Dispersion[,c(1,3)])
     colnames(Dispersion1) <- c('Disp', 'Type')
@@ -824,9 +849,9 @@ output$DispersionPlot <- renderChart3({
     )
     rp$addParams(dom = "DispersionPlot")
   }
-  Username <- isolate(input$userName)
-  path <- paste('www/report/user/', Username, '/htmlFiles/DispersionPlot.html', sep = '')
-  rp$save(path, standalone = TRUE)
+#   Username <- isolate(input$userName)
+#   path <- paste('www/report/user/', Username, '/htmlFiles/DispersionPlot.html', sep = '')
+#   rp$save(path, standalone = TRUE)
   rp
 })
 
