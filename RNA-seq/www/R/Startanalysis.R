@@ -242,11 +242,24 @@ output$Chartpage <- renderUI({
                  fluidRow(column(12, d3heatmapOutput('DEheatmap'))))
       ),
     box(title = 'File exports', collapsible = T, status = 'success', width = 12,
-        downloadButton('StartDownload', label = "Download")
+        uiOutput('DownloadUI')
     )
   )
 })
 
+outputfiles <- reactive({
+  dataComb <- dataComb()
+  folder <- dataComb[[5]]
+  path <- paste(folder, '/htmlFiles', sep='')
+  nfiles <- length(dir(path))
+  return(nfiles)
+})
+
+output$DownloadUI <- renderUI({
+  nfiles <- outputfiles()
+    if(nfiles >= 5)
+      downloadButton('StartDownload', label = "Download")
+  })
 
 output$StartDownload <- downloadHandler(
   filename <- 'Report.zip',
@@ -393,6 +406,9 @@ output$log2bmcutoff <- renderPrint({
 output$Table <- renderDataTable({
   if (is.null(input$file_obs))
     return(NULL)
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'Table', {
+    Sys.sleep(1)
+  })
   dataComb <- dataComb()
   dataMat <- log2(dataComb[[2]] + 0.25)
   folder <- dataComb[[5]]
@@ -408,6 +424,9 @@ output$Table <- renderDataTable({
 output$Heatmap <- renderD3heatmap({
   if (is.null(input$file_obs))
     return(NULL)
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'Heatmap', {
+    Sys.sleep(1)
+  })
   dataComb <- dataComb()
   dataMat <- log2(dataComb[[2]] + 0.25)
   folder <- dataComb[[5]]
@@ -428,6 +447,9 @@ output$Heatmap <- renderD3heatmap({
 
 output$Density <- renderChart({
   dataComb <- dataComb()
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'Density', {
+    Sys.sleep(1)
+  })
   dataMat <- log2(dataComb[[2]] + 0.25)
   folder <- dataComb[[5]]
   denStat <-
@@ -469,6 +491,9 @@ output$value_S2 <- renderPrint({
 
 output$ScatterPlot <- renderChart({
   dataComb <- dataComb()
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'Scatterplot', {
+    Sys.sleep(1)
+  })
   folder <- dataComb[[5]]
   dataMat <- log2(dataComb[[2]] + 0.25)
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
@@ -514,6 +539,9 @@ output$value_plotdim <-
 
 output$Boxplot <- renderChart({
   dataComb <- dataComb()
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'Boxplot', {
+    Sys.sleep(1)
+  })
   dataMat <- log2(dataComb[[2]] + 0.25)
   folder <- dataComb[[5]]
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
@@ -570,6 +598,9 @@ Principalstats <- reactive({
 output$PrincipalComponent2d <- 
   renderChart({
     prinstat <- Principalstats()
+    withProgress(value = 1, message = 'Generating plots: ', detail = 'PCA plot', {
+      Sys.sleep(1)
+    })
     ppoints <- prinstat[[1]]
     percent <- prinstat[[2]]
     folder <- prinstat[[3]]
@@ -590,6 +621,9 @@ output$PrincipalComponent2d <-
   })
 
 output$PrincipalComponent3d <- renderScatterplotThree({
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'PCA plot', {
+    Sys.sleep(1)
+  })
   prinstat <- Principalstats()
   ppoints <- prinstat[[1]]
   percent <- prinstat[[2]]
@@ -629,6 +663,9 @@ output$forceNetworkGene <- renderForceNetwork({
   if (is.null(input$file_obs))
     return(NULL)
   dataComb <- dataComb()
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'Gene interaction network', {
+    Sys.sleep(1)
+  })
   dataMat <- log2(dataComb[[2]] + 0.25)
   folder <- dataComb[[5]]
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
@@ -671,6 +708,9 @@ output$DEtable <- renderDataTable({
   if (is.null(input$file_obs))
     return(NULL)
   dataComb <- dataComb()
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'DE table', {
+    Sys.sleep(1)
+  })
   dataMat <- log2(dataComb[[2]] + 0.25)
   folder <- dataComb[[5]]
   dataMat <- as.data.frame(dataMat)
@@ -701,6 +741,9 @@ output$DEtable <- renderDataTable({
 
 output$DEheatmap <- renderD3heatmap({
   dataComb <- dataComb()
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'DE heatmap', {
+    Sys.sleep(1)
+  })
   dataMat <- log2(dataComb[[2]] + 0.25)
   folder <- dataComb[[5]]
   dataMat <- as.data.frame(dataMat)
@@ -734,6 +777,9 @@ output$MAplot <- renderMetricsgraphics({
   if (is.null(input$file_obs))
     return(NULL)
   dataComb <- dataComb()
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'MAplot', {
+    Sys.sleep(1)
+  })
   dataMat <- dataComb[[4]]
   folder <- dataComb[[5]]
   colnames(dataMat) <- c('baseMean', 'log2FoldChange', 'p_adjust')
@@ -780,6 +826,9 @@ output$MAplot <- renderMetricsgraphics({
 
 output$DispersionPlot <- renderChart3({
   dataComb <- dataComb()
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'Dispersion plot', {
+    Sys.sleep(1)
+  })
   Dispersion <- dataComb[[3]]
   folder <- dataComb[[5]]
   Dispersion$baseMean <- dataComb[[4]][,1] + 0.25
@@ -868,22 +917,22 @@ output$DispersionPlot <- renderChart3({
   rp
 })
 
-output$progressbar <- renderUI({
-    input$DEstart
-    progress <- shiny::Progress$new()
-    on.exit(progress$close())
-    progress$set(message = "Differential expression testing", value = 0)
-    n <- 1000
-    for (i in 1:n) {
-      dataComb <- dataComb()
-      folder <- dataComb[[5]]
-      path <- paste(folder, '/htmlFiles', sep='')
-      nfiles <- length(dir(path))
-      progress$set(value = nfiles/10, message = 'Generating figures',detail = paste(100*(round(nfiles/10, 2)), '% completed', sep =''))
-      if(nfiles >= 10)
-        break
-    }
-  })
+# output$progressbar <- renderUI({
+#     input$DEstart
+#     progress <- shiny::Progress$new()
+#     on.exit(progress$close())
+#     progress$set(message = "Differential expression testing", value = 0)
+#     n <- 10^6
+#     for (i in 1:n) {
+#       dataComb <- dataComb()
+#       folder <- dataComb[[5]]
+#       path <- paste(folder, '/htmlFiles', sep='')
+#       nfiles <- length(dir(path))
+#       progress$set(value = nfiles/10, message = 'Generating figures',detail = paste(100*(round(nfiles/10, 2)), '% completed', sep =''))
+#       if(nfiles >= 10)
+#         break
+#     }
+#   })
 
 
 
