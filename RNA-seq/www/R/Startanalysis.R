@@ -138,6 +138,7 @@
 
 output$Chartpage <- renderUI({
   fluidPage(
+    uiOutput('progressbar'),
     tabBox(width = 12,
            title = tagList(shiny::icon("tag"), "Quality control"),
            id = "QCtab",
@@ -251,17 +252,21 @@ output$Chartpage <- renderUI({
 output$StartDownload <- downloadHandler(
   filename <- 'Report.zip',
   content <- function(file) {
-    Username <- isolate(input$userName)
-    path <- paste('www/report/user/', Username, sep = '')
+    path.old <- getwd()
+    dataComb <- dataComb()
+    path <- dataComb[[5]]
     setwd(path)
+    on.exit({
+      setwd(path.old)
+      unlink(path, recursive = TRUE, force = TRUE)
+    })
     if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde'){
       slidify('Report.Rmd')
       zip(file, files = c('Report.html', 'libraries/', 'htmlFiles/', 'DEstat.csv', 'TestStat.csv'))
     }
     else{
-      path1 <- paste(path, '/Reports.Rmd', sep='')
-      slidify('www/report/Reports.Rmd')
-      zip(file, files = c('www/report/Reports.html', 'www/report/libraries/', 'www/report/htmlFiles/', 'www/report/DEstat.csv', 'www/report/TestStat.csv'))
+      slidify('Reports.Rmd')
+      zip(file, files = c('Reports.html', 'libraries/', 'htmlFiles/', 'DEstat.csv', 'TestStat.csv'))
     }
   },
   contentType = 'application/zip'
@@ -294,17 +299,11 @@ dataComb <- eventReactive(input$DEstart, {
   group <- as.factor(group)
   for(i in 1:100){
     folder <- paste('www/report/user/user', i, sep='')
-    if(length(dir(folder)) == 4)
+    if(!dir.exists(folder)){
+      dir.create(folder)
+      dir.create(paste(folder, '/htmlFiles', sep = ''))
+      file.copy(c('www/report/Report.Rmd', 'www/report/Reports.Rmd', 'www/report/libraries'), folder, recursive = TRUE)
       break
-    else{
-      folder <- paste('www/report/user/user', i+1, sep='')
-      if(!dir.exists(folder)){
-        dir.create(folder)
-        dir.create(paste(folder, '/htmlFiles', sep = ''))
-        file.copy(c('www/report/Report.Rmd', 'www/report/Reports.Rmd', 'www/report/libraries'), folder, recursive = TRUE)
-      }
-      else if (length(dir(folder)) == 4)
-        break
     }
   }
   if (input$DEmethod == 'XBSeq') {
@@ -869,6 +868,26 @@ output$DispersionPlot <- renderChart3({
   rp$save(path, standalone = TRUE)
   rp
 })
+
+output$progressbar <- renderUI({
+    input$DEstart
+    progress <- shiny::Progress$new()
+    on.exit(progress$close())
+    progress$set(message = "Differential expression testing", value = 0)
+    n <- 1000
+    for (i in 1:n) {
+      dataComb <- dataComb()
+      folder <- dataComb[[5]]
+      path <- paste(folder, '/htmlFiles', sep='')
+      nfiles <- length(dir(path))
+      progress$set(value = nfiles/10, message = 'Generating figures',detail = paste(100*(round(nfiles/10, 2)), '% completed', sep =''))
+      Sys.sleep(0.1)
+      if(nfiles == 10)
+        break
+    }
+  })
+
+
 
 # output$XBplot <- renderChart({
 #   
