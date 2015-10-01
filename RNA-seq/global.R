@@ -23,20 +23,6 @@ library(rga)
 library(threejs)
 library(scde)
 
-#Texts
-WEBTITLE <- "RNA-seq Viz"
-
-#Files
-userFile <- "data/user.csv"
-emailFile <- "data/email.txt"
-
-
-Logged = FALSE
-Group=""
-userData <- read.csv(userFile,header=T,as.is=T)
-GLOBALDATA <- reactiveValues(userData=userData)
-
-
 #Emails
 # emailList<-readLines(emailFile)
 # sendEmailSign<-TRUE
@@ -59,7 +45,7 @@ GLOBALDATA <- reactiveValues(userData=userData)
 # }
 
 XBSeq_pfun <- 
-  function(counts, bgcounts, group, disp_method, sharing_mode, fit_type, paraMethod){
+  function(counts, bgcounts, group, disp_method, sharing_mode, fit_type, paraMethod, folder){
     XB <- XBSeqDataSet(counts, bgcounts, group)
     XB <- estimateRealCount(XB)
     XB <- estimateSizeFactors(XB)
@@ -75,12 +61,13 @@ XBSeq_pfun <-
       RawCount = counts,
       NormCount = counts(XB, normalized = TRUE),
       Dispersion = Dispersion,
-      TestStat = Teststas[,c(2,6,7)]
+      TestStat = Teststas[,c(2,6,7)],
+      folder = folder
     )
   }
 
 DESeq2_pfun <-
-  function(counts, group, design = NULL, cookcutoff, fittype, test)
+  function(counts, group, design = NULL, cookcutoff, fittype, test, folder)
   {   
     colData <- data.frame(group)
     dse <- DESeqDataSetFromMatrix(countData = counts, colData = colData, design = ~ group)
@@ -97,12 +84,13 @@ DESeq2_pfun <-
       RawCount = counts,
       NormCount = counts(dse, normalized = TRUE),
       Dispersion = as.data.frame(mcols(dse)[,4:6]),
-      TestStat = as.data.frame(res[, c(1,2,5)])
+      TestStat = as.data.frame(res[, c(1,2,5)]),
+      folder = folder
     )
   }
 
 DESeq_pfun <-
-  function(counts, group, disp_method, sharing_mode, fit_type)
+  function(counts, group, disp_method, sharing_mode, fit_type, folder)
   {   
     ## implement DESeq using pooled method to estimate dispersion ##
     de <- newCountDataSet(counts, group)
@@ -119,12 +107,13 @@ DESeq_pfun <-
       RawCount = counts,
       NormCount = counts(de, normalized = TRUE),
       Dispersion = Dispersion,
-      TestStat = as.data.frame(res[, c(2,6,7)])
+      TestStat = as.data.frame(res[, c(2,6,7)]),
+      folder = folder
     )
   }
 
 edgeR.pfun <-
-  function(counts, group, design = NULL)
+  function(counts, group, design = NULL, folder)
   {
     ## edgeR standard pipeline ##
     library(edgeR)
@@ -151,12 +140,13 @@ edgeR.pfun <-
       RawCount = counts,
       NormCount = cpm(d),
       Dispersion = Dispersion,
-      TestStat = TestStat
+      TestStat = TestStat,
+      folder = folder
         )
   }
 
 edgeR_robust.pfun <-
-  function(counts, group, design = NULL)
+  function(counts, group, design = NULL, folder)
   {   
     ## edgeR-robsut pipeline ##
     d <- DGEList(counts = counts, group = group)
@@ -179,13 +169,14 @@ edgeR_robust.pfun <-
       RawCount = counts,
       NormCount = cpm(d),
       Dispersion = Dispersion,
-      TestStat = TestStat
+      TestStat = TestStat,
+      folder = folder
     )
   }
 
 
 limma_voom.pfun <-
-  function(counts, group, design = NULL) 
+  function(counts, group, design = NULL, folder) 
   {   
     ## limma voom pipeline ##
     library(limma)
@@ -204,11 +195,12 @@ limma_voom.pfun <-
       RawCount = counts,
       NormCount = as.matrix(2^(y$E)),
       Dispersion = c(),
-      TestStat = TestStat
+      TestStat = TestStat,
+      folder = folder
     )
   }
 
-scde.pfun <- function(counts, design, cores = 4){
+scde.pfun <- function(counts, design, cores = 4, folder){
   err_mod <- scde.error.models(counts = counts, groups = design, n.cores = cores,
                              threshold.segmentation=T, save.crossfit.plots=F, 
                              save.model.plots=F,verbose=0)
@@ -236,7 +228,8 @@ scde.pfun <- function(counts, design, cores = 4){
     RawCount = counts,
     NormCount = norm_counts,
     Dispersion = c(),
-    TestStat = TestStat
+    TestStat = TestStat,
+    folder = folder
   )
 }
 

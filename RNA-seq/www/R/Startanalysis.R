@@ -292,12 +292,20 @@ dataComb <- eventReactive(input$DEstart, {
   data_obs <- data_obs[,-1]
   group <- design()
   group <- as.factor(group)
-  Username <- isolate(input$userName)
-  path <- paste('www/report/user/', Username, sep = '')
-  if(!dir.exists(path)){
-    dir.create(path)
-    dir.create(paste(path, '/htmlFiles', sep = ''))
-    file.copy(c('www/report/Report.Rmd', 'www/report/Reports.Rmd', 'www/report/libraries'), path, recursive = TRUE)
+  for(i in 1:100){
+    folder <- paste('www/report/user/user', i, sep='')
+    if(length(dir(folder)) == 4)
+      break
+    else{
+      folder <- paste('www/report/user/user', i+1, sep='')
+      if(!dir.exists(folder)){
+        dir.create(folder)
+        dir.create(paste(folder, '/htmlFiles', sep = ''))
+        file.copy(c('www/report/Report.Rmd', 'www/report/Reports.Rmd', 'www/report/libraries'), folder, recursive = TRUE)
+      }
+      else if (length(dir(folder)) == 4)
+        break
+    }
   }
   if (input$DEmethod == 'XBSeq') {
     data_bg <- fread(input$file_bg$datapath, data.table = F)
@@ -305,30 +313,30 @@ dataComb <- eventReactive(input$DEstart, {
     data_bg <- data_bg[,-1]
     XBSeq_pfun(data_obs, data_bg, group, disp_method = input$SCVmethod, 
                sharing_mode = input$SharingMode, fit_type = input$fitType,
-               paraMethod = input$ParamEst)
+               paraMethod = input$ParamEst, folder = folder)
   }
   else if (input$DEmethod == 'DESeq') {
     DESeq_pfun(data_obs, group, disp_method = input$SCVmethod,
                sharing_mode = input$SharingMode, 
-               fit_type = input$fitType)
+               fit_type = input$fitType, folder = folder)
   }
   else if (input$DEmethod == 'DESeq2') {
     DESeq2_pfun(
       data_obs, group, cookcutoff = input$cooksCutoff,
-      fittype = input$fitType_DESeq2, test = input$Test
+      fittype = input$fitType_DESeq2, test = input$Test, folder = folder
     )
   }
   else if (input$DEmethod == 'edgeR') {
-    edgeR.pfun(data_obs, group, model.matrix(~group))
+    edgeR.pfun(data_obs, group, model.matrix(~group), folder = folder)
   }
   else if (input$DEmethod == 'edgeR-robust') {
-    edgeR_robust.pfun(data_obs, group, model.matrix(~group))
+    edgeR_robust.pfun(data_obs, group, model.matrix(~group), folder = folder)
   }
   else if (input$DEmethod == 'limma-voom') {
-    limma_voom.pfun(data_obs, group, model.matrix(~group))
+    limma_voom.pfun(data_obs, group, model.matrix(~group), folder = folder)
   }
   else if (input$DEmethod == 'scde') {
-    scde.pfun(data_obs, group)
+    scde.pfun(data_obs, group, folder = folder)
   }
 })
 
@@ -389,13 +397,13 @@ output$Table <- renderDataTable({
     return(NULL)
   dataComb <- dataComb()
   dataMat <- log2(dataComb[[2]] + 0.25)
+  folder <- dataComb[[5]]
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
   temp <- datatable(dataMat, options = list(pageLength = 5))
-#   saveWidget(temp, 'datatable.html')
-#   Username <- isolate(input$userName)
-#   path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
-#   file.copy('./datatable.html', path)
-#   file.remove('./datatable.html')
+  saveWidget(temp, 'datatable.html')
+  path <- paste(folder, '/htmlFiles/', sep = '')
+  file.copy('./datatable.html', path)
+  file.remove('./datatable.html')
   temp
 })
 
@@ -404,6 +412,7 @@ output$Heatmap <- renderD3heatmap({
     return(NULL)
   dataComb <- dataComb()
   dataMat <- log2(dataComb[[2]] + 0.25)
+  folder <- dataComb[[5]]
   mean_gene <- apply(dataMat, 1, mean)
   var_gene <- apply(dataMat, 1, var)
   index <- which(mean_gene > as.numeric(input$log2bmcutoff))
@@ -412,17 +421,17 @@ output$Heatmap <- renderD3heatmap({
     return(NULL)
   uplim <- ifelse(length(index) < 1000, length(index), 1000)
   h1 <- d3heatmap(as.data.frame(dataMat1[1:uplim,]), scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE)
-#   saveWidget(h1, 'heatmap.html')
-#   Username <- isolate(input$userName)
-#   path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
-#   file.copy('./heatmap.html', path)
-#   file.remove('./heatmap.html')
+  saveWidget(h1, 'heatmap.html')
+  path <- paste(folder, '/htmlFiles/', sep = '')
+  file.copy('./heatmap.html', path)
+  file.remove('./heatmap.html')
   h1
 })
 
 output$Density <- renderChart({
   dataComb <- dataComb()
   dataMat <- log2(dataComb[[2]] + 0.25)
+  folder <- dataComb[[5]]
   denStat <-
     density(dataMat[,1], from = min(dataMat), to = max(dataMat))
   denStat <- data.frame(x = denStat$x,
@@ -447,9 +456,8 @@ output$Density <- renderChart({
     xlab <- 'Log2 normalized intensity'
   np$xAxis(axisLabel = xlab)
   np$yAxis(axisLabel = 'Density')
-#   Username <- isolate(input$userName)
-#   path <- paste('www/report/user/', Username, '/htmlFiles/density.html', sep = '')
-#   np$save(path, standalone = TRUE)
+  path <- paste(folder, '/htmlFiles/density.html', sep = '')
+  np$save(path, standalone = TRUE)
   return(np)
 })
 
@@ -463,6 +471,7 @@ output$value_S2 <- renderPrint({
 
 output$ScatterPlot <- renderChart({
   dataComb <- dataComb()
+  folder <- dataComb[[5]]
   dataMat <- log2(dataComb[[2]] + 0.25)
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
   dataMat <- as.data.frame(dataMat)
@@ -486,9 +495,8 @@ output$ScatterPlot <- renderChart({
   #   hp$tooltip(useHTML = T, formatter = "#! function() { return 'x:' + this.point.x + '<br>' + 'y:' + this.point.y + '<br>' + 'Genename:' + this.point.GeneName ; } !#")
   #   hp$colors('black')
   #   hp$addParams(dom = "ScatterPlot")
-#   Username <- isolate(input$userName)
-#   path <- paste('www/report/user/', Username, '/htmlFiles/Scatterplot.html', sep = '')
-#   hp$save(path, standalone = TRUE)
+  path <- paste(folder, '/htmlFiles/Scatterplot.html', sep = '')
+  hp$save(path, standalone = TRUE)
   hp
 })
 
@@ -509,6 +517,7 @@ output$value_plotdim <-
 output$Boxplot <- renderChart({
   dataComb <- dataComb()
   dataMat <- log2(dataComb[[2]] + 0.25)
+  folder <- dataComb[[5]]
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
   bwstats <- setNames(as.data.frame(boxplot(dataMat, plot = F)$stats),
                       nm = NULL)
@@ -524,15 +533,15 @@ output$Boxplot <- renderChart({
   hp$yAxis(title = list(text = ylab))
   hp$chart(type = 'boxplot')
   hp$addParams(dom = "Boxplot")
-#   Username <- isolate(input$userName)
-#   path <- paste('www/report/user/', Username, '/htmlFiles/Boxplot.html', sep = '')
-#   hp$save(path, standalone = TRUE)
+  path <- paste(folder, '/htmlFiles/Boxplot.html', sep = '')
+  hp$save(path, standalone = TRUE)
   hp
 })
 
 Principalstats <- reactive({
   dataComb <- dataComb()
   dataMat <- log2(dataComb[[2]] + 0.25)
+  folder <- dataComb[[5]]
   design <- design()
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
   cvcutoff <- input$cvCutoff
@@ -557,7 +566,7 @@ Principalstats <- reactive({
     cbind(ppoints, design, paste('S', 1:ncol(dataMat), sep = ''))
   colnames(ppoints) <- c('PC1', 'PC2', 'PC3', 'Design', 'Samplename')
   ppoints <- as.data.frame(ppoints)
-  return(list(ppoints, percent))
+  return(list(ppoints, percent, folder))
 })
 
 output$PrincipalComponent2d <- 
@@ -565,6 +574,7 @@ output$PrincipalComponent2d <-
     prinstat <- Principalstats()
     ppoints <- prinstat[[1]]
     percent <- prinstat[[2]]
+    folder <- prinstat[[3]]
     xlab <- paste('PC1 (', percent[1],'%)', sep = '')
     ylab <- paste('PC2 (', percent[2], '%)', sep = '')
     xlab <- paste('PC1 (', percent[1],'%)', sep = '')
@@ -576,9 +586,8 @@ output$PrincipalComponent2d <-
         xlab = xlab, ylab = ylab)
     dp$xAxis(type = 'addMeasureAxis')
     dp$addParams(dom = "PrincipalComponent2d")
-#     Username <- isolate(input$userName)
-#     path <- paste('www/report/user/', Username, '/htmlFiles/pcaplot.html', sep = '')
-#     dp$save(path, cdn = TRUE)
+    path <- paste(folder, '/htmlFiles/pcaplot.html', sep = '')
+    dp$save(path, cdn = TRUE)
     dp
   })
 
@@ -586,6 +595,7 @@ output$PrincipalComponent3d <- renderScatterplotThree({
   prinstat <- Principalstats()
   ppoints <- prinstat[[1]]
   percent <- prinstat[[2]]
+  folder <- prinstat[[3]]
   xlab <- paste('PC1 (', percent[1],'%)', sep = '')
   ylab <- paste('PC2 (', percent[2], '%)', sep = '')
   zlab <- paste('PC3 (', percent[3], '%)', sep = '')
@@ -602,11 +612,10 @@ output$PrincipalComponent3d <- renderScatterplotThree({
                               axisLabels = c(xlab, ylab, zlab),
                               color = col,
                               renderer = 'canvas')
-#   saveWidget(scatter3d, 'pcaplot.html')
-#   Username <- isolate(input$userName)
-#   path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
-#   file.copy('./pcaplot.html', path)
-#   file.remove('./pcaplot.html')
+  saveWidget(scatter3d, 'pcaplot.html')
+  path <- paste(folder, '/htmlFiles/', sep = '')
+  file.copy('./pcaplot.html', path)
+  file.remove('./pcaplot.html')
   return(scatter3d)
 })
 
@@ -623,6 +632,7 @@ output$forceNetworkGene <- renderForceNetwork({
     return(NULL)
   dataComb <- dataComb()
   dataMat <- log2(dataComb[[2]] + 0.25)
+  folder <- dataComb[[5]]
   colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
   mean.gene <- apply(dataMat, 1, mean)
   dataMat <- dataMat[mean.gene > input$Exprscut,]
@@ -651,11 +661,10 @@ output$forceNetworkGene <- renderForceNetwork({
       Target = "target", Value = "value", NodeID = "name",
       Group = "group", opacity = 0.4
     )
-#     saveWidget(forceNet, 'forceNet.html')
-#     Username <- isolate(input$userName)
-#     path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
-#     file.copy('./forceNet.html', path)
-#     file.remove('./forceNet.html')
+    saveWidget(forceNet, 'forceNet.html')
+    path <- paste(folder, '/htmlFiles/', sep = '')
+    file.copy('./forceNet.html', path)
+    file.remove('./forceNet.html')
     return(forceNet)
   }
 })
@@ -665,6 +674,7 @@ output$DEtable <- renderDataTable({
     return(NULL)
   dataComb <- dataComb()
   dataMat <- log2(dataComb[[2]] + 0.25)
+  folder <- dataComb[[5]]
   dataMat <- as.data.frame(dataMat)
   dataMat1 <- dataComb[[4]]
   p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
@@ -676,23 +686,25 @@ output$DEtable <- renderDataTable({
         p_adjust1 < as.numeric(input$pcutoff)
     )
   if (length(DE_index) == 0)
-    return(datatable(data.frame(), options = list(pageLength = 5)))
-  dataMat2 <-
-    cbind(dataMat[DE_index,], dataMat1[DE_index,2], p_adjust1[DE_index])
-  colnames(dataMat2) <-
-    c(paste('S', 1:ncol(dataMat), sep = ''), 'Log2 fold change', 'p adjusted value')
+    dataMat2 <- c()
+  else{
+    dataMat2 <-
+      cbind(dataMat[DE_index,], dataMat1[DE_index,2], p_adjust1[DE_index])
+    colnames(dataMat2) <-
+      c(paste('S', 1:ncol(dataMat), sep = ''), 'Log2 fold change', 'p adjusted value')
+  }
   temp <- datatable(dataMat2, options = list(pageLength = 5))
-#   saveWidget(temp, 'DEdatatable.html')
-#   Username <- isolate(input$userName)
-#   path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
-#   file.copy('./DEdatatable.html', path)
-#   file.remove('./DEdatatable.html')
+  saveWidget(temp, 'DEdatatable.html')
+  path <- paste(folder, '/htmlFiles/', sep = '')
+  file.copy('./DEdatatable.html', path)
+  file.remove('./DEdatatable.html')
   temp
 })
 
 output$DEheatmap <- renderD3heatmap({
   dataComb <- dataComb()
   dataMat <- log2(dataComb[[2]] + 0.25)
+  folder <- dataComb[[5]]
   dataMat <- as.data.frame(dataMat)
   dataMat1 <- dataComb[[4]]
   p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
@@ -703,16 +715,20 @@ output$DEheatmap <- renderD3heatmap({
         abs(dataMat1[,2]) > log2(as.numeric(input$fccutoff)) &
         p_adjust1 < as.numeric(input$pcutoff)
     )
-  if (length(DE_index) == 0)
+  if (length(DE_index) <= 2){
+    htmltools::save_html(c(), 'DEheatmap.html')
+    path <- paste(folder, '/htmlFiles/', sep = '')
+    file.copy('./DEheatmap.html', path)
+    file.remove('./DEheatmap.html')
     return(NULL)
+  }
   dataMat2 <-dataMat[DE_index,]
   colnames(dataMat2) <- paste('S', 1:ncol(dataMat), sep = '')
   h1 <- d3heatmap(dataMat2, scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE)
-#   saveWidget(h1, 'DEheatmap.html')
-#   Username <- isolate(input$userName)
-#   path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
-#   file.copy('./DEheatmap.html', path)
-#   file.remove('./DEheatmap.html')
+  saveWidget(h1, 'DEheatmap.html')
+  path <- paste(folder, '/htmlFiles/', sep = '')
+  file.copy('./DEheatmap.html', path)
+  file.remove('./DEheatmap.html')
   h1
 })
 
@@ -721,6 +737,7 @@ output$MAplot <- renderMetricsgraphics({
     return(NULL)
   dataComb <- dataComb()
   dataMat <- dataComb[[4]]
+  folder <- dataComb[[5]]
   colnames(dataMat) <- c('baseMean', 'log2FoldChange', 'p_adjust')
   p_adjust1 <- p.adjust(dataMat[,3], method = input$padjust)
   p_adjust1[is.na(p_adjust1)] <- 1
@@ -735,8 +752,7 @@ output$MAplot <- renderMetricsgraphics({
     )
   dataout <- cbind(dataComb[[2]], dataMat[,2], p_adjust1)
   colnames(dataout) <- c(colnames(dataComb[[2]]), 'Log2 Fold change', 'p value')
-  Username <- isolate(input$userName)
-  path <- paste('www/report/user/', Username, sep = '')
+  path <- paste(folder, sep = '')
   write.csv(dataout, paste(path, '/TestStat.csv', sep =''), quote = F)
   write.csv(dataout[col=='DE',], paste(path, '/DEstat.csv', sep =''), quote = F)
   dataMat <- cbind(Genename = rownames(dataMat), dataMat, col)
@@ -757,17 +773,17 @@ output$MAplot <- renderMetricsgraphics({
     ) %>%
     mjs_add_baseline(y_value = 0, label = 'baseline') %>%
     mjs_labs(x_label = xlab, y_label = "Log2 fold change")
-#   saveWidget(mp, file = 'MAplot.html')
-#   Username <- isolate(input$userName)
-#   path <- paste('www/report/user/', Username, '/htmlFiles/', sep = '')
-#   file.copy('./MAplot.html', path)
-#   file.remove('./MAplot.html')
+  saveWidget(mp, file = 'MAplot.html')
+  path <- paste(folder, '/htmlFiles/', sep = '')
+  file.copy('./MAplot.html', path)
+  file.remove('./MAplot.html')
   mp
 })
 
 output$DispersionPlot <- renderChart3({
   dataComb <- dataComb()
   Dispersion <- dataComb[[3]]
+  folder <- dataComb[[5]]
   Dispersion$baseMean <- dataComb[[4]][,1] + 0.25
   if(input$DEmethod == 'DESeq2'){
     Dispersion1 <- stack(Dispersion[,c(1,3)])
@@ -849,9 +865,8 @@ output$DispersionPlot <- renderChart3({
     )
     rp$addParams(dom = "DispersionPlot")
   }
-#   Username <- isolate(input$userName)
-#   path <- paste('www/report/user/', Username, '/htmlFiles/DispersionPlot.html', sep = '')
-#   rp$save(path, standalone = TRUE)
+  path <- paste(folder, '/htmlFiles/DispersionPlot.html', sep = '')
+  rp$save(path, standalone = TRUE)
   rp
 })
 
