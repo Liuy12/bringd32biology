@@ -138,7 +138,6 @@
 
 output$Chartpage <- renderUI({
   fluidPage(
-    uiOutput('progressbar'),
     tabBox(width = 12,
            title = tagList(shiny::icon("tag"), "Quality control"),
            id = "QCtab",
@@ -881,8 +880,7 @@ output$progressbar <- renderUI({
       path <- paste(folder, '/htmlFiles', sep='')
       nfiles <- length(dir(path))
       progress$set(value = nfiles/10, message = 'Generating figures',detail = paste(100*(round(nfiles/10, 2)), '% completed', sep =''))
-      Sys.sleep(0.1)
-      if(nfiles == 10)
+      if(nfiles >= 10)
         break
     }
   })

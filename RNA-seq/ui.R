@@ -38,6 +38,7 @@ shinyUI(fluidPage(
                                  includeHTML('www/HTML/carousel.html'),
                                  includeHTML('www/HTML/Introduction.html')),
                          tabItem(tabName = "SetInput", 
+                                 uiOutput('progressbar'),
                                  fluidRow(column(width = 12, 
                                         box(
                                           title = "File input", status = "primary", solidHeader = TRUE,
@@ -171,7 +172,8 @@ shinyUI(fluidPage(
                                         )
                                  ))),
                          tabItem(tabName = "Charts",
-                                 uiOutput("Chartpage")),
+                                 uiOutput("Chartpage")
+                         ),
                          tabItem(tabName = 'doc',
                                  includeHTML('www/HTML/Documentation.html')),
                          tabItem(tabName = "aboutus", 
