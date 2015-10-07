@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 17.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="612px" height="792px" viewBox="0 0 612 792" enable-background="new 0 0 612 792" xml:space="preserve">
+<symbol  id="Arrow_25" viewBox="-22.86 -13.14 45.72 26.28">
+	<polygon fill="none" points="-22.86,-13.14 22.86,-13.14 22.86,13.14 -22.86,13.14 	"/>
+	<g>
+		<polygon points="-22.86,-3.168 0.066,-3.168 0.066,-13.14 22.86,0.001 0.066,13.14 0.066,3.17 -22.86,3.17 		"/>
+	</g>
+</symbol>
+<text transform="matrix(1 0 0 1 198.8784 21.5255)" font-family="'HelveticaNeue-Bold'" font-size="9.9727">Bulk RNA-seq</text>
+<text transform="matrix(1 0 0 1 444.8154 22.5235)" font-family="'HelveticaNeue-Bold'" font-size="9.9727">Single cell RNA-seq</text>
+<path fill="#F68B1F" d="M285.587,60.089c0,6.609-5.358,11.967-11.967,11.967h-72.468c-6.609,0-11.967-5.358-11.967-11.967v-21.94
+	c0-6.609,5.358-11.967,11.967-11.967h72.468c6.609,0,11.967,5.358,11.967,11.967V60.089z"/>
+<text transform="matrix(1 0 0 1 218.437 52.4435)" font-family="'HelveticaNeue'" font-size="9.9727">FASTQ</text>
+<path fill="#00ADDC" d="M541.219,60.089c0,6.609-5.358,11.967-11.967,11.967h-72.468c-6.609,0-11.967-5.358-11.967-11.967v-21.94
+	c0-6.609,5.358-11.967,11.967-11.967h72.468c6.609,0,11.967,5.358,11.967,11.967V60.089z"/>
+<text transform="matrix(1 0 0 1 475.0683 52.4386)" font-family="'HelveticaNeue'" font-size="9.9727">FASTQ</text>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 492.8515 92.9778)" overflow="visible"/>
+<path fill="#00A651" d="M583.104,146.851c0,6.609-7.09,11.967-15.835,11.967H164.797c-8.745,0-15.835-5.358-15.835-11.967v-17.286
+	c0-6.609,7.09-11.967,15.835-11.967h402.472c8.745,0,15.835,5.358,15.835,11.967V146.851z"/>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 238.0506 93.2888)" overflow="visible"/>
+<text transform="matrix(1 0 0 1 92.7817 141.8643)" font-family="'HelveticaNeue-Bold'" font-size="9.9727">Alignment</text>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 492.8515 182.7317)" overflow="visible"/>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 238.0506 184.0613)" overflow="visible"/>
+<text transform="matrix(1 0 0 1 225.4174 141.8643)" font-family="'HelveticaNeue'" font-size="9.9727">Tools like Tophat, STAR and GSNAP can be used for both</text>
+<text transform="matrix(1 0 0 1 97.769 228.6251)" font-family="'HelveticaNeue-Bold'" font-size="9.9727">Counting</text>
+<path fill="#00A651" d="M583.104,236.605c0,6.609-7.09,11.967-15.835,11.967H164.797c-8.745,0-15.835-5.358-15.835-11.967v-17.286
+	c0-6.609,7.09-11.967,15.835-11.967h402.472c8.745,0,15.835,5.358,15.835,11.967V236.605z"/>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 492.8515 272.4855)" overflow="visible"/>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 238.0506 272.8179)" overflow="visible"/>
+<text transform="matrix(1 0 0 1 229.4067 232.6183)" font-family="'HelveticaNeue'" font-size="9.9727">Tools like HTSeq, featureCounts can be used for both</text>
+<text transform="matrix(1 0 0 1 70.8413 322.0372)" font-family="'HelveticaNeue-Bold'" font-size="9.9727">Quality control</text>
+<path fill="#F68B1F" d="M327.14,329.351c0,6.609-9.903,11.967-22.119,11.967H171.08c-12.216,0-22.119-5.358-22.119-11.967v-21.94
+	c0-6.609,9.903-11.967,22.119-11.967h133.941c12.216,0,22.119,5.358,22.119,11.967V329.351z"/>
+<text transform="matrix(1 0 0 1 154.9438 323.0343)"><tspan x="0" y="0" font-family="'HelveticaNeue'" font-size="9.9727">Focus on investigating library quality</tspan><tspan x="162.531" y="0" stroke="#000000" stroke-width="2" stroke-miterlimit="10" font-family="'HelveticaNeue'" font-size="9.9727"> </tspan></text>
+<path fill="#00ADDC" d="M583.104,329.351c0,6.609-10.032,11.967-22.408,11.967h-135.69c-12.375,0-22.408-5.358-22.408-11.967v-21.94
+	c0-6.609,10.032-11.967,22.408-11.967h135.69c12.375,0,22.408,5.358,22.408,11.967V329.351z"/>
+<text transform="matrix(1 0 0 1 416.2324 323.0343)" font-family="'HelveticaNeue'" font-size="9.9727">Also determine RNA degradation</text>
+<text transform="matrix(1 0 0 1 76.1626 411.4586)" font-family="'HelveticaNeue-Bold'" font-size="9.9727">Normalization</text>
+<path fill="#F68B1F" d="M327.14,420.103c0,6.609-9.903,11.967-22.119,11.967H171.08c-12.216,0-22.119-5.358-22.119-11.967v-21.94
+	c0-6.609,9.903-11.967,22.119-11.967h133.941c12.216,0,22.119,5.358,22.119,11.967V420.103z"/>
+<text transform="matrix(1 0 0 1 162.0747 408.1334)"><tspan x="0" y="0" font-family="'HelveticaNeue'" font-size="9.9727">Methods for adjusting sequencing </tspan><tspan x="25.764" y="11.967" font-family="'HelveticaNeue'" font-size="9.9727">depth, gene length, etc</tspan></text>
+<path fill="#00ADDC" d="M583.104,419.105c0,6.609-10.032,11.967-22.408,11.967h-135.69c-12.375,0-22.408-5.358-22.408-11.967v-21.94
+	c0-6.609,10.032-11.967,22.408-11.967h135.69c12.375,0,22.408,5.358,22.408,11.967V419.105z"/>
+<text transform="matrix(1 0 0 1 403.5986 412.4527)" font-family="'HelveticaNeue'" font-size="9.9727">Also adjust for RNA content across cells</text>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 492.8515 363.5163)" overflow="visible"/>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 238.0506 362.8514)" overflow="visible"/>
+<text transform="matrix(1 0 0 1 42.9194 498.5523)" font-family="'HelveticaNeue-Bold'" font-size="9.9727">Confounding factors</text>
+<path fill="#00A651" d="M583.104,505.202c0,6.609-7.09,11.967-15.835,11.967H164.797c-8.745,0-15.835-5.358-15.835-11.967v-17.286
+	c0-6.609,7.09-11.967,15.835-11.967h402.472c8.745,0,15.835,5.358,15.835,11.967V505.202z"/>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 492.8515 452.6053)" overflow="visible"/>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 238.0506 452.9377)" overflow="visible"/>
+<text transform="matrix(1 0 0 1 172.8882 495.5611)"><tspan x="0" y="0" font-family="'HelveticaNeue'" font-size="9.9727">Methods, such as PCA, surrogate variable analyses, for adjusting batch effects and </tspan><tspan x="129.204" y="11.967" font-family="'HelveticaNeue'" font-size="9.9727">other confounding factors</tspan></text>
+<path fill="#00A651" d="M583.104,590.634c0,6.609-7.09,11.967-15.835,11.967H164.797c-8.745,0-15.835-5.358-15.835-11.967v-17.286
+	c0-6.609,7.09-11.967,15.835-11.967h402.472c8.745,0,15.835,5.358,15.835,11.967V590.634z"/>
+<text transform="matrix(1 0 0 1 34.7338 583.9869)" font-family="'HelveticaNeue-Bold'" font-size="9.9727">Cell type identification</text>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 493.4332 539.6998)" overflow="visible"/>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 238.6323 540.0322)" overflow="visible"/>
+<text transform="matrix(1 0 0 1 169.6806 581.9918)"><tspan x="0" y="0" font-family="'HelveticaNeue'" font-size="9.9727">Clustering methods, like hierarchical clustering, PCA-based methods, can be applied to </tspan><tspan x="122.203" y="11.967" font-family="'HelveticaNeue'" font-size="9.9727">identify cell types or cellular state</tspan></text>
+<text transform="matrix(1 0 0 1 18.9829 669.4186)" font-family="'HelveticaNeue-Bold'" font-size="9.9727">Cell type characterization</text>
+<path fill="#00A651" d="M583.104,674.737c0,6.609-7.09,11.967-15.835,11.967H164.797c-8.745,0-15.835-5.358-15.835-11.967v-17.286
+	c0-6.609,7.09-11.967,15.835-11.967h402.472c8.745,0,15.835,5.358,15.835,11.967V674.737z"/>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 493.4334 623.1376)" overflow="visible"/>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 238.6325 623.47)" overflow="visible"/>
+<text transform="matrix(1 0 0 1 159.8281 666.0924)"><tspan x="0" y="0" font-family="'HelveticaNeue'" font-size="9.9727">Differential expression tools and differential transcript usage tools built for bulk RNA-seq can</tspan><tspan x="109.059" y="11.967" font-family="'HelveticaNeue'" font-size="9.9727"> generally be applied to single cell RNA-seq</tspan></text>
+<text transform="matrix(1 0 0 1 14.1943 757.8424)" font-family="'HelveticaNeue-Bold'" font-size="9.9727">Gene interaction networks</text>
+<path fill="#00A651" d="M583.104,758.507c0,6.609-7.09,11.967-15.835,11.967H164.797c-8.745,0-15.835-5.358-15.835-11.967v-17.286
+	c0-6.609,7.09-11.967,15.835-11.967h402.472c8.745,0,15.835,5.358,15.835,11.967V758.507z"/>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 493.4332 709.2349)" overflow="visible"/>
+<use xlink:href="#Arrow_25"  width="45.72" height="26.28" x="-22.86" y="-13.14" transform="matrix(2.887253e-11 0.6431 0.6431 -2.887253e-11 238.6323 709.5673)" overflow="visible"/>
+<text transform="matrix(1 0 0 1 158.3164 748.5328)"><tspan x="0" y="0" font-family="'HelveticaNeue'" font-size="9.9727">Network based methods can be used to identify co-regulated modules of genes for both bulk</tspan><tspan x="152.863" y="11.967" font-family="'HelveticaNeue'" font-size="9.9727"> and single cell RNA-seq</tspan></text>
+</svg>

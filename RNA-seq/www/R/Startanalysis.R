@@ -138,7 +138,40 @@
 
 output$Chartpage <- renderUI({
   fluidPage(
-    tabBox(width = 12,
+    if(input$spikein == 'Yes')
+      tabBox(width = 12,
+             title = tagList(shiny::icon("tag"), "Quality control"),
+             id = "QCtab",
+             tabPanel('Spike-ins QC', 
+                      fluidRow(column(12, metricsgraphicsOutput('Spikeinsqc')
+                      ))),
+             tabPanel("Table", 
+                      fluidRow(column(12, dataTableOutput("Table")))),
+             tabPanel("Heatmap", 
+                      fluidRow(column(12, d3heatmapOutput('Heatmap')))), 
+             tabPanel("Kernel Density Estimation", 
+                      fluidRow(column(12, showOutput("Density", "nvd3")))), 
+             tabPanel("Scatter Plot", fluidPage(
+               fluidRow(
+                 column(4, offset = 1, textInput("text_S1", label = "Enter first sample name (For example, S1)", 
+                                                 value = "S1"
+                 )),
+                 column(4,offset = 2, textInput("text_S2", label = "Enter second sample name (For example, S2)", 
+                                                value = "S2"
+                 ))
+               ), 
+               fluidRow(
+                 column(4, offset = 1, verbatimTextOutput("value_S1")),
+                 column(4, offset = 2, verbatimTextOutput("value_S2"))
+               ),
+               hr(),
+               fluidRow(column(12, showOutput("ScatterPlot", "highcharts")))
+             )),
+             tabPanel("Boxplot", 
+                      fluidRow(column(12, showOutput("Boxplot", "highcharts"))))
+      )
+    else
+      tabBox(width = 12,
            title = tagList(shiny::icon("tag"), "Quality control"),
            id = "QCtab",
            tabPanel("Table", 
@@ -304,55 +337,78 @@ dataComb <- eventReactive(input$DEstart, {
   inFile <- input$file_obs
   if (is.null(inFile))
     return(NULL)
-  data_obs <- fread(inFile$datapath, data.table = F)
-  rownames(data_obs) <- data_obs[,1]
-  data_obs <- data_obs[,-1]
-  group <- design()
-  group <- as.factor(group)
-  for(i in 1:100){
-    folder <- paste('www/report/user/user', i, sep='')
-    if(!dir.exists(folder)){
-      dir.create(folder)
-      dir.create(paste(folder, '/htmlFiles', sep = ''))
-      file.copy(c('www/report/Report.Rmd', 'www/report/Reports.Rmd', 'www/report/libraries'), folder, recursive = TRUE)
-      break
+  withProgress(value = 1, message = 'Loading datasets', {
+    data_obs <- fread(inFile$datapath, data.table = F)
+    rownames(data_obs) <- data_obs[,1]
+    data_obs <- data_obs[,-1]
+    if(!is.null(input$file_spikein)){
+      data_spikein <- fread(input$file_spikein$datapath, data.table = F)
+      rownames(data_spikein) <- data_spikein[,1]
+      data_spikein <- data_spikein[,-1]
+      Totalreads <- apply(data_obs, 2, sum) + apply(data_spikein, 2, sum)
+      data_qc <- data.frame(
+        Totalreads = Totalreads,
+        Spikein_prop = apply(data_spikein, 2, sum)*100/Totalreads
+      )
+      colnames(data_qc) <- c('Totalreads', 'Spikein_prop')
     }
-  }
-  if (input$DEmethod == 'XBSeq') {
-    data_bg <- fread(input$file_bg$datapath, data.table = F)
-    rownames(data_bg) <- data_bg[,1]
-    data_bg <- data_bg[,-1]
-    XBSeq_pfun(data_obs, data_bg, group, disp_method = input$SCVmethod, 
-               sharing_mode = input$SharingMode, fit_type = input$fitType,
-               paraMethod = input$ParamEst, folder = folder)
-  }
-  else if (input$DEmethod == 'DESeq') {
-    DESeq_pfun(data_obs, group, disp_method = input$SCVmethod,
-               sharing_mode = input$SharingMode, 
-               fit_type = input$fitType, folder = folder)
-  }
-  else if (input$DEmethod == 'DESeq2') {
-    DESeq2_pfun(
-      data_obs, group, cookcutoff = input$cooksCutoff,
-      fittype = input$fitType_DESeq2, test = input$Test, folder = folder
-    )
-  }
-  else if (input$DEmethod == 'edgeR') {
-    edgeR.pfun(data_obs, group, model.matrix(~group), folder = folder)
-  }
-  else if (input$DEmethod == 'edgeR-robust') {
-    edgeR_robust.pfun(data_obs, group, model.matrix(~group), folder = folder)
-  }
-  else if (input$DEmethod == 'limma-voom') {
-    limma_voom.pfun(data_obs, group, model.matrix(~group), folder = folder)
-  }
-  else if (input$DEmethod == 'scde') {
-    scde.pfun(data_obs, group, folder = folder)
-  }
+    else
+      data_qc <- c()
+    group <- design()
+    group <- as.factor(group)
+    for(i in 1:100){
+      folder <- paste('www/report/user/user', i, sep='')
+      if(!dir.exists(folder)){
+        dir.create(folder)
+        dir.create(paste(folder, '/htmlFiles', sep = ''))
+        file.copy(c('www/report/Report.Rmd', 'www/report/Reports.Rmd', 'www/report/libraries'), folder, recursive = TRUE)
+        break
+      }
+    }
+  })
+  withProgress(value = 1, message = 'Statistical testing', {
+    if (input$DEmethod == 'XBSeq') {
+      data_bg <- fread(input$file_bg$datapath, data.table = F)
+      rownames(data_bg) <- data_bg[,1]
+      data_bg <- data_bg[,-1]
+      dataOut <- XBSeq_pfun(data_obs, data_bg, group, disp_method = input$SCVmethod, 
+                            sharing_mode = input$SharingMode, fit_type = input$fitType,
+                            paraMethod = input$ParamEst)
+    }
+    else if (input$DEmethod == 'DESeq') {
+      dataOut <- DESeq_pfun(data_obs, group, disp_method = input$SCVmethod,
+                            sharing_mode = input$SharingMode, 
+                            fit_type = input$fitType)
+    }
+    else if (input$DEmethod == 'DESeq2') {
+      dataOut <- DESeq2_pfun(
+        data_obs, group, cookcutoff = input$cooksCutoff,
+        fittype = input$fitType_DESeq2, test = input$Test)
+    }
+    else if (input$DEmethod == 'edgeR') {
+      dataOut <- edgeR.pfun(data_obs, group, model.matrix(~group))
+    }
+    else if (input$DEmethod == 'edgeR-robust') {
+      dataOut <- edgeR_robust.pfun(data_obs, group, model.matrix(~group))
+    }
+    else if (input$DEmethod == 'limma-voom') {
+      dataOut <- limma_voom.pfun(data_obs, group, model.matrix(~group))
+    }
+    else if (input$DEmethod == 'scde') {
+      dataOut <- scde.pfun(data_obs, group)
+    }
+  })
+  dataOut[[5]] <- folder
+  dataOut[[6]] <- data_qc
+  return(dataOut)
 })
 
 output$value_DE <- renderPrint({
   input$DEmethod
+})
+
+output$value_spikein <- renderPrint({
+  input$spikein
 })
 
 output$SCVmethod <- renderPrint({
@@ -403,6 +459,30 @@ output$log2bmcutoff <- renderPrint({
   input$log2bmcutoff
 })
 
+output$Spikeinsqc <- renderMetricsgraphics({
+  if (is.null(input$file_spikein))
+    return(NULL)
+  dataComb <- dataComb()
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'Spike-ins QC', {
+    Sys.sleep(1)
+  })
+  folder <- dataComb[[5]]
+  dataMat <- dataComb[[6]]
+  rownames(dataMat) <- paste('S', 1:nrow(dataMat), sep = '')
+  mp <-
+    mjs_plot(dataMat, Totalreads, Spikein_prop, decimals = 6) %>%
+    mjs_point(
+      x_rug = TRUE, y_rug = TRUE
+    ) %>%
+#    mjs_add_baseline(y_value = 0, label = 'baseline') %>%
+    mjs_labs(x_label = 'Number of mapped reads', y_label = "Spike-in reads (%)")
+  saveWidget(mp, file = 'SpikeinQC.html')
+  path <- paste(folder, '/htmlFiles/', sep = '')
+  file.copy('./SpikeinQC.html', path)
+  file.remove('./SpikeinQC.html')
+  mp
+})
+
 output$Table <- renderDataTable({
   if (is.null(input$file_obs))
     return(NULL)
@@ -424,10 +504,10 @@ output$Table <- renderDataTable({
 output$Heatmap <- renderD3heatmap({
   if (is.null(input$file_obs))
     return(NULL)
+  dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'Heatmap', {
     Sys.sleep(1)
   })
-  dataComb <- dataComb()
   dataMat <- log2(dataComb[[2]] + 0.25)
   folder <- dataComb[[5]]
   mean_gene <- apply(dataMat, 1, mean)

@@ -6,7 +6,8 @@
     <p>
         After sequencing and <a target="_blank" href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/">sequence quality control</a> procedure, you will get the sequence files in <a target="_blank" href="https://en.wikipedia.org/wiki/FASTQ_format">FASTQ</a> format, which generally contains sequence and its quality information. You need to go through alignment and counting procesure in order to generate expression count matrix for your experiments: 
     </p>
-    <img src="img/pipeline.png" alt="Figure cannot be shown" style="position: relative; left: 40%;"></img>
+    <object type="image/svg+xml" data="img/pipeline.svg" style="width:100%">Your browser does not support SVG</object>
+<!--    <img src="img/pipeline.png" alt="Figure cannot be shown"></img> -->
 <p>
     After sequencing, you will need to align the sequences to your corresponding genome of interest. Currently, many tools have been designed for sequence alignment of RNA-seq experiments. Among those, <a target="_blank" href="https://ccb.jhu.edu/software/tophat/index.shtml">Tophat</a> and <a target="_blank" href="https://github.com/alexdobin/STAR">STAR</a> aligner are probably the most widely used ones. More details regarding the differences and performances of different RNA-seq aligners can be found <a target="_blank" href="https://en.wikipedia.org/wiki/List_of_RNA-Seq_bioinformatics_tools#Alignment_Tools">here</a> and <a target="_blank" href="http://www.nature.com/nmeth/journal/v10/n12/full/nmeth.2722.html">here</a>.
 </p>
