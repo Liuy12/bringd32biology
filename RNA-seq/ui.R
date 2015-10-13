@@ -53,9 +53,36 @@ shinyUI(fluidPage(
                                      includeHTML('www/HTML/Introduction.html')),
                              tabItem(tabName = "SetInput", 
                                      #uiOutput('progressbar'),
-                                     fluidRow(column(width = 12, 
+                                     fluidRow(
+                                       column(width = 6, 
+                                              box(
+                                                title = "Experiment information", status = "warning", solidHeader = TRUE,width = NULL,
+                                                collapsible = TRUE,
+                                                radioButtons('countMatrix', 'Are input values count/integer values?', choices = c('Yes', 'No'), selected = 'Yes', inline = TRUE),
+                                                verbatimTextOutput("value_countMatrix"),                                                 radioButtons('spikein', 'Are spike-ins included?', choices = c('Yes', 'No'), selected = 'No', inline = TRUE),
+                                                verbatimTextOutput("value_spikein"),
+                                                radioButtons('ExpDesign', 'What is the design of the experiment?', choices = c('Not available', 'Two-level', 'Multi-level'), selected = 'Two-level', inline = TRUE),
+                                                verbatimTextOutput("value_ExpDesign"),
+                                                conditionalPanel("input.ExpDesign =='Multi-level'",
+                                                                        radioButtons('MultiLevel', 'For experiments with multi-level design', choices = c('Specify two conditions to compare', 'Identify most variable genes'), selected = 'Two-level', inline = FALSE),
+                                                                        verbatimTextOutput("value_MultiLevel"),
+                                                                        conditionalPanel("input.MultiLevel == 'Specify two conditions to compare'", 
+                                                                                                fluidRow(
+                                                                                                  column(4, offset = 1, textInput("Con_S1", label = "Enter first condition name (For example, C1)", 
+                                                                                                                                  value = "C1"
+                                                                                                  )),
+                                                                                                  column(4,offset = 2, textInput("Con_S2", label = "Enter second condition name (For example, C2)", 
+                                                                                                                                 value = "C2"
+                                                                                                  ))
+                                                                                                ),
+                                                                                                fluidRow(
+                                                                                                  column(4, offset = 1, verbatimTextOutput("value_Con_S1")),
+                                                                                                  column(4, offset = 2, verbatimTextOutput("value_Con_S2"))
+                                                                                                )
+                                                                                                ))
+                                                                        ),
                                                      box(
-                                                       title = "File input", status = "primary", solidHeader = TRUE,
+                                                       title = "File input", status = "primary", solidHeader = TRUE, width = NULL,
                                                        collapsible = TRUE,
                                                        #                                           HTML('<div class="form-group shiny-input-container">
                                                        #   <label class="control-label" for="DEmethod">Please select a method for DE analysis, <a target="_blank" href="http://liuy12.github.io/2015/08/02/Comparison%20of%20differential%20expression%20methods.html">not sure?</a></label>
@@ -98,9 +125,7 @@ shinyUI(fluidPage(
                                                                           'text/comma-separated-values,text/plain', 
                                                                           '.csv')
                                                        ),
-                                                       radioButtons('spikein', 'Spike-ins', choices = c('Yes', 'No'), selected = 'No', inline = TRUE),
-                                                       verbatimTextOutput("value_spikein"),
-                                                       conditionalPanel(
+                                                         conditionalPanel(
                                                          condition = "input.spikein == 'Yes'",
                                                          fileInput(
                                                            'file_spikein', 'Choose CSV/TXT File for spike-ins', 
@@ -109,78 +134,78 @@ shinyUI(fluidPage(
                                                                     '.csv')
                                                          )
                                                        )
-                                                     ), 
-                                                     box(
-                                                       title = "Options for DE method", status = "info", solidHeader = TRUE,
-                                                       collapsible = TRUE,
-                                                       conditionalPanel(
-                                                         condition = "input.DEmethod == 'DESeq' | input.DEmethod == 'XBSeq'",
-                                                         selectizeInput("SCVmethod", 
-                                                                        label = "Please select a method to estimate dispersion", 
-                                                                        choices =c('pooled', 'per-condition', 'blind'),
-                                                                        selected = 'pooled'
-                                                         ),
-                                                         verbatimTextOutput("SCVmethod"),
-                                                         selectizeInput("SharingMode",
-                                                                        label = "Please select a method for sharing mode",
-                                                                        choices = c('maximum', 'fit-only', 'gene-est-only'),
-                                                                        selected = 'maximum'
-                                                         ),
-                                                         verbatimTextOutput("SharingMode"),
-                                                         selectizeInput("fitType",
-                                                                        label = "Please select a method for fitType",
-                                                                        choices = c('local', 'parametric'),
-                                                                        selected = 'local'
-                                                         ),
-                                                         verbatimTextOutput("fitType"),
-                                                         conditionalPanel(
-                                                           condition = "input.DEmethod == 'XBSeq'",
-                                                           selectizeInput("ParamEst", 
-                                                                          label = "Please select a method to estimate distribution parameters", 
-                                                                          choices =c('Non-parametric' = 'NP', 
-                                                                                     'Maximum liklihood estimation' = 'MLE'),
-                                                                          selected = 'NP'
-                                                           ),
-                                                           verbatimTextOutput("ParamEst")
-                                                         )
-                                                       ),
-                                                       conditionalPanel(
-                                                         condition = "input.DEmethod == 'DESeq2'",
-                                                         selectizeInput("fitType_DESeq2", 
-                                                                        label = "Please select a method for fit type", 
-                                                                        choices =c('local', 'parametric', 'mean'),
-                                                                        selected = 'local'
-                                                         ),
-                                                         verbatimTextOutput("fitType_DESeq2"),
-                                                         selectizeInput("Test",
-                                                                        label = "Please select a method for statistical test",
-                                                                        choices = c('Wald test' = 'Wald',
-                                                                                    'Log ratio test' = 'LRT'),
-                                                                        selected = 'Wald'
-                                                         ),
-                                                         verbatimTextOutput("Test"),
-                                                         selectizeInput("cooksCutoff",
-                                                                        label = "Please choose either to turn on or off cooks distance cutoff",
-                                                                        choices = c('on',
-                                                                                    'off'),
-                                                                        selected = 'off'
-                                                         ),
-                                                         verbatimTextOutput("cooksCutoff")
-                                                       )
-                                                       #                conditionalPanel(
-                                                       #                  condition = "input.DEmethod == 'edgeR-robust'",
-                                                       #                  selectizeInput("residualType", 
-                                                       #                                 label = "Please select a method for calculating residuals", 
-                                                       #                                 choices =c("pearson", "deviance", "anscombe"),
-                                                       #                                 selected = 'pearson'
-                                                       #                  ),
-                                                       #                  verbatimTextOutput("residualType")
-                                                       #                )
                                                      )
                                      ),
-                                     column(width = 12, 
+                                     column(width = 6, 
                                             box(
-                                              title = "Criteria for DE genes", status = "success", solidHeader = TRUE,
+                                              title = "Options for DE method", status = "info", solidHeader = TRUE,width = NULL,
+                                              collapsible = TRUE,
+                                              conditionalPanel(
+                                                condition = "input.DEmethod == 'DESeq' | input.DEmethod == 'XBSeq'",
+                                                selectizeInput("SCVmethod", 
+                                                               label = "Please select a method to estimate dispersion", 
+                                                               choices =c('pooled', 'per-condition', 'blind'),
+                                                               selected = 'pooled'
+                                                ),
+                                                verbatimTextOutput("SCVmethod"),
+                                                selectizeInput("SharingMode",
+                                                               label = "Please select a method for sharing mode",
+                                                               choices = c('maximum', 'fit-only', 'gene-est-only'),
+                                                               selected = 'maximum'
+                                                ),
+                                                verbatimTextOutput("SharingMode"),
+                                                selectizeInput("fitType",
+                                                               label = "Please select a method for fitType",
+                                                               choices = c('local', 'parametric'),
+                                                               selected = 'local'
+                                                ),
+                                                verbatimTextOutput("fitType"),
+                                                conditionalPanel(
+                                                  condition = "input.DEmethod == 'XBSeq'",
+                                                  selectizeInput("ParamEst", 
+                                                                 label = "Please select a method to estimate distribution parameters", 
+                                                                 choices =c('Non-parametric' = 'NP', 
+                                                                            'Maximum liklihood estimation' = 'MLE'),
+                                                                 selected = 'NP'
+                                                  ),
+                                                  verbatimTextOutput("ParamEst")
+                                                )
+                                              ),
+                                              conditionalPanel(
+                                                condition = "input.DEmethod == 'DESeq2'",
+                                                selectizeInput("fitType_DESeq2", 
+                                                               label = "Please select a method for fit type", 
+                                                               choices =c('local', 'parametric', 'mean'),
+                                                               selected = 'local'
+                                                ),
+                                                verbatimTextOutput("fitType_DESeq2"),
+                                                selectizeInput("Test",
+                                                               label = "Please select a method for statistical test",
+                                                               choices = c('Wald test' = 'Wald',
+                                                                           'Log ratio test' = 'LRT'),
+                                                               selected = 'Wald'
+                                                ),
+                                                verbatimTextOutput("Test"),
+                                                selectizeInput("cooksCutoff",
+                                                               label = "Please choose either to turn on or off cooks distance cutoff",
+                                                               choices = c('on',
+                                                                           'off'),
+                                                               selected = 'off'
+                                                ),
+                                                verbatimTextOutput("cooksCutoff")
+                                              )
+                                              #                conditionalPanel(
+                                              #                  condition = "input.DEmethod == 'edgeR-robust'",
+                                              #                  selectizeInput("residualType", 
+                                              #                                 label = "Please select a method for calculating residuals", 
+                                              #                                 choices =c("pearson", "deviance", "anscombe"),
+                                              #                                 selected = 'pearson'
+                                              #                  ),
+                                              #                  verbatimTextOutput("residualType")
+                                              #                )
+                                            ),
+                                            box(
+                                              title = "Criteria for DE genes", status = "success", solidHeader = TRUE,width = NULL,
                                               collapsible = TRUE,
                                               selectizeInput("padjust", 
                                                              label = "Please select a method for adjusting p values", 

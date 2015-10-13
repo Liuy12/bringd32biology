@@ -66,10 +66,11 @@ XBSeq_pfun <-
   }
 
 DESeq2_pfun <-
-  function(counts, group, design = NULL, cookcutoff, fittype, test)
+  function(counts, group, design = NULL, cookcutoff, fittype, test, spikeins)
   {   
     colData <- data.frame(group)
     dse <- DESeqDataSetFromMatrix(countData = counts, colData = colData, design = ~ group)
+    dse <- estimateSizeFactors()
     colData(dse)$group <- as.factor(colData(dse)$group)
     if(test == 'LRT')
       dse <- DESeq(dse, test = 'LRT', fitType = fittype, reduced = ~1)
