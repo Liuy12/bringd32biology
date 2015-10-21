@@ -135,6 +135,68 @@
 #   )
 # )
 
+output$DEinput <- renderUI({
+    if(input$countMatrix == 'Yes' && (input$ExpDesign ==  'Two-level' || (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Specify two conditions to compare')))
+      selectizeInput(
+        "DEmethod", 
+        label = 'Please select a method for DE analysis',
+        choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde', 'SAMSeq'),
+        options = list(placeholder = 'select a method below',
+                       onInitialize = I('function() { this.setValue(""); }'))
+      )
+    else if(input$ExpDesign == 'Not available' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes'))
+      selectizeInput(
+        "DEmethod", 
+        label = 'Please select a method for highly variable genes analysis',
+        choices = c('Brennecke_2013'),
+        options = list(placeholder = 'select a method below',
+                       onInitialize = I('function() { this.setValue(""); }'))
+      )
+    else if(input$countMatrix == 'No' & (input$ExpDesign ==  'Two-level' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Specify two conditions to compare')))
+      selectizeInput(
+        "DEmethod", 
+        label = 'Please select a method for DE analysis',
+        choices = c('monocle', 'limma'),
+        options = list(placeholder = 'select a method below',
+                       onInitialize = I('function() { this.setValue(""); }'))
+      )
+})
+
+output$DECriteria <- renderUI({
+  if(input$spikein == 'No' & (input$ExpDesign == 'Not available' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes')))
+    {
+    tags$div(numericInput("HVGnumber", label = "Please set number of HVGs.", 
+                          value = 100, min = 1
+    ),
+    verbatimTextOutput("HVGnumber_value"))
+    }
+  else if(1){
+    tags$div(
+      selectizeInput("padjust", 
+                     label = "Please select a method for adjusting p values", 
+                     choices =c("Benj&Hoch" = "BH", 
+                                "bonferroni", "none"),
+                     selected = 'BH'
+      ),
+      verbatimTextOutput("padjust"),
+      selectizeInput("pcutoff", 
+                     label = "Please set a cutoff of p values for DE genes/HVGs", 
+                     choices =c(0.001, 0.01, 0.05, 0.1, 0.2),
+                     selected = 0.05
+      ),
+      verbatimTextOutput("pcutoff")
+    )
+  }
+  else if((input$ExpDesign == 'Two-level' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Specify two conditions to compare'))){
+   tags$div(  selectizeInput("fccutoff", 
+                             label = "Please set a cutoff of fold change for DE genes", 
+                             choices =c(1.5, 2, 2.5, 3, 5),
+                             selected = 2
+   ),
+   verbatimTextOutput("fccutoff")
+   ) 
+  }
+})
 
 output$Chartpage <- renderUI({
   fluidPage(
@@ -250,7 +312,7 @@ output$Chartpage <- renderUI({
              )
            )
     ),
-    if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde')
+    if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde' & input$DEmethod != 'limma' & input$DEmethod != 'monocle' & input$DEmethod != 'SAMSeq' & input$DEmethod != 'Brennecke_2013')
       tabBox(
         title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
         id = 'DEanalysis', width = 12, 
@@ -263,7 +325,7 @@ output$Chartpage <- renderUI({
         tabPanel("Dispersion plot", 
                  fluidRow(column(12, showOutput("DispersionPlot", "polycharts"))))
       )
-    else
+    else if(input$DEmethod != 'Brennecke_2013')
       tabBox(
         title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
         id = 'DEanalysis', width = 12, 
@@ -273,6 +335,15 @@ output$Chartpage <- renderUI({
                  fluidRow(column(12, metricsgraphicsOutput("MAplot")))),
         tabPanel("DE Heatmap", 
                  fluidRow(column(12, d3heatmapOutput('DEheatmap'))))
+      )
+    else
+      tabBox(
+        title = tagList(shiny::icon("tag"), 'Highly variable genes analysis'),
+        id = 'DEanalysis', width = 12, 
+        tabPanel("HVGs Table", 
+                 fluidRow(column(12, dataTableOutput('HVGtable')))),
+        tabPanel("HVGs Heatmap", 
+                 fluidRow(column(12, d3heatmapOutput('HVGheatmap'))))
       ),
     box(title = 'File exports', collapsible = T, status = 'success', width = 12,
         uiOutput('DownloadUI')
@@ -326,11 +397,15 @@ output$DEstart <- renderText({
 })
 
 design <- reactive({
-  inFile <- input$file_design
-  if (is.null(inFile))
+  if(input$ExpDesign == 'Not available')
     return(NULL)
-  design <- fread(inFile$datapath, data.table = F)
-  design[[1]]
+  else{
+    inFile <- input$file_design
+    if (is.null(inFile))
+      return(NULL)
+    design <- fread(inFile$datapath, data.table = F)
+    design[[1]]
+  }
 })
 
 dataComb <- eventReactive(input$DEstart, {
@@ -356,7 +431,10 @@ dataComb <- eventReactive(input$DEstart, {
       data_qc <- c()
       data_spikein <- c()
     }
-    group <- design()
+    if(input$ExpDesign == 'Not available')
+      group <- rep('C1', ncol(data_obs))
+    else
+      group <- design()
     group <- as.factor(group)
     for(i in 1:100){
       folder <- paste('www/report/user/user', i, sep='')
@@ -375,12 +453,12 @@ dataComb <- eventReactive(input$DEstart, {
       data_bg <- data_bg[,-1]
       dataOut <- XBSeq_pfun(data_obs, data_bg, group, disp_method = input$SCVmethod, 
                             sharing_mode = input$SharingMode, fit_type = input$fitType,
-                            paraMethod = input$ParamEst)
+                            paraMethod = input$ParamEst, spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
     }
     else if (input$DEmethod == 'DESeq') {
       dataOut <- DESeq_pfun(data_obs, group, disp_method = input$SCVmethod,
                             sharing_mode = input$SharingMode, 
-                            fit_type = input$fitType)
+                            fit_type = input$fitType, spikeins = data_spikein)
     }
     else if (input$DEmethod == 'DESeq2') {
       dataOut <- DESeq2_pfun(
@@ -388,16 +466,28 @@ dataComb <- eventReactive(input$DEstart, {
         fittype = input$fitType_DESeq2, test = input$Test, spikein = data_spikein)
     }
     else if (input$DEmethod == 'edgeR') {
-      dataOut <- edgeR.pfun(data_obs, group, model.matrix(~group))
+      dataOut <- edgeR.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein)
     }
     else if (input$DEmethod == 'edgeR-robust') {
-      dataOut <- edgeR_robust.pfun(data_obs, group, model.matrix(~group))
+      dataOut <- edgeR_robust.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein)
     }
     else if (input$DEmethod == 'limma-voom') {
-      dataOut <- limma_voom.pfun(data_obs, group, model.matrix(~group))
+      dataOut <- limma_voom.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein)
     }
     else if (input$DEmethod == 'scde') {
       dataOut <- scde.pfun(data_obs, group)
+    }
+    else if (input$DEmethod == 'limma'){
+      dataOut <- limma.pfun(data_obs, group, model.matrix(~0 + group))
+    }
+    else if (input$DEmethod == 'monocle'){
+      dataOut <- monocle.pfun(data_obs, group)
+    }
+    else if (input$DEmethod == 'Brennecke_2013'){
+      Brennecke_pfun(data_obs, spikeins = data_spikein)
+    }
+    else if (input$DEmethod == 'SAMSeq'){
+      SAMSeq.pfun(data_obs, group)
     }
   })
   dataOut[[5]] <- folder
@@ -477,8 +567,12 @@ output$fccutoff <- renderPrint({
   as.numeric(input$fccutoff)
 })
 
-output$log2bmcutoff <- renderPrint({
+output$log2bmcutoff_value <- renderPrint({
   input$log2bmcutoff
+})
+
+output$HVGnumber_value <- renderPrint({
+  input$HVGnumber
 })
 
 output$Spikeinsqc <- renderMetricsgraphics({
@@ -667,7 +761,10 @@ Principalstats <- reactive({
   withProgress(value = 1, message = 'Calculating PCA stats', {
     dataMat <- log2(dataComb[[2]] + 0.25)
     folder <- dataComb[[5]]
-    design <- design()
+    if(input$ExpDesign == 'Not available')
+      design <- rep('C1', ncol(dataMat))
+    else
+      design <- design()
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
     cvcutoff <- input$cvCutoff
     clusterMethod <- input$clusterMethod

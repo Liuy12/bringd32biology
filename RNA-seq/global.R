@@ -23,9 +23,10 @@ library(rga)
 library(threejs)
 library(scde)
 # library(BASiCS) too slow
-library(SAMstrt)
+#library(samr) Not working
 library(RUVSeq)
 library(statmod)
+library(monocle)
 
 
 #Emails
@@ -265,21 +266,29 @@ scde.pfun <- function(counts, design, cores = 4){
 }
 
 Brennecke_pfun <- function(counts, spikeins){
-  sfBio <- estimateSizeFactorsForMatrix(counts)
-  nCountsBio <- t(t(counts)/sfBio)
+  if(any(!is.integer(counts)))
+    nCountsBio <- preprocessCore::normalize.quantiles(counts)
+  else{
+    sfBio <- estimateSizeFactorsForMatrix(counts)
+    nCountsBio <- t(t(counts)/sfBio)
+  }
   meansBio <- rowMeans( nCountsBio )
   varsBio <- rowVars( nCountsBio )
   cv2Bio <- varsBio / meansBio^2
   if(is.null(spikeins)){
     return(list(
-      normCounts <- nCountsBio,
-      CV <- cv2Bio,
-      DE_id <- order(cv2Bio, decreasing = T)[1:100]
+      RawCount = counts,
+      normCounts = nCountsBio,
+      CV = cv2Bio,
+      DE_id = order(cv2Bio, decreasing = T)[1:100]
     ))
   }
-  sfTec <- estimateSizeFactorsForMatrix(spikeins) 
-  nCountsTec <- t(t(spikeins)/sfTec)
-  
+  if(any(!is.integer(counts)))
+    nCountsTec <- preprocessCore::normalize.quantiles(spikeins)
+  else{
+    sfTec <- estimateSizeFactorsForMatrix(spikeins) 
+    nCountsTec <- t(t(spikeins)/sfTec)
+  }
   # Estimation of gene-specific expression rates
   meansTec <- rowMeans( nCountsTec )
   varsTec <- rowVars( nCountsTec )
@@ -304,26 +313,73 @@ Brennecke_pfun <- function(counts, spikeins){
   sig[is.na(sig)] <- FALSE
   HVG_Bren_id=which(sig)
   return(list(
-    normCounts <- nCountsBio,
-    CV <- cv2Bio,
-    DE_id <- HVG_Bren_id
+    RowCount = counts,
+    normCounts = nCountsBio,
+    CV = cv2Bio,
+    DE_id = HVG_Bren_id
   ))
 }
 
-par(mgp=c(6,2,0)); par(mar=c(8,10,4,0.5)); par(mfrow=c(1,3))
-plot(MCMC_Summary, Param = "mu", Param2 = "delta", main = "(a)", log="xy", cex.main = 2, cex.lab = 2, cex.axis = 1.5, col = 8, cex = 1.5)
-points(DetectHVG$Table[which(DetectHVG$Table[,5]>0.7925),2],DetectHVG$Table[which(DetectHVG$Table[,5]>0.7925),3],cex=1.5,pch=16,col="red")
-points(DetectLVG$Table[which(DetectLVG$Table[,5]>0.7650),2],DetectLVG$Table[which(DetectLVG$Table[,5]>0.7650),3],cex=1.5,pch=16,col="blue")
-legend('topright',c("HVG (BASiCS)","LVG (BASiCS)"),col=c("red","blue"),pch=16,cex=2,bty="n")
+limma.pfun <- function(counts, group, design){
+  counts_N <- preprocessCore::normalize.quantiles(counts)
+  counts_N_log2 <- log2(counts_N)
+  fit <- lmFit(counts_N_log2, design)
+  contrast.matrix <- makeContrasts(levels(design)[1] - levels(design)[2],
+                                     levels=design)
+  fit2 <- contrasts.fit(fit, contrast.matrix)
+  fit2 <- eBayes(fit2)
+  TestStat <- topTable(fit2,coef=2,n=nrow(counts), sort.by = "none")
+  TestStat <- data.frame(
+    AveExpr = 2^(TestStat$AveExpr),
+    logfc = TestStat$logFC,
+    pval = TestStat$P.Value
+  )
+  list(
+    RawCount = counts,
+    NormCount = counts_N,
+    Dispersion = c(),
+    TestStat = TestStat
+  )
+}
 
-plot(MCMC_Summary, Param = "mu", Param2 = "delta", main = "(b)", log="xy", cex.main = 2, cex.lab = 2, cex.axis = 1.5, col = 8, cex = 1.5)
-points(displaySummaryMu(MCMC_Summary)[1:q.bio,1][HVG_Islam_id],displaySummaryDelta(MCMC_Summary)[1:q.bio,1][HVG_Islam_id],cex=1.5,pch=16,col="red")
-legend('topright',c("HVG (Islam et al)"),col=c("red"),pch=16,cex=2,bty="n")
+monocle.pfun <- function(counts, group){
+  counts_N <- preprocessCore::normalize.quantiles(counts)
+  temp <- t(counts_N)
+  temp$condition <- group
+  temp %>% group_by(condition) %>% summarize_each(funs = funs(mean))
+  design <- data.frame(conditions = group)
+  rownames(design) <- colnames(counts)
+  pd <- new("AnnotatedDataFrame", data = design)
+  counts_class <- newCellDataSet(as.matrix(counts_N), phenoData = pd)
+  diff_test_res <- differentialGeneTest(counts_class,
+                                        fullModelFormulaStr="expression~conditions")
+  TestStat <- data.frame(
+    AveExpr = apply(counts_N, 1, mean),
+    logfc = log2(temp[1,]/temp[2,]),
+    pval = diff_test_res$pval
+  )
+  list(
+    RawCount = counts,
+    NormCount = counts_N,
+    Dispersion = c(),
+    TestStat = TestStat
+  )
+}
 
-plot(MCMC_Summary, Param = "mu", Param2 = "delta", main = "(c)", log="xy", cex.main = 2, cex.lab = 2, cex.axis = 1.5, col = 8, cex = 1.5)
-points(displaySummaryMu(MCMC_Summary)[1:q.bio,1][HVG_Bren_id],displaySummaryDelta(MCMC_Summary)[1:q.bio,1][HVG_Bren_id],cex=1.5,pch=16,col="red")
-legend('topright',c("HVG (Brennecke et al)"),col=c("red"),pch=16,cex=2,bty="n")
-
+SAMSeq.pfun <- function(counts, group){
+  TestStat <- SAMseq(as.matrix(counts), group, resp.type = "Two class unpaired")
+  TestStat <- data.frame(
+    AveExpr = 2^(TestStat$AveExpr),
+    logfc = TestStat$logFC,
+    pval = TestStat$P.Value
+  )
+  list(
+    RawCount = counts,
+    NormCount = counts_N,
+    Dispersion = c(),
+    TestStat = TestStat
+  )
+}
 
 
 renderChart3 <- function(expr, env = parent.frame(), quoted = FALSE) {
