@@ -140,7 +140,7 @@ output$DEinput <- renderUI({
       selectizeInput(
         "DEmethod", 
         label = 'Please select a method for DE analysis',
-        choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde', 'SAMSeq'),
+        choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde'),
         options = list(placeholder = 'select a method below',
                        onInitialize = I('function() { this.setValue(""); }'))
       )
@@ -312,7 +312,7 @@ output$Chartpage <- renderUI({
              )
            )
     ),
-    if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde' & input$DEmethod != 'limma' & input$DEmethod != 'monocle' & input$DEmethod != 'SAMSeq' & input$DEmethod != 'Brennecke_2013')
+    if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde' & input$DEmethod != 'limma' & input$DEmethod != 'monocle' & input$DEmethod != 'Brennecke_2013')
       tabBox(
         title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
         id = 'DEanalysis', width = 12, 
@@ -485,9 +485,9 @@ dataComb <- eventReactive(input$DEstart, {
     else if (input$DEmethod == 'Brennecke_2013'){
       Brennecke_pfun(data_obs, spikeins = data_spikein)
     }
-    else if (input$DEmethod == 'SAMSeq'){
-      SAMSeq.pfun(data_obs, group, condition_sel = c(input$Con_S1, input$Con_S2))
-    }
+#     else if (input$DEmethod == 'SAMSeq'){
+#       SAMSeq.pfun(data_obs, group, condition_sel = c(input$Con_S1, input$Con_S2))
+#     }
   })
   dataOut[[5]] <- folder
   dataOut[[6]] <- data_qc

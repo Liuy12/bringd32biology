@@ -23,7 +23,7 @@ library(rga)
 library(threejs)
 library(scde)
 # library(BASiCS) too slow
-library(samr)
+# library(samr) not easy to implement 
 library(RUVSeq)
 library(statmod)
 library(monocle)
@@ -489,20 +489,20 @@ monocle.pfun <- function(counts, group, condition_sel){
   )
 }
 
-SAMSeq.pfun <- function(counts, group, condition_sel){
-  TestStat <- SAMseq(as.matrix(counts), as.factor(group), resp.type = "Two class unpaired")
-  TestStat <- data.frame(
-    AveExpr = 2^(TestStat$AveExpr),
-    logfc = TestStat$logFC,
-    pval = TestStat$P.Value
-  )
-  list(
-    RawCount = counts,
-    NormCount = counts_N,
-    Dispersion = c(),
-    TestStat = TestStat
-  )
-}
+# SAMSeq.pfun <- function(counts, group, condition_sel){
+#   TestStat <- SAMseq(as.matrix(counts), as.factor(group), resp.type = "Two class unpaired")
+#   TestStat <- data.frame(
+#     AveExpr = 2^(TestStat$AveExpr),
+#     logfc = TestStat$logFC,
+#     pval = TestStat$P.Value
+#   )
+#   list(
+#     RawCount = counts,
+#     NormCount = counts_N,
+#     Dispersion = c(),
+#     TestStat = TestStat
+#   )
+# }
 
 
 renderChart3 <- function(expr, env = parent.frame(), quoted = FALSE) {
