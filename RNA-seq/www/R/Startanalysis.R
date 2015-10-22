@@ -435,7 +435,6 @@ dataComb <- eventReactive(input$DEstart, {
       group <- rep('C1', ncol(data_obs))
     else
       group <- design()
-    group <- as.factor(group)
     for(i in 1:100){
       folder <- paste('www/report/user/user', i, sep='')
       if(!dir.exists(folder)){
@@ -458,36 +457,36 @@ dataComb <- eventReactive(input$DEstart, {
     else if (input$DEmethod == 'DESeq') {
       dataOut <- DESeq_pfun(data_obs, group, disp_method = input$SCVmethod,
                             sharing_mode = input$SharingMode, 
-                            fit_type = input$fitType, spikeins = data_spikein)
+                            fit_type = input$fitType, spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
     }
     else if (input$DEmethod == 'DESeq2') {
       dataOut <- DESeq2_pfun(
         data_obs, group, cookcutoff = input$cooksCutoff,
-        fittype = input$fitType_DESeq2, test = input$Test, spikein = data_spikein)
+        fittype = input$fitType_DESeq2, test = input$Test, spikein = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
     }
     else if (input$DEmethod == 'edgeR') {
-      dataOut <- edgeR.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein)
+      dataOut <- edgeR.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
     }
     else if (input$DEmethod == 'edgeR-robust') {
-      dataOut <- edgeR_robust.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein)
+      dataOut <- edgeR_robust.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
     }
     else if (input$DEmethod == 'limma-voom') {
-      dataOut <- limma_voom.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein)
+      dataOut <- limma_voom.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
     }
     else if (input$DEmethod == 'scde') {
-      dataOut <- scde.pfun(data_obs, group)
+      dataOut <- scde.pfun(data_obs, group, condition_sel = c(input$Con_S1, input$Con_S2))
     }
     else if (input$DEmethod == 'limma'){
-      dataOut <- limma.pfun(data_obs, group, model.matrix(~0 + group))
+      dataOut <- limma.pfun(data_obs, group, model.matrix(~0 + group), condition_sel = c(input$Con_S1, input$Con_S2))
     }
     else if (input$DEmethod == 'monocle'){
-      dataOut <- monocle.pfun(data_obs, group)
+      dataOut <- monocle.pfun(data_obs, group, condition_sel = c(input$Con_S1, input$Con_S2))
     }
     else if (input$DEmethod == 'Brennecke_2013'){
       Brennecke_pfun(data_obs, spikeins = data_spikein)
     }
     else if (input$DEmethod == 'SAMSeq'){
-      SAMSeq.pfun(data_obs, group)
+      SAMSeq.pfun(data_obs, group, condition_sel = c(input$Con_S1, input$Con_S2))
     }
   })
   dataOut[[5]] <- folder
