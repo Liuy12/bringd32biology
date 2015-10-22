@@ -376,9 +376,13 @@ output$StartDownload <- downloadHandler(
       setwd(path.old)
       unlink(path, recursive = TRUE, force = TRUE)
     })
-    if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde'){
+    if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde' & input$DEmethod != 'limma' & input$DEmethod != 'monocle'){
       slidify('Report.Rmd')
       zip(file, files = c('Report.html', 'libraries/', 'htmlFiles/', 'DEstat.csv', 'TestStat.csv'))
+    }
+    else if (input$DEmethod == 'Brennecke_2013'){
+      slidify('ReportRNASeqVis.Rmd')
+      zip(file, files = c('ReportRNASeqVis.html', 'libraries/', 'htmlFiles/', 'NormData.csv', 'HVGData.csv'))
     }
     else{
       slidify('Reports.Rmd')
@@ -440,7 +444,7 @@ dataComb <- eventReactive(input$DEstart, {
       if(!dir.exists(folder)){
         dir.create(folder)
         dir.create(paste(folder, '/htmlFiles', sep = ''))
-        file.copy(c('www/report/Report.Rmd', 'www/report/Reports.Rmd', 'www/report/libraries'), folder, recursive = TRUE)
+        file.copy(c('www/report/Report.Rmd', 'www/report/Reports.Rmd', 'www/report/ReportRNASeqVis.Rmd', 'www/report/libraries'), folder, recursive = TRUE)
         break
       }
     }
@@ -1106,6 +1110,57 @@ output$DispersionPlot <- renderChart3({
     rp
     })
 })
+
+output$HVGtable <- renderDataTable({
+  if (is.null(input$file_obs))
+    return(NULL)
+  dataComb <- dataComb()
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'HVG table', {
+    dataMat <- log2(dataComb[[2]] + 0.25)
+    folder <- dataComb[[5]]
+    dataMat <- as.data.frame(dataMat)
+    DE_index <- dataComb[[4]]
+    if (length(DE_index) == 0)
+      dataMat2 <- c()
+    else{
+      dataMat2 <- dataMat[DE_index,]
+    }
+    write.csv(dataMat, paste(folder, '/NormData.csv', sep = ''), quote = F)
+    write.csv(dataMat2, paste(folder, '/HVGData.csv', sep = ''), quote = F)
+    temp <- datatable(dataMat2, options = list(pageLength = 5))
+    saveWidget(temp, 'HVGdatatable.html')
+    path <- paste(folder, '/htmlFiles/', sep = '')
+    file.copy('./HVGdatatable.html', path)
+    file.remove('./HVGdatatable.html')
+    temp
+  })
+})
+
+output$HVGheatmap <- renderD3heatmap(({
+  dataComb <- dataComb()
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'HVG heatmap', {
+    dataMat <- log2(dataComb[[2]] + 0.25)
+    folder <- dataComb[[5]]
+    dataMat <- as.data.frame(dataMat)
+    DE_index <- dataComb[[4]]
+    if (length(DE_index) <= 2){
+      htmltools::save_html(c(), 'HVGheatmap.html')
+      path <- paste(folder, '/htmlFiles/', sep = '')
+      file.copy('./HVGheatmap.html', path)
+      file.remove('./HVGheatmap.html')
+      return(NULL)
+    }
+    dataMat2 <-dataMat[DE_index,]
+    colnames(dataMat2) <- paste('S', 1:ncol(dataMat), sep = '')
+    h1 <- d3heatmap(dataMat2, scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE)
+    saveWidget(h1, 'HVGheatmap.html')
+    path <- paste(folder, '/htmlFiles/', sep = '')
+    file.copy('./HVGheatmap.html', path)
+    file.remove('./HVGheatmap.html')
+    h1
+  })
+}))
+
 
 # output$progressbar <- renderUI({
 #     input$DEstart
