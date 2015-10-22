@@ -343,7 +343,9 @@ output$Chartpage <- renderUI({
         tabPanel("HVGs Table", 
                  fluidRow(column(12, dataTableOutput('HVGtable')))),
         tabPanel("HVGs Heatmap", 
-                 fluidRow(column(12, d3heatmapOutput('HVGheatmap'))))
+                 fluidRow(column(12, d3heatmapOutput('HVGheatmap')))),
+        tabPanel("HVG plot", 
+                 fluidRow(column(12, d3heatmapOutput('HVGplot'))))
       ),
     box(title = 'File exports', collapsible = T, status = 'success', width = 12,
         uiOutput('DownloadUI')
@@ -1160,6 +1162,44 @@ output$HVGheatmap <- renderD3heatmap(({
     h1
   })
 }))
+
+output$HVGplot <- renderMetricsgraphics({
+  if (is.null(input$file_obs))
+    return(NULL)
+  dataComb <- dataComb()
+  withProgress(value = 1, message = 'Generating plots: ', detail = 'HVG plot', {
+    dataMat <- dataComb[[2]]
+    CV <- dataComb[[3]]
+    HVG_ind <- dataComb[[4]]
+    col <- rep(1, length(CV))
+    col[HVG_ind] <- 2
+    folder <- dataComb[[5]]
+    dataMat_mean <- apply(log2(dataMat + 0.25), 1, mean)
+    dataMat1 <- data.frame(
+      dataMat_mean <- dataMat_mean,
+      CV <- CV,
+      col <- col
+    )
+    colnames(dataMat1) <- c('baseMean', 'CV', 'Col')
+    if(length(unique(col)) == 1)
+      color_rg <- 'grey32'
+    else
+      color_rg <- c('red', 'grey32')
+    mp <-
+      mjs_plot(dataMat1, baseMean, CV, decimals = 6) %>%
+      mjs_point(
+        color_accessor = col, color_range = color_rg, color_type = "category", x_rug =
+          TRUE, y_rug = TRUE
+      ) %>%
+      mjs_labs(x_label = 'Log2 expression intensity', y_label = "Coeffcient of variation")
+    saveWidget(mp, file = 'HVGplot.html')
+    path <- paste(folder, '/htmlFiles/', sep = '')
+    file.copy('./HVGplot.html', path)
+    file.remove('./HVGplot.html')
+    mp
+  })
+})
+
 
 
 # output$progressbar <- renderUI({

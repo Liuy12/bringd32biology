@@ -100,5 +100,12 @@ cat('<iframe src="htmlFiles/HVGdatatable.html" width=1000px height=1000px allowt
 cat('<iframe src="htmlFiles/HVGheatmap.html" width=1000px height=1000px allowtransparency="true"> </iframe>')
 ```
 
+---
+
+## HVG plot
+
+```{r echo=FALSE, warning=FALSE,cache=FALSE,results='asis'}
+cat('<iframe src="htmlFiles/HVGplot.html" width=1000px height=1000px allowtransparency="true"> </iframe>')
+```
 
 
