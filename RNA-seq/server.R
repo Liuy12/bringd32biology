@@ -10,6 +10,15 @@ shinyServer(function(input, output,session) {
   outputOptions(output, "MAplot", suspendWhenHidden = FALSE)
   outputOptions(output, "DEheatmap", suspendWhenHidden = FALSE)
   outputOptions(output, "DispersionPlot", suspendWhenHidden = FALSE)
+  outputOptions(output, "Spikeinsqc", suspendWhenHidden = FALSE)
+  outputOptions(output, "Table", suspendWhenHidden = FALSE)
+#  outputOptions(output, "PrincipalComponent2d", suspendWhenHidden = FALSE)
+#  outputOptions(output, "PrincipalComponent3d", suspendWhenHidden = FALSE)
+  outputOptions(output, "DEtable", suspendWhenHidden = FALSE)
+  outputOptions(output, "HVGtable", suspendWhenHidden = FALSE)
+  outputOptions(output, "HVGheatmap", suspendWhenHidden = FALSE)
+  outputOptions(output, "HVGplot", suspendWhenHidden = FALSE)
+  
   
   output$totalvisits <- renderValueBox({
     load("www/ga.rga")

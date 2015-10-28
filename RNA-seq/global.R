@@ -332,10 +332,10 @@ limma_voom.pfun <-
   }
 
 scde.pfun <- function(counts, design, cores = 4, condition_sel){
-  if(!is.null(condition_sel)){
+  if(condition_sel[1]!=""){
     err_mod <- scde.error.models(counts = counts, groups = design, n.cores = cores,
                                  threshold.segmentation=T, save.crossfit.plots=F, 
-                                 save.model.plots=F,verbose=0)
+                                 save.model.plots=F,verbose=0, min.size.entries = 100)
     valid_cells <- err_mod$corr.a >0
     err_mod <- err_mod[valid_cells, ]
     counts <- counts[, valid_cells]
@@ -348,7 +348,7 @@ scde.pfun <- function(counts, design, cores = 4, condition_sel){
   }
   err_mod <- scde.error.models(counts = counts[,sample_sel], groups = design[sample_sel], n.cores = cores,
                              threshold.segmentation=T, save.crossfit.plots=F, 
-                             save.model.plots=F,verbose=0)
+                             save.model.plots=F,verbose=0, min.size.entries = 90)
   valid_cells <- err_mod$corr.a >0
   err_mod <- err_mod[valid_cells, ]
   counts <- counts[, sample_sel[valid_cells]]
@@ -358,6 +358,7 @@ scde.pfun <- function(counts, design, cores = 4, condition_sel){
                                        length.out=400,
                                        show.plot=F)
   names(design) <- row.names(err_mod)
+  design <- as.factor(design)
   ediff <- scde.expression.difference(models = err_mod, counts = counts, 
                                       prior =  exprs_prior, groups = design,
                                       n.randomizations=100, n.cores = cores,verbose=1, 
@@ -459,7 +460,9 @@ limma.pfun <- function(counts, group, design, condition_sel){
 }
 
 monocle.pfun <- function(counts, group, condition_sel){
-  counts_N <- preprocessCore::normalize.quantiles(counts)
+  counts_N <- as.data.frame(preprocessCore::normalize.quantiles(as.matrix(counts)))
+  rownames(counts_N) <- rownames(counts)
+  colnames(counts_N) <- colnames(counts)
   if(!is.null(condition_sel)){
     sample_sel <- c(grep(condition_sel[1], group), grep(condition_sel[2], group))
     group <- group[sample_sel]
@@ -467,15 +470,16 @@ monocle.pfun <- function(counts, group, condition_sel){
   }
   else
     counts_N_sel <- counts_N
-  temp <- t(counts_N_sel)
-  temp$condition <- group
-  temp <- temp %>% group_by(condition) %>% summarize_each(funs = funs(mean))
+  temp <- data.frame(
+    c1 = apply(counts_N_sel[, group == unique(group)[1]], 1, mean),
+    c2 = apply(counts_N_sel[, group == unique(group)[2]], 1, mean)
+  )
   design <- data.frame(conditions = group)
   rownames(design) <- colnames(counts)
   pd <- new("AnnotatedDataFrame", data = design)
   counts_class <- newCellDataSet(as.matrix(counts_N_sel), phenoData = pd)
   diff_test_res <- differentialGeneTest(counts_class,
-                                        fullModelFormulaStr="expression~conditions")
+                                        fullModelFormulaStr="expression~conditions", cores = 4)
   TestStat <- data.frame(
     AveExpr = apply(counts_N_sel, 1, mean),
     logfc = log2(temp[1,]/temp[2,]),
@@ -518,5 +522,58 @@ renderChart3 <- function(expr, env = parent.frame(), quoted = FALSE) {
   }
 }
 
-
+# pandoc_convert <- function(input,
+#                            to = NULL,
+#                            from = NULL,
+#                            output = NULL,
+#                            citeproc = FALSE,
+#                            options = NULL,
+#                            verbose = FALSE,
+#                            wd = NULL) {
+#   
+#   # ensure we've scanned for pandoc
+#   find_pandoc()
+#   
+#   # execute in specified working directory
+#   if (is.null(wd)) {
+#     wd <- base_dir(input)
+#   }
+#   oldwd <- setwd(wd)
+#   on.exit(setwd(oldwd), add = TRUE)
+#   
+#   
+#   # input file and formats
+#   args <- c(input)
+#   if (!is.null(to))
+#     args <- c(args, "--to", to)
+#   if (!is.null(from))
+#     args <- c(args, "--from", from)
+#   
+#   #  output file
+#   if (!is.null(output))
+#     args <- c(args, "--output", output)
+#   
+#   # additional command line options
+#   args <- c(args, options)
+#   
+#   # set pandoc stack size
+#   stack_size <- getOption("pandoc.stack.size", default = "1024m")
+#   args <- c(c("+RTS", paste0("-K", stack_size), "-RTS"), args)
+#   
+#   # build the conversion command
+#   command <- paste(quoted(pandoc()), paste(quoted(args), collapse = " "))
+#   
+#   # show it in verbose mode
+#   if (verbose)
+#     cat(command, "\n")
+#   
+#   # run the conversion
+#   with_pandoc_safe_environment({
+#     result <- system(command)
+#   })
+#   if (result != 0)
+#     stop("pandoc document conversion failed with error ", result, call. = FALSE)
+#   
+#   invisible(NULL)
+# }
 

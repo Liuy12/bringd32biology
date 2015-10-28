@@ -163,14 +163,14 @@ output$DEinput <- renderUI({
 })
 
 output$DECriteria <- renderUI({
-  if(input$spikein == 'No' & (input$ExpDesign == 'Not available' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes')))
+  if(input$spikein == 'No' && (input$ExpDesign == 'Not available' || (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes')))
     {
     tags$div(numericInput("HVGnumber", label = "Please set number of HVGs.", 
                           value = 100, min = 1
     ),
     verbatimTextOutput("HVGnumber_value"))
-    }
-  else if(1){
+  }
+  else if(input$spikein == 'Yes' && (input$ExpDesign == 'Not available' || (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes')))
     tags$div(
       selectizeInput("padjust", 
                      label = "Please select a method for adjusting p values", 
@@ -186,9 +186,22 @@ output$DECriteria <- renderUI({
       ),
       verbatimTextOutput("pcutoff")
     )
-  }
   else if((input$ExpDesign == 'Two-level' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Specify two conditions to compare'))){
-   tags$div(  selectizeInput("fccutoff", 
+   tags$div(
+     selectizeInput("padjust", 
+                    label = "Please select a method for adjusting p values", 
+                    choices =c("Benj&Hoch" = "BH", 
+                               "bonferroni", "none"),
+                    selected = 'BH'
+     ),
+     verbatimTextOutput("padjust"),
+     selectizeInput("pcutoff", 
+                    label = "Please set a cutoff of p values for DE genes/HVGs", 
+                    choices =c(0.001, 0.01, 0.05, 0.1, 0.2),
+                    selected = 0.05
+     ),
+     verbatimTextOutput("pcutoff"),
+     selectizeInput("fccutoff", 
                              label = "Please set a cutoff of fold change for DE genes", 
                              choices =c(1.5, 2, 2.5, 3, 5),
                              selected = 2
@@ -297,7 +310,7 @@ output$Chartpage <- renderUI({
            tabPanel("Gene interaction network", fluidPage(
              fluidRow(
                column(4, offset = 1, sliderInput("Exprscut", "Expression level cutoff", 
-                                                 min=0, max=20, step = 2, value=8
+                                                 min=0, max=20, step = 2, value=12
                )),
                column(4,offset = 2, sliderInput("Corrcut", "Correlation cutoff", 
                                                 min=0, max=1, step = 0.1, value=0.9)
@@ -481,7 +494,7 @@ dataComb <- eventReactive(input$DEstart, {
     }
     else if (input$DEmethod == 'scde') {
       dataOut <- scde.pfun(data_obs, group, condition_sel = c(input$Con_S1, input$Con_S2))
-    }
+      }
     else if (input$DEmethod == 'limma'){
       dataOut <- limma.pfun(data_obs, group, model.matrix(~0 + group), condition_sel = c(input$Con_S1, input$Con_S2))
     }
@@ -497,6 +510,7 @@ dataComb <- eventReactive(input$DEstart, {
   })
   dataOut[[5]] <- folder
   dataOut[[6]] <- data_qc
+  cat('success6')
   return(dataOut)
 })
 
@@ -595,7 +609,8 @@ output$Spikeinsqc <- renderMetricsgraphics({
       ) %>%
       #    mjs_add_baseline(y_value = 0, label = 'baseline') %>%
       mjs_labs(x_label = 'Number of mapped reads', y_label = "Spike-in reads (%)")
-    saveWidget(mp, file = 'SpikeinQC.html')
+    
+    saveWidget(mp, file = 'SpikeinQC.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./SpikeinQC.html', path)
     file.remove('./SpikeinQC.html')
@@ -612,7 +627,7 @@ output$Table <- DT::renderDataTable({
     folder <- dataComb[[5]]
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
     temp <- datatable(dataMat, options = list(pageLength = 5))
-    saveWidget(temp, 'datatable.html')
+    saveWidget(temp, 'datatable.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./datatable.html', path)
     file.remove('./datatable.html')
@@ -635,7 +650,7 @@ output$Heatmap <- renderD3heatmap({
       return(NULL)
     uplim <- ifelse(length(index) < 1000, length(index), 1000)
     h1 <- d3heatmap(as.data.frame(dataMat1[1:uplim,]), scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE)
-    saveWidget(h1, 'heatmap.html')
+    saveWidget(h1, 'heatmap.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./heatmap.html', path)
     file.remove('./heatmap.html')
@@ -839,12 +854,14 @@ output$PrincipalComponent3d <- renderScatterplotThree({
     col <- colors[1:length(unique(design))]
     col <- rep(col, c(as.numeric(table(design))))
     scatter3d <- scatterplot3js(ppoints[,1], ppoints[,2], ppoints[,3], 
-                                labels = ppoints$Samplename, 
+                                labels = paste('S',1:nrow(ppoints), sep = ''), 
                                 axisLabels = c(xlab, ylab, zlab),
                                 color = col,
-                                renderer = 'canvas')
-    saveWidget(scatter3d, 'pcaplot.html')
+                                renderer = 'canvas', bg = '#ecf0f5')
+    saveWidget(scatter3d, 'pcaplot.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
+    if(file.exists(paste(path, 'pcaplot.html', sep = '')))
+      file.remove(paste(path, 'pcaplot.html', sep = ''))
     file.copy('./pcaplot.html', path)
     file.remove('./pcaplot.html')
     return(scatter3d)
@@ -894,8 +911,10 @@ output$forceNetworkGene <- renderForceNetwork({
         Target = "target", Value = "value", NodeID = "name",
         Group = "group", opacity = 0.4
       )
-      saveWidget(forceNet, 'forceNet.html')
+      htmlwidgets::saveWidget(forceNet, 'forceNet.html', background = 'none')
       path <- paste(folder, '/htmlFiles/', sep = '')
+      if(file.exists(paste(path, './forceNet.html', sep = '')))
+        file.remove(paste(path, './forceNet.html', sep = ''))
       file.copy('./forceNet.html', path)
       file.remove('./forceNet.html')
       return(forceNet)
@@ -930,7 +949,7 @@ output$DEtable <- DT::renderDataTable({
         c(paste('S', 1:ncol(dataMat), sep = ''), 'Log2 fold change', 'p adjusted value')
     }
     temp <- datatable(dataMat2, options = list(pageLength = 5))
-    saveWidget(temp, 'DEdatatable.html')
+    saveWidget(temp, 'DEdatatable.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./DEdatatable.html', path)
     file.remove('./DEdatatable.html')
@@ -963,7 +982,7 @@ output$DEheatmap <- renderD3heatmap({
     dataMat2 <-dataMat[DE_index,]
     colnames(dataMat2) <- paste('S', 1:ncol(dataMat), sep = '')
     h1 <- d3heatmap(dataMat2, scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE)
-    saveWidget(h1, 'DEheatmap.html')
+    saveWidget(h1, 'DEheatmap.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./DEheatmap.html', path)
     file.remove('./DEheatmap.html')
@@ -1012,8 +1031,12 @@ output$MAplot <- renderMetricsgraphics({
           TRUE, y_rug = TRUE
       ) %>%
       mjs_add_baseline(y_value = 0, label = 'baseline') %>%
-      mjs_labs(x_label = xlab, y_label = "Log2 fold change")
-    saveWidget(mp, file = 'MAplot.html')
+      mjs_labs(x_label = xlab, y_label = "Log2 fold change") %>%
+      mjs_add_mouseover("function(d) {
+                $('{{ID}} svg .mg-active-datapoint')
+                    .text('Gene Name: ' +  d.point.Genename + ',' + ' Log2 intensity: ' + d.point.baseMean + ',' + ' Log2 fold change: ' + d.point.log2FoldChange);
+                 }")
+    saveWidget(mp, file = 'MAplot.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./MAplot.html', path)
     file.remove('./MAplot.html')
@@ -1021,7 +1044,7 @@ output$MAplot <- renderMetricsgraphics({
     })
 })
 
-output$DispersionPlot <- renderChart3({
+output$DispersionPlot <- renderChart({
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'Dispersion plot', {
     Dispersion <- dataComb[[3]]
@@ -1036,8 +1059,8 @@ output$DispersionPlot <- renderChart3({
       rp <-
         rPlot(
           Disp ~ baseMean, data = Dispersion1, color = 'Type', type = 'point', size = list(const = 2),
-          tooltip = "#!function(item){ return 'x: ' + item.baseMean + '\\n' +
-          ' y: ' + item.Disp + '\\n' + ' GeneName: ' + item.GeneName  + '\\n' + 'Type: ' + item.Type}!#"
+          tooltip = "#!function(item){ return 'x: ' + item.baseMean + ',' +
+          ' y: ' + item.Disp + ',' + ' GeneName: ' + item.GeneName  + ',' + ' Type: ' + item.Type}!#"
         )
       rp$layer(
         y = 'Dispfit', type = 'line', color = list(const = 'red'),
@@ -1061,8 +1084,8 @@ output$DispersionPlot <- renderChart3({
       rp <-
         rPlot(
           PerGeneEst ~ baseMean, data = Dispersion, type = 'point', size = list(const = 2),
-          tooltip = "#!function(item){ return 'x: ' + item.baseMean + '\\n' +
-          ' y: ' + item.PerGeneEst + '\\n' + ' GeneName: ' + item.GeneName}!#"
+          tooltip = "#!function(item){ return 'x: ' + item.baseMean + ',' +
+          ' y: ' + item.PerGeneEst + ',' + ' GeneName: ' + item.GeneName}!#"
         )
       rp$guides("{x: { scale: {type: 'log'}}}")
       rp$layer(
@@ -1077,8 +1100,8 @@ output$DispersionPlot <- renderChart3({
       rp <-
         rPlot(
           TagwiseDisp ~ baseMean, data = Dispersion, type = 'point', size = list(const = 2),
-          tooltip = "#!function(item){ return 'x: ' + item.baseMean + '\\n' +
-          ' y: ' + item.TagwiseDisp + '\\n' + ' GeneName: ' + item.GeneName}!#"
+          tooltip = "#!function(item){ return 'x: ' + item.baseMean + ',' +
+          ' y: ' + item.TagwiseDisp + ',' + ' GeneName: ' + item.GeneName}!#"
         )
       rp$guides("{x: { scale: {type: 'log'}}}")
       rp$layer(
@@ -1097,8 +1120,8 @@ output$DispersionPlot <- renderChart3({
       rp <-
         rPlot(
           TagwiseDisp ~ baseMean, data = Dispersion, type = 'point', size = list(const = 2),
-          tooltip = "#!function(item){ return 'x: ' + item.baseMean + '\\n' +
-        ' y: ' + item.TagwiseDisp + '\\n' + ' GeneName: ' + item.GeneName}!#"
+          tooltip = "#!function(item){ return 'x: ' + item.baseMean + ',' +
+        ' y: ' + item.TagwiseDisp + ',' + ' GeneName: ' + item.GeneName}!#"
         )
       rp$guides("{x: { scale: {type: 'log'}}}")
       rp$layer(
@@ -1113,7 +1136,7 @@ output$DispersionPlot <- renderChart3({
     })
 })
 
-output$HVGtable <- renderDataTable({
+output$HVGtable <- DT::renderDataTable({
   if (is.null(input$file_obs))
     return(NULL)
   dataComb <- dataComb()
@@ -1130,7 +1153,7 @@ output$HVGtable <- renderDataTable({
     write.csv(dataMat, paste(folder, '/NormData.csv', sep = ''), quote = F)
     write.csv(dataMat2, paste(folder, '/HVGData.csv', sep = ''), quote = F)
     temp <- datatable(dataMat2, options = list(pageLength = 5))
-    saveWidget(temp, 'HVGdatatable.html')
+    saveWidget(temp, 'HVGdatatable.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./HVGdatatable.html', path)
     file.remove('./HVGdatatable.html')
@@ -1155,7 +1178,7 @@ output$HVGheatmap <- renderD3heatmap(({
     dataMat2 <-dataMat[DE_index,]
     colnames(dataMat2) <- paste('S', 1:ncol(dataMat), sep = '')
     h1 <- d3heatmap(dataMat2, scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE)
-    saveWidget(h1, 'HVGheatmap.html')
+    saveWidget(h1, 'HVGheatmap.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./HVGheatmap.html', path)
     file.remove('./HVGheatmap.html')
@@ -1192,7 +1215,7 @@ output$HVGplot <- renderMetricsgraphics({
           TRUE, y_rug = TRUE
       ) %>%
       mjs_labs(x_label = 'Log2 expression intensity', y_label = "Coeffcient of variation")
-    saveWidget(mp, file = 'HVGplot.html')
+    saveWidget(mp, file = 'HVGplot.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./HVGplot.html', path)
     file.remove('./HVGplot.html')

@@ -1,0 +1,206 @@
+<!doctype HTML>
+<meta charset = 'utf-8'>
+<html>
+  <head>
+    
+    <script src='http://d3js.org/d3.v3.min.js' type='text/javascript'></script>
+    <script src='http://dimplejs.org/dist/dimple.v1.1.4.min.js' type='text/javascript'></script>
+    
+    <style>
+    .rChart {
+      display: block;
+      margin-left: auto; 
+      margin-right: auto;
+      width: 800px;
+      height: 400px;
+    }  
+    </style>
+    
+  </head>
+  <body >
+    
+    <div id = 'PrincipalComponent2d' class = 'rChart dimple'></div>    
+    <script type="text/javascript">
+  var opts = {
+ "dom": "PrincipalComponent2d",
+"width":    800,
+"height":    400,
+"xAxis": {
+ "type": "addMeasureAxis",
+"showPercent": false 
+},
+"yAxis": {
+ "type": "addMeasureAxis",
+"showPercent": false 
+},
+"zAxis": [],
+"colorAxis": [],
+"defaultColors": [],
+"layers": [],
+"legend": [],
+"x": "PC1",
+"y": "PC2",
+"groups": [ "Samplename", "Design" ],
+"type": "bubble",
+"xlab": "PC1 (10.7%)",
+"ylab": "PC2 (3.3%)",
+"id": "PrincipalComponent2d" 
+},
+    data = [{"PC1":"-3.1245077352036","PC2":"14.5415044282091","PC3":"-6.17551825386248","Design":"C1","Samplename":"S1"},{"PC1":"-26.9242350991443","PC2":"-0.642131207964569","PC3":"-13.3865336313259","Design":"C1","Samplename":"S2"},{"PC1":"-27.9097459712228","PC2":"-8.70075684487861","PC3":"0.0598730117443388","Design":"C1","Samplename":"S3"},{"PC1":"-27.3675420137719","PC2":"-5.20379463498636","PC3":"3.65132550623959","Design":"C1","Samplename":"S4"},{"PC1":"-27.9475292131717","PC2":"-0.506307846659861","PC3":"0.0538810940446129","Design":"C1","Samplename":"S5"},{"PC1":"-29.5475817316793","PC2":"-11.1575868182019","PC3":"0.571457452404128","Design":"C1","Samplename":"S6"},{"PC1":"-15.827972470433","PC2":"-6.8800216763658","PC3":"11.3329950252553","Design":"C1","Samplename":"S7"},{"PC1":"-21.2612452749425","PC2":"7.82139986209582","PC3":"24.3777876745661","Design":"C1","Samplename":"S8"},{"PC1":"-27.4259583436986","PC2":"-4.86693661241674","PC3":"10.1748684103829","Design":"C1","Samplename":"S9"},{"PC1":"-24.938040261277","PC2":"-4.52906708715988","PC3":"-15.3525075473732","Design":"C1","Samplename":"S10"},{"PC1":"-24.5999800215959","PC2":"-4.62620661637712","PC3":"11.9619374415041","Design":"C1","Samplename":"S11"},{"PC1":"-20.4165194336089","PC2":"11.3297993727045","PC3":"-11.0176559859427","Design":"C1","Samplename":"S12"},{"PC1":"-14.6839801249204","PC2":"15.3197529592789","PC3":"-5.29536547223346","Design":"C1","Samplename":"S13"},{"PC1":"-3.43312246918818","PC2":"21.9579600632455","PC3":"-9.30925397311104","Design":"C1","Samplename":"S14"},{"PC1":"-20.6723552220093","PC2":"8.30337542534669","PC3":"-11.8648117971086","Design":"C1","Samplename":"S15"},{"PC1":"-31.5570989850366","PC2":"-5.08614988103381","PC3":"-1.73017575840536","Design":"C1","Samplename":"S16"},{"PC1":"-29.6031867775295","PC2":"-9.28244843784999","PC3":"-11.8996988765184","Design":"C1","Samplename":"S17"},{"PC1":"-2.73608415676611","PC2":"8.82276447650562","PC3":"-20.2090393344637","Design":"C1","Samplename":"S18"},{"PC1":"-20.7929537559607","PC2":"13.9799836302256","PC3":"-3.70173604826166","Design":"C1","Samplename":"S19"},{"PC1":"-12.9244209159755","PC2":"-14.7478484508433","PC3":"36.0804955498685","Design":"C1","Samplename":"S20"},{"PC1":"20.0043617537832","PC2":"17.4892110847399","PC3":"8.11971567117326","Design":"C2","Samplename":"S21"},{"PC1":"9.23133860185462","PC2":"25.066411537418","PC3":"12.8114556760697","Design":"C2","Samplename":"S22"},{"PC1":"17.8477335175266","PC2":"25.2293979285147","PC3":"-3.90819267071354","Design":"C2","Samplename":"S23"},{"PC1":"20.6086082533183","PC2":"-15.4559827708375","PC3":"-4.73653241927477","Design":"C2","Samplename":"S24"},{"PC1":"8.18458958296348","PC2":"-4.30075350772757","PC3":"28.9654292980856","Design":"C2","Samplename":"S25"},{"PC1":"18.6640503762516","PC2":"1.41576580618353","PC3":"-6.31841158792609","Design":"C2","Samplename":"S26"},{"PC1":"24.5367121006774","PC2":"-10.4236247807446","PC3":"0.901974539125721","Design":"C2","Samplename":"S27"},{"PC1":"23.2571446936159","PC2":"-10.16763844984","PC3":"-3.94441995132996","Design":"C2","Samplename":"S28"},{"PC1":"25.8740516249293","PC2":"-1.42854769495683","PC3":"-1.30417224837855","Design":"C2","Samplename":"S29"},{"PC1":"21.3748800943004","PC2":"19.6829957732514","PC3":"4.41525532129013","Design":"C2","Samplename":"S30"},{"PC1":"21.9734814719042","PC2":"-7.37178122763748","PC3":"-3.75533881804775","Design":"C2","Samplename":"S31"},{"PC1":"26.6844920016586","PC2":"1.88793830719105","PC3":"6.11264830195056","Design":"C2","Samplename":"S32"},{"PC1":"24.516001446891","PC2":"-1.8814816302415","PC3":"-0.753549164840045","Design":"C2","Samplename":"S33"},{"PC1":"10.0007975220357","PC2":"-24.3160216789538","PC3":"-12.1106133527543","Design":"C2","Samplename":"S34"},{"PC1":"25.2161477635705","PC2":"-8.07835928514744","PC3":"-4.985465329479","Design":"C2","Samplename":"S35"},{"PC1":"26.5348017458724","PC2":"-2.29721085314865","PC3":"-2.95231013329279","Design":"C2","Samplename":"S36"},{"PC1":"27.9175599530141","PC2":"-8.95841696879843","PC3":"-5.28103003535533","Design":"C2","Samplename":"S37"},{"PC1":"15.5959163478715","PC2":"-21.8590506743194","PC3":"-10.4597974150844","Design":"C2","Samplename":"S38"},{"PC1":"27.2897340248648","PC2":"5.69625156243863","PC3":"14.159297941315","Design":"C2","Samplename":"S39"},{"PC1":"18.3816571002322","PC2":"-5.77638658025802","PC3":"-3.29826810993604","Design":"C2","Samplename":"S40"}];
+  var svg = dimple.newSvg("#" + opts.id, opts.width, opts.height);
+
+  var myChart = new dimple.chart(svg, data);
+  if (opts.bounds) {
+    myChart.setBounds(opts.bounds.x, opts.bounds.y, opts.bounds.width, opts.bounds.height);//myChart.setBounds(80, 30, 480, 330);
+  }
+  //dimple allows use of custom CSS with noFormats
+  if(opts.noFormats) { myChart.noFormats = opts.noFormats; };
+  //for markimekko and addAxis also have third parameter measure
+  //so need to evaluate if measure provided
+  
+  //function to build axes
+  function buildAxis(position,layer){
+    var axis;
+    var axisopts;
+    if (!layer[position+"Axis"]){
+      axisopts = opts[position+"Axis"];
+    } else axisopts = layer[position+"Axis"];
+    
+    if(axisopts.measure) {
+      axis = myChart[axisopts.type](position,layer[position],axisopts.measure);
+    } else {
+      axis = myChart[axisopts.type](position, layer[position]);
+    };
+    if(!(axisopts.type === "addPctAxis")) axis.showPercent = axisopts.showPercent;
+    if (axisopts.orderRule) axis.addOrderRule(axisopts.orderRule);
+    if (axisopts.grouporderRule) axis.addGroupOrderRule(axisopts.grouporderRule);  
+    if (axisopts.overrideMin) axis.overrideMin = axisopts.overrideMin;
+    if (axisopts.overrideMax) axis.overrideMax = axisopts.overrideMax;
+    if (axisopts.inputFormat) axis.dateParseFormat = axisopts.inputFormat;
+    if (axisopts.outputFormat) axis.tickFormat = axisopts.outputFormat;    
+    return axis;
+  };
+  
+  var c = null;
+  if(d3.keys(opts.colorAxis).length > 0) {
+    c = myChart[opts.colorAxis.type](opts.colorAxis.colorSeries,opts.colorAxis.palette) ;
+  }
+  
+  //allow manipulation of default colors to use with dimple
+  if(opts.defaultColors.length) {
+    opts.defaultColors = opts.defaultColors[0];
+    if (typeof(opts.defaultColors) == "function") {
+      //assume this is a d3 scale
+      //for now loop through first 20 but need a better way to handle
+      defaultColorsArray = [];
+      for (var n=0;n<20;n++) {
+        defaultColorsArray.push(opts.defaultColors(n));
+      };
+      opts.defaultColors = defaultColorsArray;
+    }
+    opts.defaultColors.forEach(function(d,i) {
+      opts.defaultColors[i] = new dimple.color(d);
+    })
+    myChart.defaultColors = opts.defaultColors;
+  }  
+  
+  //do series
+  //set up a function since same for each
+  //as of now we have x,y,groups,data,type in opts for primary layer
+  //and other layers reside in opts.layers
+  function buildSeries(layer, hidden){
+    //inherit from primary layer if not intentionally changed or xAxis, yAxis, zAxis null
+    if (!layer.xAxis) layer.xAxis = opts.xAxis;    
+    if (!layer.yAxis) layer.yAxis = opts.yAxis;
+    if (!layer.zAxis) layer.zAxis = opts.zAxis;
+    
+    var x = buildAxis("x", layer);
+    x.hidden = hidden;
+    
+    var y = buildAxis("y", layer);
+    y.hidden = hidden;
+    
+    //z for bubbles
+    var z = null;
+    if (!(typeof(layer.zAxis) === 'undefined') && layer.zAxis.type){
+      z = buildAxis("z", layer);
+    };
+    
+    //here think I need to evaluate group and if missing do null
+    //as the group argument
+    //if provided need to use groups from layer
+    var s = new dimple.series(myChart, null, x, y, z, c, dimple.plot[layer.type], dimple.aggregateMethod.avg, dimple.plot[layer.type].stacked);
+    
+    //as of v1.1.4 dimple can use different dataset for each series
+    if(layer.data){
+      //convert to an array of objects
+      //avoid lodash for now
+      datakeys = d3.keys(layer.data)
+      layer.dataarray = layer.data[datakeys[1]].map(function(d,i){
+        var tempobj = {}
+        datakeys.forEach(function(key){
+          tempobj[key] = layer.data[key][i]
+        })
+        return tempobj
+      })
+      s.data = layer.dataarray;
+    }
+    
+    if(layer.hasOwnProperty("groups")) {
+      s.categoryFields = (typeof layer.groups === "object") ? layer.groups : [layer.groups];
+      //series offers an aggregate method that we will also need to check if available
+      //options available are avg, count, max, min, sum
+      if (!(typeof(layer.aggregate) === 'undefined')) {
+        s.aggregate = eval(layer.aggregate);
+      }
+      if (!(typeof(layer.lineWeight) === 'undefined')) {
+        s.lineWeight = eval(layer.lineWeight);
+      }
+      if (!(typeof(layer.barGap) === 'undefined')) {
+        s.barGap = eval(layer.barGap);
+      }    
+    };
+    myChart.series.push(s);
+    
+    /*placeholder fix domain of primary scale for new series data
+    //not working right now but something like this
+    //for now just use overrideMin and overrideMax from rCharts
+    for( var i = 0; i<2; i++) {
+      if (!myChart.axes[i].overrideMin) {
+        myChart.series[0]._axisBounds(i==0?"x":"y").min = myChart.series[0]._axisBounds(i==0?"x":"y").min < s._axisBounds(i==0?"x":"y").min ? myChart.series[0]._axisBounds(i==0?"x":"y").min : s._axisBounds(i==0?"x":"y").min;
+      }
+      if (!myChart.axes[i].overrideMax) {  
+        myChart.series[0]._axisBounds(i==0?"x":"y")._max = myChart.series[0]._axisBounds(i==0?"x":"y").max > s._axisBounds(i==0?"x":"y").max ? myChart.series[0]._axisBounds(i==0?"x":"y").max : s._axisBounds(i==0?"x":"y").max;
+      }
+      myChart.axes[i]._update();
+    }
+    */
+      
+    
+    return s;
+  };
+  
+  buildSeries(opts, false);
+  if (opts.layers.length > 0) {
+    opts.layers.forEach(function(layer){
+      buildSeries(layer, true);
+    })
+  }
+  //unsure if this is best but if legend is provided (not empty) then evaluate
+  if(d3.keys(opts.legend).length > 0) {
+    var l =myChart.addLegend();
+    d3.keys(opts.legend).forEach(function(d){
+      l[d] = opts.legend[d];
+    });
+  }
+  //quick way to get this going but need to make this cleaner
+  if(opts.storyboard) {
+    myChart.setStoryboard(opts.storyboard);
+  };
+  myChart.draw();
+
+</script>
+    
+    <script></script>    
+  </body>
+</html>

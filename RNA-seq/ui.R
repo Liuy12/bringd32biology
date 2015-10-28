@@ -34,13 +34,14 @@ shinyUI(fluidPage(
                          ),
                          dashboardSidebar(
                            sidebarMenu(id = 'sidebar', 
-#                                        sidebarSearchForm(textId = "searchText", buttonId = "searchButton",
-#                                                          label = "Search..."),
+                                       #                                        sidebarSearchForm(textId = "searchText", buttonId = "searchButton",
+                                       #                                                          label = "Search..."),
                                        menuItem("Introduction", tabName = "introduction", icon = icon("circle-o")),
                                        menuItem("Start analysis", tabName = "Analysis", icon = icon("bolt"),
                                                 menuSubItem("Set input options", tabName = 'SetInput', icon = icon("flag")),
                                                 menuSubItem('Charts', tabName = 'Charts', icon = icon("bar-chart"))
                                        ),
+                                       menuItem('Tutorial', tabName = "Tuto", icon = icon("dashboard")),
                                        menuItem('Docomentation', tabName = "doc", icon = icon("file-text")),
                                        menuItem("About us", tabName = "aboutus", icon = icon("users"))
                            )
@@ -70,10 +71,10 @@ shinyUI(fluidPage(
                                                                  conditionalPanel("input.MultiLevel == 'Specify two conditions to compare'", 
                                                                                   fluidRow(
                                                                                     column(4, offset = 1, textInput("Con_S1", label = "Enter first condition name (For example, C1)", 
-                                                                                                                    value = "C1"
+                                                                                                                    value = ""
                                                                                     )),
                                                                                     column(4,offset = 2, textInput("Con_S2", label = "Enter second condition name (For example, C2)", 
-                                                                                                                   value = "C2"
+                                                                                                                   value = ""
                                                                                     ))
                                                                                   ),
                                                                                   fluidRow(
@@ -230,7 +231,7 @@ shinyUI(fluidPage(
                                                 #                )
                                               ),
                                               box(
-                                                title = "Criteria for DE genes", status = "success", solidHeader = TRUE,width = NULL,
+                                                title = "Criteria for DE/HVG genes", status = "success", solidHeader = TRUE,width = NULL,
                                                 collapsible = TRUE,
                                                 numericInput("log2bmcutoff", label = "Please set a cutoff for log2 expression intensity (Usually can be determined from density plot)", 
                                                              value = 5, min = 1
@@ -244,6 +245,8 @@ shinyUI(fluidPage(
                              tabItem(tabName = "Charts",
                                      uiOutput("Chartpage")
                              ),
+                             tabItem(tabName = "Tuto",
+                                     includeHTML('www/HTML/Tutorial.html')),
                              tabItem(tabName = 'doc',
                                      includeHTML('www/HTML/Documentation.html')),
                              tabItem(tabName = "aboutus", 
