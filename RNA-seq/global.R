@@ -379,33 +379,37 @@ scde.pfun <- function(counts, design, cores = 4, condition_sel){
   )
 }
 
-Brennecke_pfun <- function(counts, spikeins){
-  if(any(!is.integer(counts)))
-    nCountsBio <- preprocessCore::normalize.quantiles(counts)
+Brennecke_pfun <- function(counts, spikeins, nums){
+  if(any(round(counts) != counts)){
+    nCountsBio <- preprocessCore::normalize.quantiles(as.matrix(counts))
+    rownames(nCountsBio) <- rownames(counts)
+    colnames(nCountsBio) <- colnames(counts)
+  }
   else{
     sfBio <- estimateSizeFactorsForMatrix(counts)
     nCountsBio <- t(t(counts)/sfBio)
   }
+  nCountsBio <- nCountsBio + 0.25
   meansBio <- rowMeans( nCountsBio )
-  varsBio <- rowVars( nCountsBio )
+  varsBio <- apply( nCountsBio, 1, var )
   cv2Bio <- varsBio / meansBio^2
   if(is.null(spikeins)){
     return(list(
       RawCount = counts,
       normCounts = nCountsBio,
       CV = cv2Bio,
-      DE_id = order(cv2Bio, decreasing = T)[1:100]
+      DE_id = order(cv2Bio, decreasing = T)[1:nums]
     ))
   }
-  if(any(!is.integer(counts)))
-    nCountsTec <- preprocessCore::normalize.quantiles(spikeins)
+  if(any(round(spikeins) != spikeins))
+    nCountsTec <- preprocessCore::normalize.quantiles(as.matrix(spikeins))
   else{
     sfTec <- estimateSizeFactorsForMatrix(spikeins) 
     nCountsTec <- t(t(spikeins)/sfTec)
   }
   # Estimation of gene-specific expression rates
   meansTec <- rowMeans( nCountsTec )
-  varsTec <- rowVars( nCountsTec )
+  varsTec <- apply( nCountsTec, 1, var )
   cv2Tec <- varsTec / meansTec^2
 
   
@@ -435,7 +439,9 @@ Brennecke_pfun <- function(counts, spikeins){
 }
 
 limma.pfun <- function(counts, group, design, condition_sel){
-  counts_N <- preprocessCore::normalize.quantiles(counts)
+  counts_N <- preprocessCore::normalize.quantiles(as.matrix(counts))
+  rownames(counts_N) <- rownames(counts)
+  colnames(counts_N) <- colnames(counts)
   counts_N_log2 <- log2(counts_N)
   if(!is.null(condition_sel)){
     sample_sel <- c(grep(condition_sel[1], group), grep(condition_sel[2], group))
@@ -492,6 +498,147 @@ monocle.pfun <- function(counts, group, condition_sel){
     TestStat = TestStat
   )
 }
+
+idHetero <-
+  function(inputNetwork, minMod = 5, maxStep = 5, permuteNum = 1000, pThr = 0.01, weight = NULL) {
+    inputNetwork <- as.matrix(inputNetwork)
+    inputNetwork_S <- as.character(inputNetwork)
+    inputNetwork_S <- array(inputNetwork_S,dim = dim(inputNetwork))
+    network <- graph.edgelist(inputNetwork_S,directed = F)
+    rm(inputNetwork,inputNetwork_S)
+    cellInNetwork1 <- V(network)$name
+    if(is.null(weight))
+      weight <- rep(1, length(E(network)))
+    E(network)$weight <- weight
+    cat("Network has ",vcount(network)," nodes and ",ecount(network)," edges\n",sep =
+          "")
+    
+    # simplify the edge by removing loops and multiple edges
+    network <- simplify(network)
+    cellInNetwork <- V(network)$name
+    if (length(cellInNetwork1) != length(cellInNetwork)) {
+      cat(
+        "After removing self interactions and loop interactions, network remains ",vcount(network)," nodes and ",ecount(network)," edges\n",sep =
+          ""
+      )
+    }
+    
+    minModule <-
+      ifelse(round(length(cellInNetwork) * (0.003)) > minMod, round(length(cellInNetwork) *
+                                                                      (0.003)), minMod)
+    
+    overlap_cell_networkP <- V(network)$name
+    subnetworkInfo <- list()
+    subnetworkInfo_index <- 1
+    ## calculate the maximal connected components of a graph
+    network_cluster <- components(network)
+    network_cluster_size <- network_cluster$csize
+    
+    if (length(network_cluster_size[network_cluster_size >=
+                                    minModule]) == 0) {
+      stop(
+        "The size of all subnetworks in the inputted network are less than ",minModule,". Please adjust the parameter 'minModule'!\n\n"
+      )
+      
+    }
+    
+    if (length(network_cluster_size) >= 2 &
+        sort(network_cluster_size, decreasing = T)[2] > minModule)
+      return(list(sig = 1, pval = NA))
+    
+    network_cluster_size <-
+      data.frame(
+        id = c(1:length(network_cluster_size)),cluster_size = network_cluster_size,stringsAsFactors =
+          F
+      )
+    network_cluster_size <-
+      network_cluster_size[order(network_cluster_size[,2], decreasing = T),]
+    
+    network_cluster_membership <-
+      network_cluster$membership
+    
+    subnetwork_id <- 1
+    for (i in c(1:nrow(network_cluster_size))) {
+      sub_network_size <- network_cluster_size[i,2]
+      if (sub_network_size >= minModule) {
+        cat("Start to analysis subnetwork ",subnetwork_id,"!\n")
+        subnetwork_id <- subnetwork_id + 1
+        subnetwork_node <-
+          overlap_cell_networkP[which(network_cluster_membership == network_cluster_size[i,1])]
+        subnetwork <-
+          induced.subgraph(network,subnetwork_node)
+        network_info <-
+          evaluateWalktrapStep(subnetwork,maxStep,level = 1)
+        if(length(unique(network_info$walktrap$membership)) == 1){
+          sig <- 0
+          pval <- NA
+        }
+        else{
+          network_sig <-identifySig(network_info,permuteNum, pThr, weight = weight)
+          sig <- network_sig$sig
+          pval <- network_sig$pval
+        }
+        return(list(sig = sig, pval = pval, networkInfo = network_info))
+      }
+    }
+  }
+
+
+evaluateWalktrapStep <- function(network_igraph,maxStep,level) {
+  #evaluate the optimal Step for the network
+  
+  network_info <- list()
+  network_walktrap <- walktrap.community(network_igraph,steps = 2)
+  modularityMax <- max(network_walktrap$modularity)
+  optimalwalktrap <- network_walktrap
+  optimalStep <- 2
+  
+  for (i in c(3:maxStep)) {
+    network_walktrap <- walktrap.community(network_igraph, weights =  E(network_igraph)$weight, steps = i)
+    network_modularity <- max(network_walktrap$modularity)
+    #cat("Modularity:",network_modularity,"\n")
+    if (network_modularity > modularityMax) {
+      optimalwalktrap <- network_walktrap
+      optimalStep <- i
+      modularityMax <- network_modularity
+    }
+  }
+  maxWalktrap <-
+    list(
+      walktrap = optimalwalktrap,step = optimalStep,network = network_igraph,level =
+        level
+    )
+  return(maxWalktrap)
+}
+
+
+
+identifySig <-
+  function(network_info,permuteNum, pThr, weight) {
+    #identify whether the network can be separated again
+    
+    network_walktrap <- network_info$walktrap
+    network_modularity <- max(network_walktrap$modularity)
+    network_igraph <- network_info$network
+    degree <- igraph:::degree(network_igraph)
+    ranmodu <- vector()
+    step <- network_info$step
+    sig <- 0
+    for (i in c(1:permuteNum)) {
+      cat('The ', i, 'th ' ,'time', '\n')
+      suppressWarnings(rannet <-
+                         degree.sequence.game(degree,method = "vl"))
+      ran_walktrap <- walktrap.community(rannet, weights = weight, steps = step)
+      ranModularity <- max(ran_walktrap$modularity)
+      ranmodu <- c(ranmodu,ranModularity)
+    }
+    
+    p <- length(ranmodu[ranmodu >= network_modularity]) / permuteNum
+    if (p < pThr) {
+      sig <- 1
+    }
+    return(list(sig = sig, pval = p))
+  }
 
 # SAMSeq.pfun <- function(counts, group, condition_sel){
 #   TestStat <- SAMseq(as.matrix(counts), as.factor(group), resp.type = "Two class unpaired")

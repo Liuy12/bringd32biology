@@ -230,14 +230,35 @@ shinyUI(fluidPage(
                                                 #                  verbatimTextOutput("residualType")
                                                 #                )
                                               ),
+                                              uiOutput('HVGBox'),
                                               box(
-                                                title = "Criteria for DE/HVG genes", status = "success", solidHeader = TRUE,width = NULL,
+                                                title = "Criteria for DE genes", status = "success", solidHeader = TRUE,width = NULL,
                                                 collapsible = TRUE,
-                                                numericInput("log2bmcutoff", label = "Please set a cutoff for log2 expression intensity (Usually can be determined from density plot)", 
-                                                             value = 5, min = 1
+                                                selectizeInput("log2bmcutoff", 
+                                                               label = "Please set a cutoff for log2 expression intensity", 
+                                                               choices =c("0% quantile", "25% quantile", "50% quantile", "75% quantile", "100% quantile"),
+                                                               selected = "50% quantile"
                                                 ),
                                                 verbatimTextOutput("log2bmcutoff_value"),
-                                                uiOutput('DECriteria'),
+                                                selectizeInput("padjust", 
+                                                               label = "Please select a method for adjusting p values", 
+                                                               choices =c("Benj&Hoch" = "BH", 
+                                                                          "bonferroni", "none"),
+                                                               selected = 'BH'
+                                                ),
+                                                verbatimTextOutput("padjust"),
+                                                selectizeInput("pcutoff", 
+                                                               label = "Please set a cutoff of p values for DE genes/HVGs", 
+                                                               choices =c(0.001, 0.01, 0.05, 0.1, 0.2),
+                                                               selected = 0.05
+                                                ),
+                                                verbatimTextOutput("pcutoff"),
+                                                selectizeInput("fccutoff", 
+                                                               label = "Please set a cutoff of fold change for DE genes", 
+                                                               choices =c(1.5, 2, 2.5, 3, 5),
+                                                               selected = 2
+                                                ),
+                                                verbatimTextOutput("fccutoff"),
                                                 actionButton('DEstart', label = 'Start analysis!'),
                                                 textOutput("DEstart")
                                               )

@@ -144,72 +144,83 @@ output$DEinput <- renderUI({
         options = list(placeholder = 'select a method below',
                        onInitialize = I('function() { this.setValue(""); }'))
       )
-    else if(input$ExpDesign == 'Not available' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes'))
-      selectizeInput(
-        "DEmethod", 
-        label = 'Please select a method for highly variable genes analysis',
-        choices = c('Brennecke_2013'),
-        options = list(placeholder = 'select a method below',
-                       onInitialize = I('function() { this.setValue(""); }'))
-      )
-    else if(input$countMatrix == 'No' & (input$ExpDesign ==  'Two-level' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Specify two conditions to compare')))
-      selectizeInput(
-        "DEmethod", 
-        label = 'Please select a method for DE analysis',
-        choices = c('monocle', 'limma'),
-        options = list(placeholder = 'select a method below',
-                       onInitialize = I('function() { this.setValue(""); }'))
-      )
+  else if(input$countMatrix == 'No' & (input$ExpDesign ==  'Two-level' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Specify two conditions to compare')))
+    selectizeInput(
+      "DEmethod", 
+      label = 'Please select a method for DE analysis',
+      choices = c('monocle', 'limma'),
+      options = list(placeholder = 'select a method below',
+                     onInitialize = I('function() { this.setValue(""); }'))
+    )
+  else if((input$ExpDesign == 'Not available' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes')) & input$countMatrix == 'Yes' ) 
+        tags$div(
+          selectizeInput(
+            "HVGmethod", 
+            label = 'Please select a method for highly variable genes analysis',
+            choices = c('Brennecke_2013'),
+            options = list(placeholder = 'select a method below',
+                           onInitialize = I('function() { this.setValue(""); }'))
+          ),
+          verbatimTextOutput("HVGmethod_value"),
+          selectizeInput(
+          "DEmethod", 
+          label = 'Please select a method to characterize subpopulation',
+          choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde'),
+          options = list(placeholder = 'select a method below',
+                         onInitialize = I('function() { this.setValue(""); }'))
+        )
+        )
+  else if((input$ExpDesign == 'Not available' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes')) & input$countMatrix == 'No')
+        tags$div(
+          selectizeInput(
+            "DEmethod_HVG", 
+            label = 'Please select a method for highly variable genes analysis',
+            choices = c('Brennecke_2013'),
+            options = list(placeholder = 'select a method below',
+                           onInitialize = I('function() { this.setValue(""); }'))
+          ),
+          selectizeInput(
+          "DEmethod", 
+          label = 'Please select a method to characterize subpopulation',
+          choices = c('monocle', 'limma'),
+          options = list(placeholder = 'select a method below',
+                         onInitialize = I('function() { this.setValue(""); }'))
+        ))
 })
 
-output$DECriteria <- renderUI({
-  if(input$spikein == 'No' && (input$ExpDesign == 'Not available' || (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes')))
-    {
-    tags$div(numericInput("HVGnumber", label = "Please set number of HVGs.", 
-                          value = 100, min = 1
-    ),
-    verbatimTextOutput("HVGnumber_value"))
-  }
-  else if(input$spikein == 'Yes' && (input$ExpDesign == 'Not available' || (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes')))
+output$HVGBox <- renderUI({
+  if(input$ExpDesign == 'Not available' || (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes'))
+  {
+    box(
+      title = "Criteria for HVG genes", status = 'danger', solidHeader = TRUE,width = NULL,
+      collapsible = TRUE,
+      if(input$spikein == 'No')
+      {
+        tags$div(numericInput("HVGnumber", label = "Please set number of HVGs.", 
+                              value = 100, min = 1
+        ),
+        verbatimTextOutput("HVGnumber_value")
+    )
+      }
+  else{
     tags$div(
-      selectizeInput("padjust", 
+      selectizeInput("HVGpadjust", 
                      label = "Please select a method for adjusting p values", 
                      choices =c("Benj&Hoch" = "BH", 
                                 "bonferroni", "none"),
                      selected = 'BH'
       ),
-      verbatimTextOutput("padjust"),
-      selectizeInput("pcutoff", 
+      verbatimTextOutput("HVGpadjust_value"),
+      selectizeInput("HVGpcutoff", 
                      label = "Please set a cutoff of p values for DE genes/HVGs", 
                      choices =c(0.001, 0.01, 0.05, 0.1, 0.2),
                      selected = 0.05
       ),
-      verbatimTextOutput("pcutoff")
+      verbatimTextOutput("HVGpcutoff_value")
     )
-  else if((input$ExpDesign == 'Two-level' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Specify two conditions to compare'))){
-   tags$div(
-     selectizeInput("padjust", 
-                    label = "Please select a method for adjusting p values", 
-                    choices =c("Benj&Hoch" = "BH", 
-                               "bonferroni", "none"),
-                    selected = 'BH'
-     ),
-     verbatimTextOutput("padjust"),
-     selectizeInput("pcutoff", 
-                    label = "Please set a cutoff of p values for DE genes/HVGs", 
-                    choices =c(0.001, 0.01, 0.05, 0.1, 0.2),
-                    selected = 0.05
-     ),
-     verbatimTextOutput("pcutoff"),
-     selectizeInput("fccutoff", 
-                             label = "Please set a cutoff of fold change for DE genes", 
-                             choices =c(1.5, 2, 2.5, 3, 5),
-                             selected = 2
-   ),
-   verbatimTextOutput("fccutoff")
-   ) 
   }
-})
+  )}
+  })
 
 output$Chartpage <- renderUI({
   fluidPage(
@@ -309,9 +320,11 @@ output$Chartpage <- renderUI({
            ),
            tabPanel("Gene interaction network", fluidPage(
              fluidRow(
-               column(4, offset = 1, sliderInput("Exprscut", "Expression level cutoff", 
-                                                 min=0, max=20, step = 2, value=12
-               )),
+               column(4, offset = 1, selectizeInput("Exprscut", 
+                                                    label = 'Expression level cutoff in quantile',
+                                                    choices = c('0% quantile', '25% quantile', '50% quantile', '75% quantile', '100% quantile'),
+                                                    selected = "50% quantile"
+                                                    )),
                column(4,offset = 2, sliderInput("Corrcut", "Correlation cutoff", 
                                                 min=0, max=1, step = 0.1, value=0.9)
                )),
@@ -325,7 +338,7 @@ output$Chartpage <- renderUI({
              )
            )
     ),
-    if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde' & input$DEmethod != 'limma' & input$DEmethod != 'monocle' & input$DEmethod != 'Brennecke_2013')
+    if(input$DEmethod == 'XBSeq' | input$DEmethod == 'DESeq' | input$DEmethod == 'DESeq2' | input$DEmethod == 'edgeR' | input$DEmethod == 'edgeR-robust')
       tabBox(
         title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
         id = 'DEanalysis', width = 12, 
@@ -338,28 +351,63 @@ output$Chartpage <- renderUI({
         tabPanel("Dispersion plot", 
                  fluidRow(column(12, showOutput("DispersionPlot", "polycharts"))))
       )
-    else if(input$DEmethod != 'Brennecke_2013')
-      tabBox(
-        title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
-        id = 'DEanalysis', width = 12, 
-        tabPanel("DE Table", 
-                 fluidRow(column(12, dataTableOutput('DEtable')))),
-        tabPanel("MAplot", 
-                 fluidRow(column(12, metricsgraphicsOutput("MAplot")))),
-        tabPanel("DE Heatmap", 
-                 fluidRow(column(12, d3heatmapOutput('DEheatmap'))))
-      )
-    else
-      tabBox(
-        title = tagList(shiny::icon("tag"), 'Highly variable genes analysis'),
-        id = 'DEanalysis', width = 12, 
-        tabPanel("HVGs Table", 
-                 fluidRow(column(12, dataTableOutput('HVGtable')))),
-        tabPanel("HVGs Heatmap", 
-                 fluidRow(column(12, d3heatmapOutput('HVGheatmap')))),
-        tabPanel("HVG plot", 
-                 fluidRow(column(12, d3heatmapOutput('HVGplot'))))
-      ),
+    else if(input$DEmethod == 'limma-voom' | input$DEmethod == 'scde' | input$DEmethod == 'limma' | input$DEmethod == 'monocle')
+            tabBox(
+              title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
+              id = 'DEanalysis', width = 12, 
+              tabPanel("DE Table", 
+                       fluidRow(column(12, dataTableOutput('DEtable')))),
+              tabPanel("MAplot", 
+                       fluidRow(column(12, metricsgraphicsOutput("MAplot")))),
+              tabPanel("DE Heatmap", 
+                       fluidRow(column(12, d3heatmapOutput('DEheatmap'))))
+            )
+      else
+        tabBox(
+          title = tagList(shiny::icon("tag"), 'Highly variable genes analysis'),
+          id = 'DEanalysis', width = 12, 
+          tabPanel("HVGs Table", 
+                   fluidRow(column(12, dataTableOutput('HVGtable')))),
+          tabPanel("HVGs Heatmap", 
+                   fluidRow(column(12, d3heatmapOutput('HVGheatmap')))),
+          tabPanel("HVG plot", 
+                   fluidRow(column(12, metricsgraphicsOutput('HVGplot'))))
+        ),  
+#     if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde' & input$DEmethod != 'limma' & input$DEmethod != 'monocle' & input$DEmethod != 'Brennecke_2013')
+#       tabBox(
+#         title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
+#         id = 'DEanalysis', width = 12, 
+#         tabPanel("DE Table", 
+#                  fluidRow(column(12, dataTableOutput('DEtable')))),
+#         tabPanel("MAplot", 
+#                  fluidRow(column(12, metricsgraphicsOutput("MAplot")))),
+#         tabPanel("DE Heatmap", 
+#                  fluidRow(column(12, d3heatmapOutput('DEheatmap')))),
+#         tabPanel("Dispersion plot", 
+#                  fluidRow(column(12, showOutput("DispersionPlot", "polycharts"))))
+#       )
+#     else if(input$DEmethod != 'Brennecke_2013')
+#       tabBox(
+#         title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
+#         id = 'DEanalysis', width = 12, 
+#         tabPanel("DE Table", 
+#                  fluidRow(column(12, dataTableOutput('DEtable')))),
+#         tabPanel("MAplot", 
+#                  fluidRow(column(12, metricsgraphicsOutput("MAplot")))),
+#         tabPanel("DE Heatmap", 
+#                  fluidRow(column(12, d3heatmapOutput('DEheatmap'))))
+#       )
+#     else
+#       tabBox(
+#         title = tagList(shiny::icon("tag"), 'Highly variable genes analysis'),
+#         id = 'DEanalysis', width = 12, 
+#         tabPanel("HVGs Table", 
+#                  fluidRow(column(12, dataTableOutput('HVGtable')))),
+#         tabPanel("HVGs Heatmap", 
+#                  fluidRow(column(12, d3heatmapOutput('HVGheatmap')))),
+#         tabPanel("HVG plot", 
+#                  fluidRow(column(12, d3heatmapOutput('HVGplot'))))
+#       ),
     box(title = 'File exports', collapsible = T, status = 'success', width = 12,
         uiOutput('DownloadUI')
     )
@@ -391,7 +439,7 @@ output$StartDownload <- downloadHandler(
       setwd(path.old)
       unlink(path, recursive = TRUE, force = TRUE)
     })
-    if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde' & input$DEmethod != 'limma' & input$DEmethod != 'monocle'){
+    if(input$DEmethod == 'XBSeq' | input$DEmethod == 'DESeq' | input$DEmethod == 'DESeq2' | input$DEmethod == 'edgeR' | input$DEmethod == 'edgeR-robust'){
       slidify('Report.Rmd')
       zip(file, files = c('Report.html', 'libraries/', 'htmlFiles/', 'DEstat.csv', 'TestStat.csv'))
     }
@@ -502,7 +550,7 @@ dataComb <- eventReactive(input$DEstart, {
       dataOut <- monocle.pfun(data_obs, group, condition_sel = c(input$Con_S1, input$Con_S2))
     }
     else if (input$DEmethod == 'Brennecke_2013'){
-      Brennecke_pfun(data_obs, spikeins = data_spikein)
+      dataOut <- Brennecke_pfun(data_obs, spikeins = data_spikein, input$HVGnumber)
     }
 #     else if (input$DEmethod == 'SAMSeq'){
 #       SAMSeq.pfun(data_obs, group, condition_sel = c(input$Con_S1, input$Con_S2))
@@ -528,6 +576,10 @@ output$value_ExpDesign <- renderPrint({
 
 output$value_MultiLevel <- renderPrint({
   input$MultiLevel
+})
+
+output$value_deterHetero <- renderPrint({
+  input$deterHetero
 })
 
 output$value_spikein <- renderPrint({
@@ -594,6 +646,18 @@ output$HVGnumber_value <- renderPrint({
   input$HVGnumber
 })
 
+output$HVGmethod_value <- renderPrint({
+  input$HVGmethod
+})
+
+output$HVGpadjust_value <- renderPrint({
+  input$HVGpadjust
+})
+
+output$HVGpcutoff_value <- renderPrint({
+  input$HVGpcutoff
+})
+
 output$Spikeinsqc <- renderMetricsgraphics({
   if (is.null(input$file_spikein))
     return(NULL)
@@ -644,7 +708,13 @@ output$Heatmap <- renderD3heatmap({
     folder <- dataComb[[5]]
     mean_gene <- apply(dataMat, 1, mean)
     var_gene <- apply(dataMat, 1, var)
-    index <- which(mean_gene > as.numeric(input$log2bmcutoff))
+    meanCutQ <- switch(input$log2bmcutoff,
+                      "0% quantile" = 1,
+                      "25% quantile" = 2,
+                      "50% quantile" = 3,
+                      "75% quantile" = 4,
+                      "100% quantile" =5)
+    index <- which(mean_gene > quantile(mean_gene)[meanCutQ])
     dataMat1 <- dataMat[order(var_gene[index]),]
     if (!length(index))
       return(NULL)
@@ -885,26 +955,37 @@ output$forceNetworkGene <- renderForceNetwork({
     folder <- dataComb[[5]]
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
     mean.gene <- apply(dataMat, 1, mean)
-    dataMat <- dataMat[mean.gene > input$Exprscut,]
-    if (length(dataMat) == 0 |
-        length(dataMat) == ncol(dataComb[[2]]))
+    meanCutQ <- switch(input$Exprscut,
+                       "0% quantile" = 1,
+                       "25% quantile" = 2,
+                       "50% quantile" = 3,
+                       "75% quantile" = 4,
+                       "100% quantile" =5)
+    dataMat <- dataMat[mean.gene > quantile(mean.gene)[meanCutQ],]
+    if (length(dataMat) == 0 ||
+        dim(dataMat)[1] < 10)
       return(NULL)
     else
     {
+      combs <- combn(1:nrow(dataMat), 2)
+      cors <- cor(t(dataMat), method = 'spearman')
       MisLinks <-
         data.frame(
-          source = rep(0:(nrow(dataMat) - 1), each = nrow(dataMat)),
-          target = rep(0:(nrow(dataMat) - 1), times = nrow(dataMat)),
-          value = c(cor(t(dataMat), method = 'spearman'))
+          source = combs[1,],
+          target = combs[2,],
+          value = cors[lower.tri(cors)]
         )
       index <- which(abs(MisLinks$value) > input$Corrcut)
       MisLinks <- MisLinks[index,]
-      name <- unique(rep(rownames(dataMat),
-                         each = nrow(dataMat))[index])
+      ranks <- frank(unlist(MisLinks[,1:2]), ties.method = 'dense')
+      MisLinks$source <- ranks[1:nrow(MisLinks)] -1 
+      MisLinks$target <- ranks[(nrow(MisLinks) + 1):(2*nrow(MisLinks))] -1
+      name <- rownames(dataMat)[sort(unique(c(combs[,index])))]
       MisNodes <- data.frame(
         name = name,
         group = rep(1, length(name)),
-        size = rep(15, length(name))
+        size = rep(15, length(name)), 
+        stringsAsFactors = F
       )
       forceNet <- forceNetwork(
         Links = MisLinks, Nodes = MisNodes, Source = "source",
@@ -934,9 +1015,15 @@ output$DEtable <- DT::renderDataTable({
     dataMat1 <- dataComb[[4]]
     p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
     p_adjust1[is.na(p_adjust1)] <- 1
+    meanCutQ <- switch(input$log2bmcutoff,
+                       "0% quantile" = 1,
+                       "25% quantile" = 2,
+                       "50% quantile" = 3,
+                       "75% quantile" = 4,
+                       "100% quantile" =5)
     DE_index <-
       which(
-        log2(dataMat1[,1] + 1) > as.numeric(input$log2bmcutoff) &
+        log2(dataMat1[,1] + 1) > quantile(log2(dataMat1[,1] + 1))[meanCutQ] &
           abs(dataMat1[,2]) > log2(as.numeric(input$fccutoff)) &
           p_adjust1 < as.numeric(input$pcutoff)
       )
@@ -966,9 +1053,15 @@ output$DEheatmap <- renderD3heatmap({
     dataMat1 <- dataComb[[4]]
     p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
     p_adjust1[is.na(p_adjust1)] <- 1
+    meanCutQ <- switch(input$log2bmcutoff,
+                       "0% quantile" = 1,
+                       "25% quantile" = 2,
+                       "50% quantile" = 3,
+                       "75% quantile" = 4,
+                       "100% quantile" =5)
     DE_index <-
       which(
-        log2(dataMat1[,1] + 1) > as.numeric(input$log2bmcutoff) &
+        log2(dataMat1[,1] + 1) > quantile(log2(dataMat1[,1] + 1))[meanCutQ] &
           abs(dataMat1[,2]) > log2(as.numeric(input$fccutoff)) &
           p_adjust1 < as.numeric(input$pcutoff)
       )
@@ -1000,10 +1093,16 @@ output$MAplot <- renderMetricsgraphics({
     colnames(dataMat) <- c('baseMean', 'log2FoldChange', 'p_adjust')
     p_adjust1 <- p.adjust(dataMat[,3], method = input$padjust)
     p_adjust1[is.na(p_adjust1)] <- 1
+    meanCutQ <- switch(input$log2bmcutoff,
+                       "0% quantile" = 1,
+                       "25% quantile" = 2,
+                       "50% quantile" = 3,
+                       "75% quantile" = 4,
+                       "100% quantile" =5)
     col <-
       with(
         data = dataMat, ifelse(
-          log2(baseMean + 0.25) > as.numeric(input$log2bmcutoff) &
+          log2(baseMean + 0.25) > quantile(log2(baseMean + 0.25))[meanCutQ] &
             abs(log2FoldChange) > log2(as.numeric(input$fccutoff)) &
             p_adjust1 < as.numeric(input$pcutoff),
           "DE", "Not DE"
@@ -1194,14 +1293,16 @@ output$HVGplot <- renderMetricsgraphics({
     dataMat <- dataComb[[2]]
     CV <- dataComb[[3]]
     HVG_ind <- dataComb[[4]]
-    col <- rep(1, length(CV))
-    col[HVG_ind] <- 2
+    col <- rep('Non-HVG', length(CV))
+    col[HVG_ind] <- 'HVG'
+    col <- as.factor(col)
     folder <- dataComb[[5]]
     dataMat_mean <- apply(log2(dataMat + 0.25), 1, mean)
     dataMat1 <- data.frame(
       dataMat_mean <- dataMat_mean,
       CV <- CV,
-      col <- col
+      col <- col,
+      geneName <- colnames(dataMat)
     )
     colnames(dataMat1) <- c('baseMean', 'CV', 'Col')
     if(length(unique(col)) == 1)
@@ -1211,10 +1312,14 @@ output$HVGplot <- renderMetricsgraphics({
     mp <-
       mjs_plot(dataMat1, baseMean, CV, decimals = 6) %>%
       mjs_point(
-        color_accessor = col, color_range = color_rg, color_type = "category", x_rug =
+        color_accessor = Col, color_range = color_rg, color_type = "category", x_rug =
           TRUE, y_rug = TRUE
       ) %>%
-      mjs_labs(x_label = 'Log2 expression intensity', y_label = "Coeffcient of variation")
+      mjs_labs(x_label = 'Log2 expression intensity', y_label = "Coeffcient of variation") %>%
+      mjs_add_mouseover("function(d) {
+                        $('{{ID}} svg .mg-active-datapoint')
+                        .text('Gene Name: ' +  d.point.geneName + ',' + ' Log2 intensity: ' + d.point.baseMean + ',' + ' CV: ' + d.point.CV);
+  }")
     saveWidget(mp, file = 'HVGplot.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./HVGplot.html', path)
