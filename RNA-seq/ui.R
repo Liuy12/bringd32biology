@@ -127,7 +127,6 @@ shinyUI(fluidPage(
                                                 #                                                                                          onInitialize = I('function() { this.setValue(""); }'))
                                                 #                                                                         )
                                                 #                                                        ),
-                                                verbatimTextOutput("value_DE"),
                                                 fileInput(
                                                   'file_obs', 'Choose CSV/TXT File for RNA-seq', accept=c('text/csv', 
                                                                                                           'text/comma-separated-values,text/plain', 
@@ -164,10 +163,10 @@ shinyUI(fluidPage(
                                        ),
                                        column(width = 6, 
                                               box(
-                                                title = "Options for DE/HVG method", status = "info", solidHeader = TRUE,width = NULL,
+                                                title = "Options for DE method", status = "info", solidHeader = TRUE,width = NULL,
                                                 collapsible = TRUE,
                                                 conditionalPanel(
-                                                  condition = "input.DEmethod == 'DESeq' | input.DEmethod == 'XBSeq'",
+                                                  condition = "(input.DEmethod == 'DESeq' | input.DEmethod == 'XBSeq')||(input.DEmethod1 == 'DESeq' | input.DEmethod1 == 'XBSeq')",
                                                   selectizeInput("SCVmethod", 
                                                                  label = "Please select a method to estimate dispersion", 
                                                                  choices =c('pooled', 'per-condition', 'blind'),
@@ -187,7 +186,7 @@ shinyUI(fluidPage(
                                                   ),
                                                   verbatimTextOutput("fitType"),
                                                   conditionalPanel(
-                                                    condition = "input.DEmethod == 'XBSeq'",
+                                                    condition = "input.DEmethod == 'XBSeq' || input.DEmethod1 == 'XBSeq'",
                                                     selectizeInput("ParamEst", 
                                                                    label = "Please select a method to estimate distribution parameters", 
                                                                    choices =c('Non-parametric' = 'NP', 
@@ -198,7 +197,7 @@ shinyUI(fluidPage(
                                                   )
                                                 ),
                                                 conditionalPanel(
-                                                  condition = "input.DEmethod == 'DESeq2'",
+                                                  condition = "input.DEmethod == 'DESeq2' || input.DEmethod1 == 'DESeq2'",
                                                   selectizeInput("fitType_DESeq2", 
                                                                  label = "Please select a method for fit type", 
                                                                  choices =c('local', 'parametric', 'mean'),

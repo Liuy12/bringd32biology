@@ -27,6 +27,9 @@ library(scde)
 library(RUVSeq)
 library(statmod)
 library(monocle)
+library(igraph)
+library(NetSAM)
+library(LPCM)
 
 
 #Emails

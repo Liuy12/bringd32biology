@@ -136,56 +136,64 @@
 # )
 
 output$DEinput <- renderUI({
-    if(input$countMatrix == 'Yes' && (input$ExpDesign ==  'Two-level' || (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Specify two conditions to compare')))
-      selectizeInput(
+    if(input$countMatrix == 'Yes' && (input$ExpDesign ==  'Two-level' || (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Specify two conditions to compare'))){
+      tags$div(selectizeInput(
         "DEmethod", 
         label = 'Please select a method for DE analysis',
         choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde'),
         options = list(placeholder = 'select a method below',
                        onInitialize = I('function() { this.setValue(""); }'))
-      )
-  else if(input$countMatrix == 'No' & (input$ExpDesign ==  'Two-level' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Specify two conditions to compare')))
-    selectizeInput(
+      ),
+      verbatimTextOutput("DEmethod_value"))
+    }
+  else if(input$countMatrix == 'No' & (input$ExpDesign ==  'Two-level' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Specify two conditions to compare'))){
+    tags$div(selectizeInput(
       "DEmethod", 
       label = 'Please select a method for DE analysis',
       choices = c('monocle', 'limma'),
       options = list(placeholder = 'select a method below',
                      onInitialize = I('function() { this.setValue(""); }'))
-    )
+    ),
+    verbatimTextOutput("DEmethod_value"))
+  }
   else if((input$ExpDesign == 'Not available' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes')) & input$countMatrix == 'Yes' ) 
         tags$div(
           selectizeInput(
-            "HVGmethod", 
+            "DEmethod", 
             label = 'Please select a method for highly variable genes analysis',
             choices = c('Brennecke_2013'),
             options = list(placeholder = 'select a method below',
                            onInitialize = I('function() { this.setValue(""); }'))
           ),
-          verbatimTextOutput("HVGmethod_value"),
+          verbatimTextOutput("DEmethod_value"),
           selectizeInput(
-          "DEmethod", 
+          "DEmethod1", 
           label = 'Please select a method to characterize subpopulation',
           choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde'),
           options = list(placeholder = 'select a method below',
                          onInitialize = I('function() { this.setValue(""); }'))
-        )
+        ),
+        verbatimTextOutput("DEmethod_value1")
         )
   else if((input$ExpDesign == 'Not available' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes')) & input$countMatrix == 'No')
         tags$div(
           selectizeInput(
-            "DEmethod_HVG", 
+            "DEmethod", 
             label = 'Please select a method for highly variable genes analysis',
             choices = c('Brennecke_2013'),
             options = list(placeholder = 'select a method below',
                            onInitialize = I('function() { this.setValue(""); }'))
           ),
+          verbatimTextOutput("DEmethod_value"),
           selectizeInput(
-          "DEmethod", 
+          "DEmethod1", 
           label = 'Please select a method to characterize subpopulation',
           choices = c('monocle', 'limma'),
           options = list(placeholder = 'select a method below',
                          onInitialize = I('function() { this.setValue(""); }'))
-        ))
+        ),
+        verbatimTextOutput("DEmethod_value1")
+        )
 })
 
 output$HVGBox <- renderUI({
@@ -562,10 +570,6 @@ dataComb <- eventReactive(input$DEstart, {
   return(dataOut)
 })
 
-output$value_DE <- renderPrint({
-  input$DEmethod
-})
-
 output$value_countMatrix <- renderPrint({
   input$countMatrix
 })
@@ -646,8 +650,12 @@ output$HVGnumber_value <- renderPrint({
   input$HVGnumber
 })
 
-output$HVGmethod_value <- renderPrint({
-  input$HVGmethod
+output$DEmethod_value <- renderPrint({
+  input$DEmethod
+})
+
+output$DEmethod_value1 <- renderPrint({
+  input$DEmethod1
 })
 
 output$HVGpadjust_value <- renderPrint({
@@ -881,6 +889,36 @@ Principalstats <- reactive({
     return(list(ppoints, percent, folder))
   })
 })
+
+heteroModule <- reactive({
+  if(input$ExpDesign == 'Not available' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes')){
+    dataComb <- dataComb()
+    prinStats <- Principalstats()
+    withProgress(value = 1, message = 'Determine cell heterogeneity', {
+      dataMat <- log2(dataComb[[2]] + 0.25)
+      cors <- cor(dataMat)
+      cors <- cors[lower.tri(cors)]
+      fullGraph <- t(combn(ncol(dataMat), 2))
+      fullGraphSel <- fullGraph[cors > quantile(cors)[4],]
+      test <- idHetero(fullGraphSel)
+      if(test$sig ==1){
+        pp <- prinStats[[1]]
+        foo <- ms.self.coverage(pp, taumin = 0.01, taumax = 1, gridsize = 100, plot.type = 'n')
+        h <- select.self.coverage(foo)$select[1]
+        test1 <- ms(pp, h, iter = 1000, plotms = 0)
+        if(length(unique(test1$cluster.label)) > 1){
+          withProgress(value = 1, message = paste('Characterize subpopulation ', input$DEmethod, sep = ''),{
+            for(i in 1:length(unique(test1$cluster.label))){
+              
+            }
+          })
+        }
+      }
+    })
+  }
+})
+
+
 
 output$PrincipalComponent2d <- 
   renderChart({
