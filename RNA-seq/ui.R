@@ -133,7 +133,7 @@ shinyUI(fluidPage(
                                                                                                           '.csv')
                                                 ),
                                                 conditionalPanel(
-                                                  condition = "input.DEmethod == 'XBSeq'",
+                                                  condition = "input.DEmethod == 'XBSeq' || input.DEmethod1 == 'XBSeq'",
                                                   fileInput(
                                                     'file_bg', 'Choose CSV/TXT File for RNA-seq (bg), required if you choose XBSeq', 
                                                     accept=c('text/csv',
