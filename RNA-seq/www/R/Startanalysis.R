@@ -140,7 +140,7 @@ output$DEinput <- renderUI({
       tags$div(selectizeInput(
         "DEmethod", 
         label = 'Please select a method for DE analysis',
-        choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde'),
+        choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde', 'BPSC', 'EBSeq'),
         options = list(placeholder = 'select a method below',
                        onInitialize = I('function() { this.setValue(""); }'))
       ),
@@ -150,7 +150,7 @@ output$DEinput <- renderUI({
     tags$div(selectizeInput(
       "DEmethod", 
       label = 'Please select a method for DE analysis',
-      choices = c('monocle', 'limma'),
+      choices = c('monocle', 'limma', 'edgeR', 'edgeR-robust', 'BPSC', 'MAST', 'EBSeq'),
       options = list(placeholder = 'select a method below',
                      onInitialize = I('function() { this.setValue(""); }'))
     ),
@@ -169,7 +169,7 @@ output$DEinput <- renderUI({
           selectizeInput(
           "DEmethod1", 
           label = 'Please select a method to characterize subpopulation',
-          choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde'),
+          choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde', 'BPSC', 'EBSeq'),
           options = list(placeholder = 'select a method below',
                          onInitialize = I('function() { this.setValue(""); }'))
         ),
@@ -188,7 +188,7 @@ output$DEinput <- renderUI({
           selectizeInput(
           "DEmethod1", 
           label = 'Please select a method to characterize subpopulation',
-          choices = c('monocle', 'limma'),
+          choices = c('monocle', 'limma', 'edgeR', 'edgeR-robust', 'BPSC', 'MAST', 'EBSeq'),
           options = list(placeholder = 'select a method below',
                          onInitialize = I('function() { this.setValue(""); }'))
         ),
@@ -359,7 +359,7 @@ output$Chartpage <- renderUI({
         tabPanel("Dispersion plot", 
                  fluidRow(column(12, showOutput("DispersionPlot", "polycharts"))))
       )
-    else if(input$DEmethod == 'limma-voom' | input$DEmethod == 'scde' | input$DEmethod == 'limma' | input$DEmethod == 'monocle')
+    else if(input$DEmethod == 'limma-voom' | input$DEmethod == 'scde' | input$DEmethod == 'limma' | input$DEmethod == 'monocle' | input$DEmethod == 'BPSC' | input$DEmethod == 'MAST' | input$DEmethod == 'EBSeq')
             tabBox(
               title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
               id = 'DEanalysis', width = 12, 
@@ -453,7 +453,10 @@ output$StartDownload <- downloadHandler(
     }
     else if (input$DEmethod == 'Brennecke_2013'){
       slidify('ReportRNASeqVis.Rmd')
-      zip(file, files = c('ReportRNASeqVis.html', 'libraries/', 'htmlFiles/', 'NormData.csv', 'HVGData.csv'))
+      if(dir.exists('HeteroModule/'))
+        zip(file, files = c('ReportRNASeqVis.html', 'libraries/', 'htmlFiles/', 'NormData.csv', 'HVGData.csv', 'HeteroModule/'))
+      else
+        zip(file, files = c('ReportRNASeqVis.html', 'libraries/', 'htmlFiles/', 'NormData.csv', 'HVGData.csv'))
     }
     else{
       slidify('Reports.Rmd')
@@ -489,10 +492,12 @@ dataComb <- eventReactive(input$DEstart, {
     return(NULL)
   withProgress(value = 1, message = 'Loading datasets', {
     data_obs <- fread(inFile$datapath, data.table = F)
+    cat('checkpoint1', '\n')
     rownames(data_obs) <- data_obs[,1]
     data_obs <- data_obs[,-1]
     if(!is.null(input$file_spikein)){
       data_spikein <- fread(input$file_spikein$datapath, data.table = F)
+      cat('checkpoint2', '\n')
       rownames(data_spikein) <- data_spikein[,1]
       data_spikein <- data_spikein[,-1]
       Totalreads <- apply(data_obs, 2, sum) + apply(data_spikein, 2, sum)
@@ -521,52 +526,66 @@ dataComb <- eventReactive(input$DEstart, {
     }
   })
   withProgress(value = 1, message = paste('Statistical testing using ', input$DEmethod, sep =''), {
+    if(input$Con_S1 == '' & input$Con_S2 == '')
+      condition_sel <- c()
+    else
+      condition_sel <- c(input$Con_S1, input$Con_S2)
     if (input$DEmethod == 'XBSeq') {
       data_bg <- fread(input$file_bg$datapath, data.table = F)
       rownames(data_bg) <- data_bg[,1]
       data_bg <- data_bg[,-1]
-      dataOut <- XBSeq_pfun(data_obs, data_bg, group, disp_method = input$SCVmethod, 
+      dataOut <- XBSeq.pfun(data_obs, data_bg, group, disp_method = input$SCVmethod, 
                             sharing_mode = input$SharingMode, fit_type = input$fitType,
-                            paraMethod = input$ParamEst, spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
+                            paraMethod = input$ParamEst, spikeins = data_spikein, condition_sel = condition_sel)
     }
     else if (input$DEmethod == 'DESeq') {
-      dataOut <- DESeq_pfun(data_obs, group, disp_method = input$SCVmethod,
+      dataOut <- DESeq.pfun(data_obs, group, disp_method = input$SCVmethod,
                             sharing_mode = input$SharingMode, 
-                            fit_type = input$fitType, spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
+                            fit_type = input$fitType, spikeins = data_spikein, condition_sel = condition_sel)
     }
     else if (input$DEmethod == 'DESeq2') {
-      dataOut <- DESeq2_pfun(
+      dataOut <- DESeq2.pfun(
         data_obs, group, cookcutoff = input$cooksCutoff,
-        fittype = input$fitType_DESeq2, test = input$Test, spikein = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
+        fittype = input$fitType_DESeq2, test = input$Test, spikein = data_spikein, condition_sel = condition_sel)
     }
     else if (input$DEmethod == 'edgeR') {
-      dataOut <- edgeR.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
+      dataOut <- edgeR.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein, condition_sel = condition_sel)
     }
     else if (input$DEmethod == 'edgeR-robust') {
-      dataOut <- edgeR_robust.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
+      dataOut <- edgeR_robust.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein, condition_sel = condition_sel)
     }
     else if (input$DEmethod == 'limma-voom') {
-      dataOut <- limma_voom.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
+      dataOut <- limma_voom.pfun(data_obs, group, model.matrix(~group), spikeins = data_spikein, condition_sel = condition_sel)
     }
     else if (input$DEmethod == 'scde') {
-      dataOut <- scde.pfun(data_obs, group, condition_sel = c(input$Con_S1, input$Con_S2))
+      dataOut <- scde.pfun(data_obs, group, condition_sel = condition_sel)
       }
     else if (input$DEmethod == 'limma'){
-      dataOut <- limma.pfun(data_obs, group, model.matrix(~0 + group), condition_sel = c(input$Con_S1, input$Con_S2))
+      dataOut <- limma.pfun(data_obs, group, model.matrix(~group), condition_sel = condition_sel)
     }
     else if (input$DEmethod == 'monocle'){
-      dataOut <- monocle.pfun(data_obs, group, condition_sel = c(input$Con_S1, input$Con_S2))
+      dataOut <- monocle.pfun(data_obs, group, condition_sel = condition_sel)
     }
     else if (input$DEmethod == 'Brennecke_2013'){
-      dataOut <- Brennecke_pfun(data_obs, spikeins = data_spikein, input$HVGnumber)
+      dataOut <- Brennecke.pfun(data_obs, spikeins = data_spikein, input$HVGnumber)
     }
+    else if (input$DEmethod == 'BPSC')
+      dataOut <- BPSC.pfun(data_obs, group, model.matrix(~group), data_spikein, condition_sel, 4)
+    else if (input$DEmethod == 'MAST'){
+      cat('checkpoint3', '\n')
+      dataOut <- MAST.pfun(data_obs, group, data_spikein, condition_sel)
+    }
+    else if (input$DEmethod == 'EBSeq')
+      dataOut <- EBSeq.pfun(data_obs, group, condition_sel)
+    
 #     else if (input$DEmethod == 'SAMSeq'){
 #       SAMSeq.pfun(data_obs, group, condition_sel = c(input$Con_S1, input$Con_S2))
 #     }
   })
   dataOut[[5]] <- folder
   dataOut[[6]] <- data_qc
-  cat('Statistical testing success!', '/n')
+  dataOut[[7]] <- data_spikein
+  cat('Statistical testing success!', '\n')
   return(dataOut)
 })
 
@@ -695,7 +714,7 @@ output$Table <- DT::renderDataTable({
     return(NULL)
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'Table', {
-    dataMat <- log2(dataComb[[2]] + 0.25)
+    dataMat <- log2(dataComb[[2]] + 0.01)
     folder <- dataComb[[5]]
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
     temp <- datatable(dataMat, options = list(pageLength = 5))
@@ -712,7 +731,7 @@ output$Heatmap <- renderD3heatmap({
     return(NULL)
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'Heatmap', {
-    dataMat <- log2(dataComb[[2]] + 0.25)
+    dataMat <- log2(dataComb[[2]] + 0.01)
     folder <- dataComb[[5]]
     mean_gene <- apply(dataMat, 1, mean)
     var_gene <- apply(dataMat, 1, var)
@@ -727,7 +746,7 @@ output$Heatmap <- renderD3heatmap({
     if (!length(index))
       return(NULL)
     uplim <- ifelse(length(index) < 1000, length(index), 1000)
-    h1 <- d3heatmap(as.data.frame(dataMat1[1:uplim,]), scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE)
+    h1 <- d3heatmap(as.data.frame(dataMat1[1:uplim,]), scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE, show_grid = F)
     saveWidget(h1, 'heatmap.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./heatmap.html', path)
@@ -740,7 +759,7 @@ output$Heatmap <- renderD3heatmap({
 output$Density <- renderChart({
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'Density', {
-    dataMat <- log2(dataComb[[2]] + 0.25)
+    dataMat <- log2(dataComb[[2]] + 0.01)
     folder <- dataComb[[5]]
     denStat <-
       density(dataMat[,1], from = min(dataMat, na.rm = TRUE), to = max(dataMat, na.rm = TRUE), na.rm=TRUE)
@@ -759,10 +778,6 @@ output$Density <- renderChart({
     np <-
       nPlot(Density ~ Exprs, group = 'ind', data = denStat, type = 'lineChart')
     np$addParams(dom = "Density")
-    if(ncol(dataMat) > 50)
-      np$chart(useInteractiveGuideline = TRUE, showLegend = FALSE)
-    else
-      np$chart(useInteractiveGuideline = TRUE)
     if(input$DEmethod == 'edgeR' | input$DEmethod == 'edgeR-robust')
       xlab <- 'Log2 normalized cpm (counts per million)'
     else
@@ -770,10 +785,15 @@ output$Density <- renderChart({
     np$xAxis(axisLabel = xlab)
     np$yAxis(axisLabel = 'Density')
     path <- paste(folder, '/htmlFiles/density.html', sep = '')
-    np$save(path, standalone = TRUE)
-    return(np)  
+    if(ncol(dataMat) > 100)
+      return(NULL)
+      #np$chart(useInteractiveGuideline = FALSE, showLegend = FALSE, interactive = FALSE)
+    else{
+      np$chart(useInteractiveGuideline = TRUE)
+      np$save(path, standalone = TRUE)
+      return(np)  
+    }
     })
-
 })
 
 output$value_S1 <- renderPrint({
@@ -788,7 +808,7 @@ output$ScatterPlot <- renderChart({
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'Scatterplot', {
     folder <- dataComb[[5]]
-    dataMat <- log2(dataComb[[2]] + 0.25)
+    dataMat <- log2(dataComb[[2]] + 0.01)
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
     dataMat <- as.data.frame(dataMat)
     dataMat$GeneName <- rownames(dataMat)
@@ -834,7 +854,7 @@ output$value_plotdim <-
 output$Boxplot <- renderChart({
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'Boxplot', {
-    dataMat <- log2(dataComb[[2]] + 0.25)
+    dataMat <- log2(dataComb[[2]] + 0.01)
     folder <- dataComb[[5]]
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
     bwstats <- setNames(as.data.frame(boxplot(dataMat, plot = F)$stats),
@@ -860,7 +880,7 @@ output$Boxplot <- renderChart({
 Principalstats <- reactive({
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Calculating PCA stats', {
-    dataMat <- log2(dataComb[[2]] + 0.25)
+    dataMat <- log2(dataComb[[2]] + 0.01)
     folder <- dataComb[[5]]
     if(input$ExpDesign == 'Not available')
       design <- rep('C1', ncol(dataMat))
@@ -886,7 +906,7 @@ Principalstats <- reactive({
       percent<-round((pca.result$sdev^2/sum(pca.result$sdev^2))*100,1)
     }
     ppoints <-
-      cbind(ppoints, design, paste('S', 1:ncol(dataMat), sep = ''))
+      cbind(as.data.frame(ppoints), design, paste('S', 1:ncol(dataMat), sep = ''))
     colnames(ppoints) <- c('PC1', 'PC2', 'PC3', 'Design', 'Samplename')
     ppoints <- as.data.frame(ppoints)
     return(list(ppoints, percent, folder))
@@ -896,71 +916,83 @@ Principalstats <- reactive({
 heteroModule <- reactive({
   if(input$ExpDesign == 'Not available' | (input$ExpDesign ==  'Multi-level' && input$MultiLevel == 'Identify most variable genes')){
     dataComb <- dataComb()
+    str(dataComb)
+    if(length(dataComb) < 7)
+      data_spikein <- c()
+    else
+      data_spikein <- dataComb[[7]]
     prinStats <- Principalstats()
     path <- dataComb[[5]]
-    dir.create(paste(path, '/HeteroModule'))
     withProgress(value = 1, message = 'Determine cell heterogeneity', {
-      dataMat <- log2(dataComb[[2]] + 0.25)
+      dataMat <- log2(dataComb[[2]] + 0.01)
       cors <- cor(dataMat)
       cors <- cors[lower.tri(cors)]
       fullGraph <- t(combn(ncol(dataMat), 2))
       fullGraphSel <- fullGraph[cors > quantile(cors, na.rm = TRUE)[4],]
       test <- idHetero(fullGraphSel)
+      str(test)
       if(test$sig ==1){
         pp <- prinStats[[1]][,1:3]
+        str(pp)
         foo <- ms.self.coverage(pp, taumin = 0.01, taumax = 1, gridsize = 100, plot.type = 'n')
         h <- select.self.coverage(foo)$select[1]
         test1 <- ms(pp, h, iter = 1000, plotms = 0)
+        str(test1)
         if(length(unique(test1$cluster.label)) > 1){
+          dir.create(paste(path, '/HeteroModule', sep = ''))
           withProgress(value = 1, message = paste('Characterize subpopulation ', input$DEmethod1, sep = ''),{
+            write.csv(test1$cluster.label, paste(path, '/HeteroModule/subpopulationLabel.csv', sep = ''))
             for(i in 1:length(unique(test1$cluster.label))){
               group <- paste('C', ifelse(test1$cluster.label == i, 1, 2), sep = '')
               if (input$DEmethod1 == 'XBSeq') {
                 data_bg <- fread(input$file_bg$datapath, data.table = F)
                 rownames(data_bg) <- data_bg[,1]
                 data_bg <- data_bg[,-1]
-                dataOut <- XBSeq_pfun(dataComb[[1]], data_bg, group, disp_method = input$SCVmethod, 
+                dataOut <- XBSeq.pfun(dataComb[[1]], data_bg, group, disp_method = input$SCVmethod, 
                                       sharing_mode = input$SharingMode, fit_type = input$fitType,
-                                      paraMethod = input$ParamEst, spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
-                write.csv(dataOut[[4]], paste(path, '/group', i,'vsOther.csv', sep =''), quote = F)
+                                      paraMethod = input$ParamEst, spikeins = data_spikein, condition_sel = c())
               }
               else if (input$DEmethod1 == 'DESeq') {
-                dataOut <- DESeq_pfun(dataComb[[1]], group, disp_method = input$SCVmethod,
+                dataOut <- DESeq.pfun(dataComb[[1]], group, disp_method = input$SCVmethod,
                                       sharing_mode = input$SharingMode, 
-                                      fit_type = input$fitType, spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
-                write.csv(dataOut[[4]], paste(path, '/group', i,'vsOther.csv', sep =''), quote = F)
+                                      fit_type = input$fitType, spikeins = data_spikein, condition_sel = c())
               }
               else if (input$DEmethod1 == 'DESeq2') {
-                dataOut <- DESeq2_pfun(
+                dataOut <- DESeq2.pfun(
                   dataComb[[1]], group, cookcutoff = input$cooksCutoff,
-                  fittype = input$fitType_DESeq2, test = input$Test, spikein = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
-                write.csv(dataOut[[4]], paste(path, '/group', i,'vsOther.csv', sep =''), quote = F)
+                  fittype = input$fitType_DESeq2, test = input$Test, spikein = data_spikein, condition_sel = c())
               }
               else if (input$DEmethod1 == 'edgeR') {
-                dataOut <- edgeR.pfun(dataComb[[1]], group, model.matrix(~group), spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
-                write.csv(dataOut[[4]], paste(path, '/group', i,'vsOther.csv', sep =''), quote = F)
+                dataOut <- edgeR.pfun(dataComb[[1]], group, model.matrix(~group), spikeins = data_spikein, condition_sel = c())
                 }
               else if (input$DEmethod1 == 'edgeR-robust') {
-                dataOut <- edgeR_robust.pfun(dataComb[[1]], group, model.matrix(~group), spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
-                write.csv(dataOut[[4]], paste(path, '/group', i,'vsOther.csv', sep =''), quote = F)
+                dataOut <- edgeR_robust.pfun(dataComb[[1]], group, model.matrix(~group), spikeins = data_spikein, condition_sel = c())
                 }
               else if (input$DEmethod1 == 'limma-voom') {
-                dataOut <- limma_voom.pfun(dataComb[[1]], group, model.matrix(~group), spikeins = data_spikein, condition_sel = c(input$Con_S1, input$Con_S2))
-                write.csv(dataOut[[4]], paste(path, '/group', i,'vsOther.csv', sep =''), quote = F)
+                dataOut <- limma_voom.pfun(dataComb[[1]], group, model.matrix(~group), spikeins = data_spikein, condition_sel = c())
                 }
               else if (input$DEmethod1 == 'scde') {
-                dataOut <- scde.pfun(dataComb[[1]], group, condition_sel = c(input$Con_S1, input$Con_S2))
-                write.csv(dataOut[[4]], paste(path, '/group', i,'vsOther.csv', sep =''), quote = F)
+                dataOut <- scde.pfun(dataComb[[1]], group, condition_sel = c())
               }
               else if (input$DEmethod1 == 'limma'){
-                dataOut <- limma.pfun(dataComb[[1]], group, model.matrix(~0 + group), condition_sel = c(input$Con_S1, input$Con_S2))
-                write.csv(dataOut[[4]], paste(path, '/group', i,'vsOther.csv', sep =''), quote = F)
+                dataOut <- limma.pfun(dataComb[[1]], group, model.matrix(~0 + group), condition_sel = c())
                 }
               else if (input$DEmethod1 == 'monocle'){
-                dataOut <- monocle.pfun(dataComb[[1]], group, condition_sel = c(input$Con_S1, input$Con_S2))
-                write.csv(dataOut[[4]], paste(path, '/group', i,'vsOther.csv', sep =''), quote = F)
-                }
-            }
+                dataOut <- monocle.pfun(dataComb[[1]], group, condition_sel = c())
+              }
+              else if (input$DEmethod1 == 'BPSC')
+                dataOut <- BPSC.pfun(dataComb[[1]], group, model.matrix(~group), data_spikein, c(), 4)
+              else if (input$DEmethod1 == 'MAST')
+                dataOut <- MAST.pfun(dataComb[[1]], group, data_spikein, c())
+              else if (input$DEmethod1 == 'EBSeq')
+                dataOut <- EBSeq.pfun(data_obs, group, condition_sel)
+              testStat <- dataOut[[4]]
+              if(input$DEmethod1 == 'EBSeq')
+                testStat$padj <- testStat[,3]
+              else
+                testStat$padj <- p.adjust(testStat[,3], method = input$padjust)
+              write.csv(testStat, paste(path, '/HeteroModule/group', i,'vsOther.csv', sep =''), quote = F)
+              }
           })
         }
         cols <- paste('C', test1$cluster.label, sep = '')
@@ -1007,6 +1039,9 @@ output$PrincipalComponent3d <- renderScatterplotThree({
     if(input$ExpDesign == 'Not available'){
       ppoints$Design <- heteroModule()
     }
+    if(input$ExpDesign == 'Not available'){
+      ppoints$Design <- heteroModule()
+    }
     percent <- prinstat[[2]]
     folder <- prinstat[[3]]
     xlab <- paste('PC1 (', percent[1],'%)', sep = '')
@@ -1017,13 +1052,15 @@ output$PrincipalComponent3d <- renderScatterplotThree({
         '#00FFFF', '#FFE4C4', '#D2691E', '#6495ED', '#9932CC', '#8B0000',
         '#FF00FF', '#FFD700'
       )
+    if(length(unique(ppoints$Design)) > 8)
+      colors <- rainbow_hcl(length(unique(ppoints$Design)))
     col <- colors[1:length(unique(ppoints$Design))]
-    col <- rep(col, c(as.numeric(table(design))))
+    col <- rep(col, c(as.numeric(table(ppoints$Design))))
     scatter3d <- scatterplot3js(ppoints[,1], ppoints[,2], ppoints[,3], 
                                 labels = paste('S',1:nrow(ppoints), sep = ''), 
                                 axisLabels = c(xlab, ylab, zlab),
                                 color = col,
-                                renderer = 'canvas', bg = '#ecf0f5')
+                                renderer = 'canvas') # bg = '#ecf0f5'
     saveWidget(scatter3d, 'pcaplot.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     if(file.exists(paste(path, 'pcaplot.html', sep = '')))
@@ -1047,7 +1084,7 @@ output$forceNetworkGene <- renderForceNetwork({
     return(NULL)
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'Gene interaction network', {
-    dataMat <- log2(dataComb[[2]] + 0.25)
+    dataMat <- log2(dataComb[[2]] + 0.01)
     folder <- dataComb[[5]]
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
     mean.gene <- apply(dataMat, 1, mean)
@@ -1105,11 +1142,14 @@ output$DEtable <- DT::renderDataTable({
     return(NULL)
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'DE table', {
-    dataMat <- log2(dataComb[[2]] + 0.25)
+    dataMat <- log2(dataComb[[2]] + 0.01)
     folder <- dataComb[[5]]
     dataMat <- as.data.frame(dataMat)
     dataMat1 <- dataComb[[4]]
-    p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
+    if(input$DEmethod == 'EBSeq' || input$DEmethod1 == 'EBSeq')
+      p_adjust1 <- dataMat1[,3]
+    else
+      p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
     p_adjust1[is.na(p_adjust1)] <- 1
     meanCutQ <- switch(input$log2bmcutoff,
                        "0% quantile" = 1,
@@ -1119,7 +1159,7 @@ output$DEtable <- DT::renderDataTable({
                        "100% quantile" =5)
     DE_index <-
       which(
-        log2(dataMat1[,1] + 0.25) > quantile(log2(dataMat1[,1] + 0.25), na.rm = TRUE)[meanCutQ] &
+        log2(dataMat1[,1] + 0.01) > quantile(log2(dataMat1[,1] + 0.01), na.rm = TRUE)[meanCutQ] &
           abs(dataMat1[,2]) > log2(as.numeric(input$fccutoff)) &
           p_adjust1 < as.numeric(input$pcutoff)
       )
@@ -1143,11 +1183,14 @@ output$DEtable <- DT::renderDataTable({
 output$DEheatmap <- renderD3heatmap({
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'DE heatmap', {
-    dataMat <- log2(dataComb[[2]] + 0.25)
+    dataMat <- log2(dataComb[[2]] + 0.01)
     folder <- dataComb[[5]]
     dataMat <- as.data.frame(dataMat)
     dataMat1 <- dataComb[[4]]
-    p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
+    if(input$DEmethod == 'EBSeq' || input$DEmethod1 == 'EBSeq')
+      p_adjust1 <- dataMat1[,3]
+    else
+      p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
     p_adjust1[is.na(p_adjust1)] <- 1
     meanCutQ <- switch(input$log2bmcutoff,
                        "0% quantile" = 1,
@@ -1157,7 +1200,7 @@ output$DEheatmap <- renderD3heatmap({
                        "100% quantile" =5)
     DE_index <-
       which(
-        log2(dataMat1[,1] + 0.25) > quantile(log2(dataMat1[,1] + 0.25), na.rm = TRUE)[meanCutQ] &
+        log2(dataMat1[,1] + 0.01) > quantile(log2(dataMat1[,1] + 0.01), na.rm = TRUE)[meanCutQ] &
           abs(dataMat1[,2]) > log2(as.numeric(input$fccutoff)) &
           p_adjust1 < as.numeric(input$pcutoff)
       )
@@ -1187,7 +1230,10 @@ output$MAplot <- renderMetricsgraphics({
     dataMat <- dataComb[[4]]
     folder <- dataComb[[5]]
     colnames(dataMat) <- c('baseMean', 'log2FoldChange', 'p_adjust')
-    p_adjust1 <- p.adjust(dataMat[,3], method = input$padjust)
+    if(input$DEmethod == 'EBSeq' || input$DEmethod1 == 'EBSeq')
+      p_adjust1 <- dataMat1[,3]
+    else
+      p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
     p_adjust1[is.na(p_adjust1)] <- 1
     meanCutQ <- switch(input$log2bmcutoff,
                        "0% quantile" = 1,
@@ -1198,7 +1244,7 @@ output$MAplot <- renderMetricsgraphics({
     col <-
       with(
         data = dataMat, ifelse(
-          log2(baseMean + 0.25) > quantile(log2(baseMean + 0.25), na.rm = TRUE)[meanCutQ] &
+          log2(baseMean + 0.01) > quantile(log2(baseMean + 0.01), na.rm = TRUE)[meanCutQ] &
             abs(log2FoldChange) > log2(as.numeric(input$fccutoff)) &
             p_adjust1 < as.numeric(input$pcutoff),
           "DE", "Not DE"
@@ -1244,7 +1290,7 @@ output$DispersionPlot <- renderChart({
   withProgress(value = 1, message = 'Generating plots: ', detail = 'Dispersion plot', {
     Dispersion <- dataComb[[3]]
     folder <- dataComb[[5]]
-    Dispersion$baseMean <- dataComb[[4]][,1] + 0.25
+    Dispersion$baseMean <- dataComb[[4]][,1] + 0.01
     if(input$DEmethod == 'DESeq2'){
       Dispersion1 <- stack(Dispersion[,c(1,3)])
       colnames(Dispersion1) <- c('Disp', 'Type')
@@ -1336,7 +1382,7 @@ output$HVGtable <- DT::renderDataTable({
     return(NULL)
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'HVG table', {
-    dataMat <- log2(dataComb[[2]] + 0.25)
+    dataMat <- log2(dataComb[[2]] + 0.01)
     folder <- dataComb[[5]]
     dataMat <- as.data.frame(dataMat)
     DE_index <- dataComb[[4]]
@@ -1359,7 +1405,7 @@ output$HVGtable <- DT::renderDataTable({
 output$HVGheatmap <- renderD3heatmap(({
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'HVG heatmap', {
-    dataMat <- log2(dataComb[[2]] + 0.25)
+    dataMat <- log2(dataComb[[2]] + 0.01)
     folder <- dataComb[[5]]
     dataMat <- as.data.frame(dataMat)
     DE_index <- dataComb[[4]]
@@ -1393,7 +1439,7 @@ output$HVGplot <- renderMetricsgraphics({
     col[HVG_ind] <- 'HVG'
     col <- as.factor(col)
     folder <- dataComb[[5]]
-    dataMat_mean <- apply(log2(dataMat + 0.25), 1, mean)
+    dataMat_mean <- apply(log2(dataMat + 0.01), 1, mean)
     dataMat1 <- data.frame(
       dataMat_mean <- dataMat_mean,
       CV <- CV,

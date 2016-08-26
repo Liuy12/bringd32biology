@@ -24,12 +24,16 @@ library(threejs)
 library(scde)
 # library(BASiCS) too slow
 # library(samr) not easy to implement 
+library(BPSC)
 library(RUVSeq)
 library(statmod)
 library(monocle)
 library(igraph)
 library(NetSAM)
 library(LPCM)
+library(colorspace)
+library(doParallel)
+library(EBSeq)
 
 
 #Emails
@@ -53,7 +57,7 @@ library(LPCM)
 # 			send = TRUE)
 # }
 
-XBSeq_pfun <- 
+XBSeq.pfun <- 
   function(counts, bgcounts, group, disp_method, sharing_mode, fit_type, paraMethod, spikeins, condition_sel){
     if(!is.null(condition_sel)){
       XB <- XBSeqDataSet(counts, bgcounts, group)
@@ -97,7 +101,7 @@ XBSeq_pfun <-
     )
     }
 
-DESeq2_pfun <-
+DESeq2.pfun <-
   function(counts, group, design = NULL, cookcutoff, fittype, test, spikeins, condition_sel)
   {   
     if(!is.null(spikeins))
@@ -141,7 +145,7 @@ DESeq2_pfun <-
     )
   }
 
-DESeq_pfun <-
+DESeq.pfun <-
   function(counts, group, disp_method, sharing_mode, fit_type, spikeins)
   {   
     de <- newCountDataSet(counts, group)
@@ -203,8 +207,8 @@ edgeR.pfun <-
       counts1 <- rbind(spikeins[,sample_sel], counts[,sample_sel])
       set <- RUVg(as.matrix(counts1), 1:nrow(spikeins), k=1)
       Phenod <- data.frame(x = group, weight = set$W)
-      rownames(Phenod) <- colnames(counts)[sample_sel]
-      design <- model.matrix(~x + W_1, data = Phenod)
+      #rownames(Phenod) <- colnames(counts)[sample_sel]
+      design <- model.matrix(~x + weight, data = Phenod)
     }
     d <- DGEList(counts = counts[,sample_sel], group = group)
     d <- calcNormFactors(d)
@@ -227,6 +231,7 @@ edgeR.pfun <-
       pval = lr$table$PValue
       )
     colnames(TestStat) <- c('AveCPM', 'logFC', 'p value')
+    rownames(TestStat) <- rownames(counts)
     list(
       RawCount = counts,
       NormCount = NormCount,
@@ -254,8 +259,8 @@ edgeR_robust.pfun <-
       counts1 <- rbind(spikeins[, sample_sel], counts[,sample_sel])
       set <- RUVg(as.matrix(counts1), 1:nrow(spikeins), k=1)
       Phenod <- data.frame(x = group, weight = set$W)
-      rownames(Phenod) <- colnames(counts)[sample_sel]
-      design <- model.matrix(~x + W_1, data = Phenod)
+      #rownames(Phenod) <- colnames(counts)[sample_sel]
+      design <- model.matrix(~x + weight, data = Phenod)
     }
     d <- DGEList(counts = counts[,sample_sel], group = group)
     d <- calcNormFactors(d)
@@ -275,6 +280,7 @@ edgeR_robust.pfun <-
       pval = lr$table$PValue
     )
     colnames(TestStat) <- c('AveCPM', 'logFC', 'p value')
+    rownames(TestStat) <- rownames(counts)
     list(
       RawCount = counts,
       NormCount = NormCount,
@@ -287,36 +293,25 @@ edgeR_robust.pfun <-
 limma_voom.pfun <-
   function(counts, group, design = NULL, spikeins, condition_sel) 
   {   
-    if(!is.null(condition_sel)){
-      if(!is.null(spikeins)){
-        counts1 <- rbind(spikeins, counts)
-        set <- RUVg(as.matrix(counts1), 1:nrow(spikeins), k=1)
-        Phenod <- data.frame(x = group, weight = set$W)
-        rownames(Phenod) <- colnames(counts)
-        design <- model.matrix(~x + W_1, data = Phenod)
-      }
-      nf <- calcNormFactors(counts)
-      y <- voom(counts, design, plot=FALSE, lib.size = colSums(counts)*nf)
-      NormCount <- as.matrix(2^(y$E))
+    nf <- calcNormFactors(counts)
+    y <- voom(counts, design, plot=FALSE, lib.size = colSums(counts)*nf)
+    NormCount <- as.matrix(2^(y$E))
+    if(!is.null(condition_sel))
       sample_sel <- c(grep(condition_sel[1], group), grep(condition_sel[2], group))
-      group <- group[sample_sel]
-      design <- model.matrix(~group)
-    }
-    else{
-      NormCount <- c()
+    else
       sample_sel <- 1:ncol(counts)
-    }
+    group <- group[sample_sel]
     if(!is.null(spikeins)){
       counts1 <- rbind(spikeins[,sample_sel], counts[,sample_sel])
       set <- RUVg(as.matrix(counts1), 1:nrow(spikeins), k=1)
-      Phenod <- data.frame(x = group, weight = set$W)
-      rownames(Phenod) <- colnames(counts)[sample_sel]
-      design <- model.matrix(~x + W_1, data = Phenod)
+      Phenod <- data.frame(x = group, weight = set$W[sample_sel])
+      #rownames(Phenod) <- colnames(counts)[sample_sel]
+      design <- model.matrix(~x + weight, data = Phenod)
     }
+    else
+      design <- model.matrix(~group)
     nf <- calcNormFactors(counts[,sample_sel])
     y <- voom(counts[,sample_sel], design, plot=FALSE, lib.size = colSums(counts)*nf)
-    if(is.null(NormCount))
-      NormCount <- as.matrix(2^(y$E))
     fit <- lmFit(y, design)
     fit <- eBayes(fit)
     TestStat <- topTable(fit,coef=2,n=nrow(counts), sort.by = "none")
@@ -326,6 +321,7 @@ limma_voom.pfun <-
       pval = TestStat$P.Value
     )
     colnames(TestStat) <- c('AveExpr',  'logFC', 'p value')
+    rownames(TestStat) <- rownames(counts)
     return(list(
       RawCount = counts,
       NormCount = NormCount,
@@ -373,6 +369,7 @@ scde.pfun <- function(counts, design, cores = 4, condition_sel){
     logfc = ediff$mle,
     pval = 2*pnorm(-abs(ediff$Z))
   )
+  rownames(TestStat) <- rownames(counts)
   colnames(TestStat) <- c('AveExpr',  'logFC', 'p value')
   list(
     RawCount = counts,
@@ -382,7 +379,7 @@ scde.pfun <- function(counts, design, cores = 4, condition_sel){
   )
 }
 
-Brennecke_pfun <- function(counts, spikeins, nums){
+Brennecke.pfun <- function(counts, spikeins, nums){
   if(any(round(counts) != counts)){
     nCountsBio <- preprocessCore::normalize.quantiles(as.matrix(counts))
     rownames(nCountsBio) <- rownames(counts)
@@ -392,7 +389,7 @@ Brennecke_pfun <- function(counts, spikeins, nums){
     sfBio <- estimateSizeFactorsForMatrix(counts)
     nCountsBio <- t(t(counts)/sfBio)
   }
-  nCountsBio <- nCountsBio + 0.25
+  nCountsBio <- nCountsBio
   meansBio <- rowMeans( nCountsBio )
   varsBio <- apply( nCountsBio, 1, var )
   cv2Bio <- varsBio / meansBio^2
@@ -441,17 +438,26 @@ Brennecke_pfun <- function(counts, spikeins, nums){
   ))
 }
 
-limma.pfun <- function(counts, group, design, condition_sel){
+limma.pfun <- function(counts, group, design, spikeins, condition_sel){
   counts_N <- preprocessCore::normalize.quantiles(as.matrix(counts))
   rownames(counts_N) <- rownames(counts)
   colnames(counts_N) <- colnames(counts)
-  counts_N_log2 <- log2(counts_N)
-  if(!is.null(condition_sel)){
+  counts_N_log2 <- log2(counts_N + 0.01)
+  if(!is.null(condition_sel))
     sample_sel <- c(grep(condition_sel[1], group), grep(condition_sel[2], group))
-    group <- group[sample_sel]
-    design <- model.matrix(~group)
+  else
+    sample_sel <- 1:ncol(counts)
+  group <- group[sample_sel]
+    if(!is.null(spikeins)){
+      counts1 <- rbind(spikeins, counts)
+      set <- RUVg(as.matrix(counts1), 1:nrow(spikeins), k=1)
+      Phenod <- data.frame(x = group, weight = set$W[sample_sel])
+      #rownames(Phenod) <- colnames(counts)
+      design <- model.matrix(~x + weight, data = Phenod)
+    }
+    else
+      design <- model.matrix(~group)
     counts_N_log2 <- counts_N_log2[,sample_sel]
-  }
   fit <- lmFit(counts_N_log2, design)
   fit <- eBayes(fit)
   TestStat <- topTable(fit,coef=2,n=nrow(counts), sort.by = "none")
@@ -460,6 +466,7 @@ limma.pfun <- function(counts, group, design, condition_sel){
     logfc = TestStat$logFC,
     pval = TestStat$P.Value
   )
+  rownames(TestStat) <- rownames(counts)
   list(
     RawCount = counts,
     NormCount = counts_N,
@@ -494,6 +501,7 @@ monocle.pfun <- function(counts, group, condition_sel){
     logfc = log2(temp[1,]/temp[2,]),
     pval = diff_test_res$pval
   )
+  rownames(TestStat) <- rownames(counts)
   list(
     RawCount = counts,
     NormCount = counts_N,
@@ -502,8 +510,116 @@ monocle.pfun <- function(counts, group, condition_sel){
   )
 }
 
+BPSC.pfun <- function(counts, group, design, spikeins, condition_sel, cores = 2){
+  # the input of BPSC has to be TPM or 
+  # normlized counts from edgeR
+  d <- DGEList(counts = counts, group = group)
+  d <- calcNormFactors(d)
+  NormCount <- cpm(d)
+  if(!is.null(condition_sel))
+    sample_sel <- c(grep(condition_sel[1], group), grep(condition_sel[2], group))
+  else
+    sample_sel <- 1:ncol(counts)
+  group <- group[sample_sel]
+  if(!is.null(spikeins)){
+    counts1 <- rbind(spikeins, counts)
+    set <- RUVg(as.matrix(counts1), 1:nrow(spikeins), k=1)
+    Phenod <- data.frame(x = group, weight = set$W[sample_sel])
+    #rownames(Phenod) <- colnames(counts)
+    design <- model.matrix(~x + weight, data = Phenod)
+  }
+  else
+    design <- model.matrix(~group)
+  #Run BPglm for differential expression analysis
+  registerDoParallel(cores=cores)
+  res <- BPglm(data=NormCount[,sample_sel], controlIds=which(group==unique(group)[1]), design=design, coef=2, estIntPar=FALSE, useParallel = T) 
+  temp <- data.frame(
+    c1 = apply(NormCount[,sample_sel][, group == unique(group)[1]], 1, mean),
+    c2 = apply(NormCount[,sample_sel][, group == unique(group)[2]], 1, mean)
+  )
+  TestStat <- data.frame(
+    AveExpr = apply(NormCount[,sample_sel], 1, mean),
+    logfc = log2(temp[1,]/temp[2,]),
+    pval = res$PVAL
+  )
+  rownames(TestStat) <- rownames(counts)
+  colnames(TestStat) <- c('AveExpr',  'logFC', 'p value')
+  list(
+    RawCount = counts,
+    NormCount = NormCount,
+    Dispersion = c(),
+    TestStat = TestStat
+  )
+}
+
+MAST.pfun <- function(counts, group, spikeins, condition_sel){
+  d <- DGEList(counts = counts, group = group)
+  d <- calcNormFactors(d)
+  NormCount <- cpm(d)
+  if(!is.null(condition_sel))
+    sample_sel <- c(grep(condition_sel[1], group), grep(condition_sel[2], group))
+  else
+    sample_sel <- 1:ncol(counts)
+  cat('checkpoint4', '\n')
+  cat('condition:', str(condition_sel), '\n')
+  str(sample_sel)
+  str(counts)
+  str(as.matrix(log2(counts[,sample_sel] + 1)))
+  scAssay <- FromMatrix(as.matrix(log2(counts[,sample_sel] + 1)), cData = data.frame(condition = group[sample_sel], wellKey = colnames(counts)[sample_sel]), fData = data.frame(primerid = rownames(counts)))
+  zlmCond <- zlm.SingleCellAssay(~condition, scAssay)
+  cat('checkpoint6', '\n')
+  contrast <- colnames(zlmCond@coefD)[2]
+  summaryLrt <- summary(zlmCond, doLRT=contrast)
+  summaryDt <- summaryLrt$datatable
+  fcHurdle <- merge(summaryDt[contrast==contrast & component=='H',.(primerid, `Pr(>Chisq)`)],
+                    summaryDt[contrast==contrast & component=='logFC', .(primerid, coef, ci.hi, ci.lo)], by='primerid')
+  TestStat <- data.frame(
+    AveExpr = apply(NormCount[,sample_sel], 1, mean),
+    logfc = fcHurdle$coef,
+    pval = fcHurdle$`Pr(>Chisq)`
+  )
+  cat('checkpoint7', '\n')
+  rownames(TestStat) <- rownames(counts)
+  colnames(TestStat) <- c('AveExpr',  'logFC', 'p value')
+  list(
+    RawCount = counts,
+    NormCount = NormCount,
+    Dispersion = c(),
+    TestStat = TestStat
+  )
+}
+
+EBSeq.pfun <- 
+  function(counts, group, condition_sel)
+  {
+    ## EBSeq pipeline ##
+    ## adjust p value and p value are the same
+    sf <- MedianNorm(counts)
+    NormCount <- t(t(counts)/sf)
+    if(!is.null(condition_sel))
+      sample_sel <- c(grep(condition_sel[1], group), grep(condition_sel[2], group))
+    else
+      sample_sel <- 1:ncol(counts)
+    group <- as.factor(group[sample_sel])
+    f <- EBTest(Data = counts[,sample_sel], Conditions = group, sizeFactors = sf[sample_sel], maxround = 5)
+    res <- GetDEResults(f)
+    TestStat <- data.frame(
+      AveExpr = apply(NormCount[,sample_sel], 1, mean),
+      logfc = log2(PostFC(f)$PostFC),
+      pval = 1 - res$PPMat[, "PPDE"]
+    )
+    rownames(TestStat) <- rownames(counts)
+    colnames(TestStat) <- c('AveExpr',  'logFC', 'p value')
+    list(
+      RawCount = counts,
+      NormCount = f$DataNorm,
+      Dispersion = c(),
+      TestStat = TestStat
+    )
+  }	
+
 idHetero <-
-  function(inputNetwork, minMod = 5, maxStep = 5, permuteNum = 1000, pThr = 0.01, weight = NULL) {
+  function(inputNetwork, minMod = 5, maxStep = 5, permuteNum = 1000, pThr = 0.05, weight = NULL) {
     inputNetwork <- as.matrix(inputNetwork)
     inputNetwork_S <- as.character(inputNetwork)
     inputNetwork_S <- array(inputNetwork_S,dim = dim(inputNetwork))
