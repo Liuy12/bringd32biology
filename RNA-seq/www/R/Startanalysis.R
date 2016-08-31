@@ -140,7 +140,7 @@ output$DEinput <- renderUI({
       tags$div(selectizeInput(
         "DEmethod", 
         label = 'Please select a method for DE analysis',
-        choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde', 'BPSC', 'EBSeq'),
+        choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde', 'BPSC', 'EBSeq', 'ROTS'),
         options = list(placeholder = 'select a method below',
                        onInitialize = I('function() { this.setValue(""); }'))
       ),
@@ -150,7 +150,7 @@ output$DEinput <- renderUI({
     tags$div(selectizeInput(
       "DEmethod", 
       label = 'Please select a method for DE analysis',
-      choices = c('monocle', 'limma', 'edgeR', 'edgeR-robust', 'BPSC', 'MAST', 'EBSeq'),
+      choices = c('monocle', 'limma', 'edgeR', 'edgeR-robust', 'BPSC', 'MAST', 'EBSeq', 'ROTS'),
       options = list(placeholder = 'select a method below',
                      onInitialize = I('function() { this.setValue(""); }'))
     ),
@@ -169,7 +169,7 @@ output$DEinput <- renderUI({
           selectizeInput(
           "DEmethod1", 
           label = 'Please select a method to characterize subpopulation',
-          choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde', 'BPSC', 'EBSeq'),
+          choices = c('XBSeq', 'DESeq', 'DESeq2', 'edgeR', 'edgeR-robust', 'limma-voom', 'scde', 'BPSC', 'EBSeq', 'ROTS'),
           options = list(placeholder = 'select a method below',
                          onInitialize = I('function() { this.setValue(""); }'))
         ),
@@ -188,7 +188,7 @@ output$DEinput <- renderUI({
           selectizeInput(
           "DEmethod1", 
           label = 'Please select a method to characterize subpopulation',
-          choices = c('monocle', 'limma', 'edgeR', 'edgeR-robust', 'BPSC', 'MAST', 'EBSeq'),
+          choices = c('monocle', 'limma', 'edgeR', 'edgeR-robust', 'BPSC', 'MAST', 'EBSeq', 'ROTS'),
           options = list(placeholder = 'select a method below',
                          onInitialize = I('function() { this.setValue(""); }'))
         ),
@@ -331,10 +331,10 @@ output$Chartpage <- renderUI({
                column(4, offset = 1, selectizeInput("Exprscut", 
                                                     label = 'Expression level cutoff in quantile',
                                                     choices = c('0% quantile', '25% quantile', '50% quantile', '75% quantile', '100% quantile'),
-                                                    selected = "50% quantile"
+                                                    selected = "75% quantile"
                                                     )),
                column(4,offset = 2, sliderInput("Corrcut", "Correlation cutoff", 
-                                                min=0, max=1, step = 0.1, value=0.9)
+                                                min=0, max=1, step = 0.05, value=0.95)
                )),
              fluidRow(
                column(4, offset = 1, verbatimTextOutput("value_Exprscut")),
@@ -359,7 +359,7 @@ output$Chartpage <- renderUI({
         tabPanel("Dispersion plot", 
                  fluidRow(column(12, showOutput("DispersionPlot", "polycharts"))))
       )
-    else if(input$DEmethod == 'limma-voom' | input$DEmethod == 'scde' | input$DEmethod == 'limma' | input$DEmethod == 'monocle' | input$DEmethod == 'BPSC' | input$DEmethod == 'MAST' | input$DEmethod == 'EBSeq')
+    else if(input$DEmethod == 'limma-voom' | input$DEmethod == 'scde' | input$DEmethod == 'limma' | input$DEmethod == 'monocle' | input$DEmethod == 'BPSC' | input$DEmethod == 'MAST' | input$DEmethod == 'EBSeq' | input$DEmethod == 'ROTS')
             tabBox(
               title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
               id = 'DEanalysis', width = 12, 
@@ -577,6 +577,8 @@ dataComb <- eventReactive(input$DEstart, {
     }
     else if (input$DEmethod == 'EBSeq')
       dataOut <- EBSeq.pfun(data_obs, group, condition_sel)
+    else if (input$DEmethod == 'ROTS')
+      dataOut <- ROTS.pfun(data_obs, group, condition_sel)
     
 #     else if (input$DEmethod == 'SAMSeq'){
 #       SAMSeq.pfun(data_obs, group, condition_sel = c(input$Con_S1, input$Con_S2))
@@ -986,6 +988,8 @@ heteroModule <- reactive({
                 dataOut <- MAST.pfun(dataComb[[1]], group, data_spikein, c())
               else if (input$DEmethod1 == 'EBSeq')
                 dataOut <- EBSeq.pfun(data_obs, group, condition_sel)
+              else if (input$DEmethod1 == 'ROTS')
+                dataOut <- ROTS.pfun(data_obs, group, condition_sel)
               testStat <- dataOut[[4]]
               if(input$DEmethod1 == 'EBSeq')
                 testStat$padj <- testStat[,3]
@@ -1146,7 +1150,7 @@ output$DEtable <- DT::renderDataTable({
     folder <- dataComb[[5]]
     dataMat <- as.data.frame(dataMat)
     dataMat1 <- dataComb[[4]]
-    if(input$DEmethod == 'EBSeq' || input$DEmethod1 == 'EBSeq')
+    if(input$DEmethod == 'EBSeq' || (input$DEmethod == 'Brennecke_2013' && input$DEmethod1 == 'EBSeq'))
       p_adjust1 <- dataMat1[,3]
     else
       p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
@@ -1187,7 +1191,7 @@ output$DEheatmap <- renderD3heatmap({
     folder <- dataComb[[5]]
     dataMat <- as.data.frame(dataMat)
     dataMat1 <- dataComb[[4]]
-    if(input$DEmethod == 'EBSeq' || input$DEmethod1 == 'EBSeq')
+    if(input$DEmethod == 'EBSeq' || (input$DEmethod == 'Brennecke_2013' && input$DEmethod1 == 'EBSeq'))
       p_adjust1 <- dataMat1[,3]
     else
       p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
@@ -1230,10 +1234,10 @@ output$MAplot <- renderMetricsgraphics({
     dataMat <- dataComb[[4]]
     folder <- dataComb[[5]]
     colnames(dataMat) <- c('baseMean', 'log2FoldChange', 'p_adjust')
-    if(input$DEmethod == 'EBSeq' || input$DEmethod1 == 'EBSeq')
-      p_adjust1 <- dataMat1[,3]
+    if(input$DEmethod == 'EBSeq' || (input$DEmethod == 'Brennecke_2013' && input$DEmethod1 == 'EBSeq'))
+      p_adjust1 <- dataMat[,3]
     else
-      p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
+      p_adjust1 <- p.adjust(dataMat[,3], method = input$padjust)
     p_adjust1[is.na(p_adjust1)] <- 1
     meanCutQ <- switch(input$log2bmcutoff,
                        "0% quantile" = 1,

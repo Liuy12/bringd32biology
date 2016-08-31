@@ -34,6 +34,7 @@ library(LPCM)
 library(colorspace)
 library(doParallel)
 library(EBSeq)
+library(ROTS)
 
 
 #Emails
@@ -617,6 +618,34 @@ EBSeq.pfun <-
       TestStat = TestStat
     )
   }	
+
+ROTS.pfun <- function(counts, group, condition_sel, B =1000){
+  # the input of ROTS has to be 
+  # normlized counts or TPM from edgeR
+  d <- DGEList(counts = counts, group = group)
+  d <- calcNormFactors(d)
+  NormCount <- cpm(d)
+  if(!is.null(condition_sel))
+    sample_sel <- c(grep(condition_sel[1], group), grep(condition_sel[2], group))
+  else
+    sample_sel <- 1:ncol(counts)
+  group <- group[sample_sel]
+  res <- ROTS(data = NormCount[,sample_sel], groups = group, B = B, K = 500 , seed = 1234, log = FALSE)
+  TestStat <- data.frame(
+    AveExpr = apply(NormCount[,sample_sel], 1, mean),
+    logfc = res$logfc,
+    pval = res$pvalue
+  )
+  rownames(TestStat) <- rownames(counts)
+  colnames(TestStat) <- c('AveExpr',  'logFC', 'p value')
+  list(
+    RawCount = counts,
+    NormCount = NormCount,
+    Dispersion = c(),
+    TestStat = TestStat
+  )
+}
+
 
 idHetero <-
   function(inputNetwork, minMod = 5, maxStep = 5, permuteNum = 1000, pThr = 0.05, weight = NULL) {
