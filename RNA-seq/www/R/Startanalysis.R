@@ -449,18 +449,18 @@ output$StartDownload <- downloadHandler(
     })
     if(input$DEmethod == 'XBSeq' | input$DEmethod == 'DESeq' | input$DEmethod == 'DESeq2' | input$DEmethod == 'edgeR' | input$DEmethod == 'edgeR-robust'){
       slidify('Report.Rmd')
-      zip(file, files = c('Report.html', 'libraries/', 'htmlFiles/', 'DEstat.csv', 'TestStat.csv'))
+      zip(file, files = c('Report.html', 'libraries/', 'htmlFiles/', 'DEstat.csv', 'TestStat.csv', 'pdfFiles'))
     }
     else if (input$DEmethod == 'Brennecke_2013'){
       slidify('ReportRNASeqVis.Rmd')
       if(dir.exists('HeteroModule/'))
         zip(file, files = c('ReportRNASeqVis.html', 'libraries/', 'htmlFiles/', 'NormData.csv', 'HVGData.csv', 'HeteroModule/'))
       else
-        zip(file, files = c('ReportRNASeqVis.html', 'libraries/', 'htmlFiles/', 'NormData.csv', 'HVGData.csv'))
+        zip(file, files = c('ReportRNASeqVis.html', 'libraries/', 'htmlFiles/', 'NormData.csv', 'HVGData.csv', 'pdfFiles'))
     }
     else{
       slidify('Reports.Rmd')
-      zip(file, files = c('Reports.html', 'libraries/', 'htmlFiles/', 'DEstat.csv', 'TestStat.csv'))
+      zip(file, files = c('Reports.html', 'libraries/', 'htmlFiles/', 'DEstat.csv', 'TestStat.csv', 'pdfFiles'))
     }
   },
   contentType = 'application/zip'
@@ -520,6 +520,7 @@ dataComb <- eventReactive(input$DEstart, {
       if(!dir.exists(folder)){
         dir.create(folder)
         dir.create(paste(folder, '/htmlFiles', sep = ''))
+        dir.create(paste(folder, '/pdfFiles', sep = ''))
         file.copy(c('www/report/Report.Rmd', 'www/report/Reports.Rmd', 'www/report/ReportRNASeqVis.Rmd', 'www/report/libraries'), folder, recursive = TRUE)
         break
       }
@@ -702,7 +703,8 @@ output$Spikeinsqc <- renderMetricsgraphics({
       ) %>%
       #    mjs_add_baseline(y_value = 0, label = 'baseline') %>%
       mjs_labs(x_label = 'Number of mapped reads', y_label = "Spike-in reads (%)")
-    
+    gp <- ggplot() + geom_point(aes(x = Totalreads, y = Spikein_prop), data = dataMat) + labs(x = 'Number of mapped reads', y = "Spike-in reads (%)")
+    ggsave(paste(folder, '/pdfFiles/', 'spikeinQC.pdf', sep = ''), gp)
     saveWidget(mp, file = 'SpikeinQC.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./SpikeinQC.html', path)
@@ -753,9 +755,11 @@ output$Heatmap <- renderD3heatmap({
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./heatmap.html', path)
     file.remove('./heatmap.html')
+    pdf(paste(folder, '/pdfFiles/', 'heatmap.pdf', sep = ''))
+    heatmap.my(as.matrix(dataMat1[1:uplim,]))
+    dev.off()
     h1
     })
-
 })
 
 output$Density <- renderChart({
@@ -787,6 +791,9 @@ output$Density <- renderChart({
     np$xAxis(axisLabel = xlab)
     np$yAxis(axisLabel = 'Density')
     path <- paste(folder, '/htmlFiles/density.html', sep = '')
+    dp <- ggplot() + geom_line(aes(x = Exprs, y = Density, color = ind), data = denStat) + 
+      guides(color = 'none') + labs(x = xlab, y = 'density')
+    ggsave(paste(folder, '/pdfFiles/density.pdf', sep = ''), dp)
     if(ncol(dataMat) > 100)
       return(NULL)
       #np$chart(useInteractiveGuideline = FALSE, showLegend = FALSE, interactive = FALSE)
@@ -813,6 +820,17 @@ output$ScatterPlot <- renderChart({
     dataMat <- log2(dataComb[[2]] + 0.01)
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
     dataMat <- as.data.frame(dataMat)
+    if(ncol(dataMat) < 10){
+      library(GGally)
+      pdf(paste(folder, '/pdfFiles/scatterPlot.pdf', sep = ''))
+      gp <- ggpairs(dataMat)
+      print(gp)
+      dev.off()
+    }
+    else{
+      gp <- ggplot() + geom_point(aes(x = S1, y = S2), data = dataMat)
+      ggsave(paste(folder, '/pdfFiles/scatterPlot.pdf', sep = ''), gp)
+    }
     dataMat$GeneName <- rownames(dataMat)
     hp <-
       hPlot(
@@ -870,6 +888,12 @@ output$Boxplot <- renderChart({
       ylab <- 'Log2 normalized cpm (counts per million)'
     else
       ylab <- 'Log2 normalized intensity'
+    dataMat1 <- as.data.frame(dataMat)
+    dataMat1$IDs <- rownames(dataMat)
+    dataMat1 <- melt(dataMat1, 'IDs')
+    str(dataMat1)
+    gp <- ggplot() + geom_boxplot(aes(x = variable, y = value), data = dataMat1)
+    ggsave(paste(folder, '/pdfFiles/boxPlot.pdf', sep = ''), gp)
     hp$yAxis(title = list(text = ylab))
     hp$chart(type = 'boxplot')
     hp$addParams(dom = "Boxplot")
@@ -946,6 +970,7 @@ heteroModule <- reactive({
             write.csv(test1$cluster.label, paste(path, '/HeteroModule/subpopulationLabel.csv', sep = ''))
             for(i in 1:length(unique(test1$cluster.label))){
               group <- paste('C', ifelse(test1$cluster.label == i, 1, 2), sep = '')
+              cat()
               if (input$DEmethod1 == 'XBSeq') {
                 data_bg <- fread(input$file_bg$datapath, data.table = F)
                 rownames(data_bg) <- data_bg[,1]
@@ -1021,8 +1046,6 @@ output$PrincipalComponent2d <-
       folder <- prinstat[[3]]
       xlab <- paste('PC1 (', percent[1],'%)', sep = '')
       ylab <- paste('PC2 (', percent[2], '%)', sep = '')
-      xlab <- paste('PC1 (', percent[1],'%)', sep = '')
-      ylab <- paste('PC2 (', percent[2], '%)', sep = '')
       dp <-
         dPlot(
           PC2 ~ PC1, data = as.data.frame(ppoints), 
@@ -1032,11 +1055,14 @@ output$PrincipalComponent2d <-
       dp$addParams(dom = "PrincipalComponent2d")
       path <- paste(folder, '/htmlFiles/pcaplot.html', sep = '')
       dp$save(path, cdn = TRUE)
+      gp <- ggplot() + geom_point(aes(x = PC1, y = PC2, color = Design), data = as.data.frame(ppoints))
+      ggsave(paste(folder, '/pdfFiles/pcaPlot2d.pdf', sep = ''), gp)
       dp
       })
   })
 
 output$PrincipalComponent3d <- renderScatterplotThree({
+  library(scatterplot3d)
   prinstat <- Principalstats()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'PCA plot', {
     ppoints <- prinstat[[1]]
@@ -1071,6 +1097,9 @@ output$PrincipalComponent3d <- renderScatterplotThree({
       file.remove(paste(path, 'pcaplot.html', sep = ''))
     file.copy('./pcaplot.html', path)
     file.remove('./pcaplot.html')
+    pdf(paste(folder, '/pdfFiles/pcaPlot3d.pdf', sep = ''))
+    scatterplot3d(ppoints[,1], ppoints[,2], ppoints[,3], color = col, xlab = xlab, ylab = ylab, zlab = zlab, pch = 19)
+    dev.off()
     return(scatter3d)
     })
 })
@@ -1088,6 +1117,7 @@ output$forceNetworkGene <- renderForceNetwork({
     return(NULL)
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'Gene interaction network', {
+    library(igraph)
     dataMat <- log2(dataComb[[2]] + 0.01)
     folder <- dataComb[[5]]
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
@@ -1127,7 +1157,7 @@ output$forceNetworkGene <- renderForceNetwork({
       forceNet <- forceNetwork(
         Links = MisLinks, Nodes = MisNodes, Source = "source",
         Target = "target", Value = "value", NodeID = "name",
-        Group = "group", opacity = 0.4
+        Group = "group", opacity = 0.4, bounded = TRUE
       )
       htmlwidgets::saveWidget(forceNet, 'forceNet.html', background = 'none')
       path <- paste(folder, '/htmlFiles/', sep = '')
@@ -1135,6 +1165,13 @@ output$forceNetworkGene <- renderForceNetwork({
         file.remove(paste(path, './forceNet.html', sep = ''))
       file.copy('./forceNet.html', path)
       file.remove('./forceNet.html')
+      edgeList <- MisLinks[,1:2]
+      edgeList$source <- MisNodes$name[edgeList$source + 1]
+      edgeList$target <- MisNodes$name[edgeList$target + 1]
+      ig <- graph_from_edgelist(as.matrix(edgeList), directed = FALSE)
+      pdf(paste(folder, '/pdfFiles/network.pdf', sep = ''))
+      plot(ig, vertex.size = 10, vertex.label.cex = 0.5,layout=layout_with_fr, vertex.shape = 'square')
+      dev.off()
       return(forceNet)
     }
     })
@@ -1222,6 +1259,9 @@ output$DEheatmap <- renderD3heatmap({
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./DEheatmap.html', path)
     file.remove('./DEheatmap.html')
+    pdf(paste(folder, '/pdfFiles/', 'DEheatmap.pdf', sep = ''))
+    heatmap.my(as.matrix(dataMat2))
+    dev.off()
     h1
   })
 })
@@ -1285,6 +1325,20 @@ output$MAplot <- renderMetricsgraphics({
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./MAplot.html', path)
     file.remove('./MAplot.html')
+    dataMat = subset(dataMat, baseMean != 0)
+    y = dataMat$log2FoldChange
+    ylim = c(-1, 1) * quantile(abs(y[is.finite(y)]), probs = 0.99) * 
+      1.1
+    shape = as.factor(ifelse(y < ylim[1], 6, ifelse(y > ylim[2], 2, 
+                                            16)))
+    dataMat$log2FoldChange = pmax(ylim[1], pmin(ylim[2], y))
+    dataMat$shape <- shape
+    gp <- ggplot() + geom_point(aes(x = baseMean, y = log2FoldChange, color = col, shape = shape), data = dataMat) + ylim(ylim) +
+      geom_hline(yintercept = 0, colour = 'red3', size = 1) + 
+      scale_color_manual(values = color_rg) +
+      scale_x_log10() + labs(x = xlab, y = "Log2 fold change") +
+      guides(shape = 'none')
+    ggsave(paste(folder, '/pdfFiles/', 'MAplot.pdf', sep = ''), gp)
     mp
     })
 })
@@ -1321,6 +1375,8 @@ output$DispersionPlot <- renderChart({
         )
       )
       rp$addParams(dom = "DispersionPlot")
+      gp <- ggplot(data = Dispersion1) + geom_point(aes(x = baseMean, y = Disp, color = Type)) + 
+        geom_line(aes(x = baseMean, y = Dispfit), color = 'red') + scale_x_log10()
     }
     if(input$DEmethod == 'DESeq' | input$DEmethod == 'XBSeq')
     {
@@ -1338,6 +1394,8 @@ output$DispersionPlot <- renderChart({
         copy_layer = T
       )
       rp$addParams(dom = "DispersionPlot")
+      gp <- ggplot(data = Dispersion) + geom_point(aes(x = baseMean, y = PerGeneEst)) + 
+        geom_line(aes(x = baseMean, y = FittedDispEst), color = 'red') + scale_x_log10()
     }
     if(input$DEmethod == 'edgeR'){
       Dispersion$GeneName <- rownames(dataComb[[2]])
@@ -1358,6 +1416,10 @@ output$DispersionPlot <- renderChart({
         copy_layer = T
       )    
       rp$addParams(dom = "DispersionPlot")
+      gp <- ggplot(data = Dispersion) + geom_point(aes(x = baseMean, y = TagwiseDisp)) + 
+        geom_line(aes(x = baseMean, y = FittedDisp), color = 'red') + 
+        scale_x_log10() +
+        geom_line(aes(x = baseMean, y = CommonDisp), color = 'blue')
     }
     if(input$DEmethod == 'edgeR-robust'){
       Dispersion$GeneName <- rownames(dataComb[[2]])
@@ -1374,9 +1436,13 @@ output$DispersionPlot <- renderChart({
         copy_layer = T
       )
       rp$addParams(dom = "DispersionPlot")
+      gp <- ggplot(data = Dispersion) + geom_point(aes(x = baseMean, y = TagwiseDisp)) + 
+        geom_line(aes(x = baseMean, y = FittedDisp), color = 'red') + 
+        scale_x_log10()
     }
     path <- paste(folder, '/htmlFiles/DispersionPlot.html', sep = '')
     rp$save(path, standalone = TRUE)
+    ggsave(paste(folder, '/pdfFiles/dispersionPlot.pdf', sep = ''), gp)
     rp
     })
 })
@@ -1427,6 +1493,9 @@ output$HVGheatmap <- renderD3heatmap(({
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./HVGheatmap.html', path)
     file.remove('./HVGheatmap.html')
+    pdf(paste(folder, '/pdfFiles/', 'HVGheatmap.pdf', sep = ''))
+    heatmap.my(as.matrix(dataMat2))
+    dev.off()
     h1
   })
 }))
@@ -1470,6 +1539,9 @@ output$HVGplot <- renderMetricsgraphics({
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./HVGplot.html', path)
     file.remove('./HVGplot.html')
+    gp <- ggplot() + geom_point(aes(x = baseMean, y = CV, color = Col), data = dataMat1) +
+      scale_colour_manual(values = color_rg) + labs(x = 'Log2 expression intensity', y = "Coeffcient of variation")
+    ggsave(paste(folder, '/pdfFiles/', 'HVGplot.pdf', sep = ''), gp)
     mp
   })
 })

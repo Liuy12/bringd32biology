@@ -1,6 +1,7 @@
 # Define server logic required to summarize and view the selected dataset
 shinyServer(function(input, output,session) {
   source('www/R/Startanalysis.R', local = TRUE)
+  source('www/R/myheatmap.R', local =TRUE)
   options(shiny.maxRequestSize=1000*1024^2) 
   options(pandoc.stack.size = '2048m')
   outputOptions(output, "Heatmap", suspendWhenHidden = FALSE)

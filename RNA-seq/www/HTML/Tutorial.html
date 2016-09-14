@@ -3,7 +3,6 @@
         <li><a href="#DESeq2_bulk">Case 1: Using DESeq2 to process bulk RNA-seq datasets</a></li>
         <li><a href="#SCDE_singleCell">Case 2: Using SCDE to process single-cell RNA-seq datasets</a></li>
         <li><a href="#HVGs">Case 3: Identify highly variable genes for single-cell RNA-seq datasets</a></li>
-        <li><a href="#Details">Further details of RNA-seq Vis</a></li>
     </ul>
 </section>
 
@@ -140,9 +139,57 @@
 </section>
 
 <section id="HVGs">
-<h2 class="page-header"><a href="#HVGs">Case 3: Identify highly variable genes for single-cell RNA-seq datasets</a></h2>
-</section>
-
-<section id="Details">
-<h2 class="page-header"><a href="#HVGs">Further details of RNA-seq Vis</a></h2>
+<h2 class="page-header"><a href="#HVGs">Case 3: Identify highly variable genes (HVGs) for single-cell RNA-seq datasets</a></h2>
+    <b>Datasets</b>
+        <p class="lead">
+        The dataset used for this section consisted of 430 single glioblastoma cells isolated from 5 individual tumors. The dataset is obtained from Gene Expression Omnibus (<a target="_blank" href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE57872">GSE57872</a>). The expression matrix file can be downloaded here: <a id="Case3_sample" class="shiny-download-link" href="CaseStudies/Case3/Dataset/Case3_sample.txt" target="_blank">Expression dataset</a>.
+    </p>
+    <b>Set options</b>
+    <p>
+        Click on set input options subpanel of Start analysis panel on the left and firstly set experiment information shown below. Remember to set experimental design option to 'not available'.
+    </p>
+    <img src="CaseStudies/Case3/Results/Step1.png" alt="Figures can not be shown" style="width:40%;height:40%;position: relative; left: 30%;">
+    <p>
+        Choose BPSC as method for DE analysis and then upload Expression dataset downloaded above.    
+    </p>
+    <img src="CaseStudies/Case3/Results/Step2.png" alt="Figures can not be shown" style="width:40%;height:40%;position: relative; left: 30%;">
+    <p>
+    Leave other options as default and click start analysis button in the bottom right box. 
+    </p>
+    <img src="CaseStudies/Case3/Results/Step3.png" alt="Figures can not be shown" style="width:40%;height:40%;position: relative; left: 30%;">
+    <p>
+        After clicking the start analysis button, you will see a progression bar on top of the page indicating current analysis process like shown below.
+    </p>
+    <img src="CaseStudies/Case3/Results/Step4.png" alt="Figures can not be shown" style="width:100%;height:100%;">
+    <p>
+        Click on the Charts subpanel on the left. All the figures will be loaded automatically once the analysis finished. And download button will also appear after the analysis finished.
+    </p>
+    <b> Results</b>
+    <p>
+        Here are some figures generated from the analysis:
+    </p>
+    <p>
+        Scatter plot
+    </p>
+    <iframe src="CaseStudies/Case3/Results/Scatterplot.html" width=1000px height=400px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+        Interaction network
+    </p>
+    <iframe src="CaseStudies/Case3/Results/forceNet.html" width=1000px height=400px allowtransparency="true" frameBorder="0"> </iframe>
+     <p>
+    3D PCA plot
+    </p>
+    <iframe src="CaseStudies/Case3/Results/pcaplot.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+        HVGs table
+    </p>
+    <iframe src="CaseStudies/Case3/Results/HVGdatatable.html" width=1000px height=400px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+        HVGs plot
+    </p>
+    <iframe src="CaseStudies/Case3/Results/HVGplot.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+       HVGs heatmap
+    </p>
+    <iframe src="CaseStudies/Case3/Results/HVGheatmap.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
 </section>

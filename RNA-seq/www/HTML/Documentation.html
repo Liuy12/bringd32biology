@@ -1,7 +1,16 @@
+<section id="TOC" style="clear: both;font-size: 150%;text-decoration: underline">
+    <ul> 
+        <li><a href="#Preprocess">Pre-process steps</a></li>
+        <li><a href="#inputfiles">Input format</a></li>
+        <li><a href="#Analysisoptions">Set input options</a></li>
+        <li><a href="#Chartdownload">Download results</a></li>
+    </ul>
+</section>
+
 <section id="Preprocess">
     <h2 class="page-header"><a href="#Preprocess">Pre-process steps</a></h2>
     <p class="lead">
-        Before <a href="#inputfiles">starting analysis</a> with RNA-seq Vis, you firstly will need to go through several steps to generate expression count matrix for your RNA-seq experiment. 
+        Before <a href="#inputfiles">starting analysis</a> with scRNA-seq Vis, you firstly will need to go through several steps to generate expression matrix for your RNA-seq experiment. 
     </p>
     <p>
         After sequencing and <a target="_blank" href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/">sequence quality control</a> procedure, you will get the sequence files in <a target="_blank" href="https://en.wikipedia.org/wiki/FASTQ_format">FASTQ</a> format, which generally contains sequence and its quality information. You need to go through alignment and counting procesure in order to generate expression count matrix for your experiments: 
@@ -23,7 +32,7 @@
 <section id="inputfiles">
   <h2 class="page-header"><a href="#inputfiles">Input format</a></h2>
   <p class="lead">
-    After you go through the pre-process steps using your favourite pipeline and generate the expression matrix for RNA-seq, you are now ready to use RNA-seq Vis! <b>RNA-seq Vis</b> require two input files (except that if you choose <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a> as DE method). One is expression matrix for RNA-seq. The other is design matrix for the experiment. Both files are required in a format of either tab seperated txt files or csv files. Sample files can be downloaded here: <a id="sampleexpression" class="shiny-download-link" href="Sampledata/test.txt" target="_blank">Expression dataset</a> and <a id="sampledesign" class="shiny-download-link" href="Sampledata/design.txt" target="_blank">design matrix</a>.
+    After you go through the pre-process steps using your favourite pipeline and generate the expression matrix for RNA-seq, you are now ready to use scRNA-seq Vis! <b>scRNA-seq Vis</b> require two input files (except that if you choose <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a> as DE method). One is expression matrix for RNA-seq. The values of gene expression can be in the unit of 'raw count', 'Transcript per Million (TPM)', 'Reads Per Kilobase of transcript per Million mapped reads (RPKM)', 'Fragments Per Kilobase of transcript per Million mapped reads (FPKM)'. <b>Do not use log2 transformed values</b>. The other is design matrix for the experiment. Both files are required in a format of either tab seperated txt files or csv files. Sample files can be downloaded here: <a id="sampleexpression" class="shiny-download-link" href="Sampledata/test.txt" target="_blank">Expression dataset</a> and <a id="sampledesign" class="shiny-download-link" href="Sampledata/design.txt" target="_blank">design matrix</a>. If design matrix is not available, for instance with single cell experiments to identify cell heterogeneity, please remember to set input option of design matrix to 'not available'.
        </p>
  <div class="callout callout-info lead">
     <h4>Reminder!</h4>
@@ -36,11 +45,11 @@
 <section id="Analysisoptions">
   <h2 class="page-header"><a href="#Analysisoptions">Set input options</a></h2>
   <p class="lead">
-    Click <b>Start analysis</b> panel and then <b>Set input options</b> subpanel to start your analysis. Firstly, you need to choose which statistical method you wanna use for your analysis. Available options include: <a target="_blank" href="http://bioconductor.org/packages/DESeq/">DESeq</a>, <a target="_blank" href="http://bioconductor.org/packages/DESeq2/">DESeq2</a>, <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a>, <a target="_blank" href="http://bioconductor.org/packages/edgeR/">edgeR</a>, <a target="_blank" href="http://omictools.com/edger-robust-s4759.html">edgeR-robust</a> and <a target="_blank" href="http://www.genomebiology.com/2014/15/2/R29">limma-voom</a>. Then you can upload your expression matrix file and experimental design file of your RNA-seq experiment through the file uploading system.
+    Click <b>Start analysis</b> panel and then <b>Set input options</b> subpanel to start your analysis. Firstly, you need to choose which statistical method you wanna use for your analysis. Available options include: <a target="_blank" href="http://hms-dbmi.github.io/scde/">SCDE</a>, <a target="_blank" href="https://github.com/RGLab/MAST">MAST</a>, <a target="_blank" href="https://github.com/nghiavtr/BPSC">BPSC</a> and methods designed for bulk RNA-seq dataset: <a target="_blank" href="http://bioconductor.org/packages/DESeq/">DESeq</a>, <a target="_blank" href="http://bioconductor.org/packages/DESeq2/">DESeq2</a>, <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a>, <a target="_blank" href="http://bioconductor.org/packages/edgeR/">edgeR</a>, <a target="_blank" href="http://omictools.com/edger-robust-s4759.html">edgeR-robust</a>, <a target="_blank" href="http://cole-trapnell-lab.github.io/monocle-release/">monocle</a>, <a target="_blank" href="http://bioconductor.org/packages/DESeq/">ROTS</a>, <a target="_blank" href="https://bioconductor.org/packages/release/bioc/html/limma.html">limma</a>, <a target="_blank" href="http://www.genomebiology.com/2014/15/2/R29">limma-voom</a> and <a target="_blank" href="http://bioconductor.org/packages/release/bioc/html/EBSeq.html">EBSeq</a>. Then you can upload your expression matrix file and experimental design file of your RNA-seq experiment through the file uploading system. In cases where experimental design information is not available, a generalized linear model based method, <a target="_blank" href="http://www.nature.com/nmeth/journal/v10/n11/full/nmeth.2645.html">Brennecke_2013</a> , will be used to identify highly variable genes (HVGs)
        </p>
  <div class="callout callout-success lead">
     <h4>Suggestions!</h4>
-    <p>For detailed information comparing differnt differential expression statistical method for analysing RNA-seq data, please refer to <a target="_blank" href="http://liuy12.github.io/2015/08/02/Comparison%20of%20differential%20expression%20methods.html">this blog of mine</a></p>
+    <p>For detailed information comparing differnt differential expression statistical method for analysing scRNA-seq, please refer to <a target="_blank" href="http://bib.oxfordjournals.org/content/early/2016/07/02/bib.bbw057.full">this article</a>; for comparative studies regarding bulk RNA-seq data, please refer to <a target="_blank" href="http://liuy12.github.io/2015/08/02/Comparison%20of%20differential%20expression%20methods.html">this blog of mine</a></p>
   </div>
 <h3>Options for <a target="_blank" href="http://bioconductor.org/packages/DESeq/">DESeq</a> and <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a></h3>
     <b>Method to estimate dispersion:</b> Three options are available to estimate gene-wise dispersions. 
@@ -140,18 +149,12 @@
   <p class="lead">
       After you have filled in all required input options, click start analysis buttion, then the analysis will run automatically using your input options. Click on the charts subpanel. All the figures will automatically be loaded once the analysis finished. There are three modules of charts: Quality control charts, gene/sample relationship charts and differential expression analysis charts. After the analysis has finished, you can switch among different charts by clicking the tabpanels. 
     </p>
-    <div class="callout callout-info lead">
-    <h4>Reminder!</h4>
-    <p> 
-        Currently, you will need to click on all tabpanels and wait for all the figures to show up in order to download the report that contains all the figures.
-     </p>
-  </div>
     <p>
         Finally, you can click the bottom download button to download the report files. Within the download files there is a file called 'report.html' which is the final reveal.js based report that contains all the figures. 
     </p>
     <div class="callout callout-danger lead">
     <h4>Tip!</h4>
-    <p>The 'report.html' need to stay with the sub folder 'libraries' and 'htmlFiles' in order to be functional. For instance, if you drag the 'report.html' file to another without dragging the two subfolders, it will not be functional.</p>
+    <p>The 'report.html' need to stay with the sub folder 'libraries' and 'htmlFiles' in order to be functional. For instance, if you drag the 'report.html' file to another location without dragging the two subfolders, it will not be functional.</p>
   </div>
         <p>And that's it. Enjoy visualizing!
     </p>
