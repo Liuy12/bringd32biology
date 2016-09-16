@@ -2,7 +2,7 @@
 shinyServer(function(input, output,session) {
   source('www/R/Startanalysis.R', local = TRUE)
   source('www/R/myheatmap.R', local =TRUE)
-  options(shiny.maxRequestSize=1000*1024^2) 
+  options(shiny.maxRequestSize=2000*1024^2) 
   options(pandoc.stack.size = '2048m')
   outputOptions(output, "Heatmap", suspendWhenHidden = FALSE)
   outputOptions(output, "Density", suspendWhenHidden = FALSE)
@@ -23,7 +23,8 @@ shinyServer(function(input, output,session) {
   
   
   output$totalvisits <- renderValueBox({
-    load("www/ga.rga")
+    library(rga)
+    rga.open(instance = "ga", where = 'ga.rga')
     if (ga$isTokenExpired()){
       ga$refreshToken()
     }
@@ -34,7 +35,8 @@ shinyServer(function(input, output,session) {
   })
   
   output$thismonthvisits <- renderValueBox({
-    load("www/ga.rga")
+    library(rga)
+    rga.open(instance = "ga", where = 'ga.rga')
     if (ga$isTokenExpired()){
       ga$refreshToken()
     }
