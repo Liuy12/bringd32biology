@@ -4,6 +4,7 @@ shinyServer(function(input, output,session) {
   source('www/R/myheatmap.R', local =TRUE)
   options(shiny.maxRequestSize=2000*1024^2) 
   options(pandoc.stack.size = '2048m')
+  options(expressions = 10000)
   outputOptions(output, "Heatmap", suspendWhenHidden = FALSE)
   outputOptions(output, "Density", suspendWhenHidden = FALSE)
   outputOptions(output, "ScatterPlot", suspendWhenHidden = FALSE)

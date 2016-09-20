@@ -1055,6 +1055,15 @@ output$PrincipalComponent2d <-
       dp$addParams(dom = "PrincipalComponent2d")
       path <- paste(folder, '/htmlFiles/pcaplot.html', sep = '')
       dp$save(path, cdn = TRUE)
+      #---- to fix bug of rCharts
+      htmlTx <- readLines(path)
+      index <- grep('//d3js.org/d3.v3.min.js', htmlTx)
+      if(length(index)){
+        htmlTx[index] <- "<script src='http://d3js.org/d3.v3.min.js' type='text/javascript'></script>"
+        htmlTx[index + 1] <- "<script src='http://dimplejs.org/dist/dimple.v2.1.0.min.js' type='text/javascript'></script>"
+        writeLines(htmlTx, path)
+        }
+      #---- fix bug complete
       gp <- ggplot() + geom_point(aes(x = PC1, y = PC2, color = Design), data = as.data.frame(ppoints))
       ggsave(paste(folder, '/pdfFiles/pcaPlot2d.pdf', sep = ''), gp)
       dp
@@ -1157,7 +1166,7 @@ output$forceNetworkGene <- renderForceNetwork({
       forceNet <- forceNetwork(
         Links = MisLinks, Nodes = MisNodes, Source = "source",
         Target = "target", Value = "value", NodeID = "name",
-        Group = "group", opacity = 0.4, bounded = TRUE
+        Group = "group", opacity = 0.4, bounded = FALSE
       )
       htmlwidgets::saveWidget(forceNet, 'forceNet.html', background = 'none')
       path <- paste(folder, '/htmlFiles/', sep = '')
@@ -1217,6 +1226,15 @@ output$DEtable <- DT::renderDataTable({
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./DEdatatable.html', path)
     file.remove('./DEdatatable.html')
+    # ------ fix potential bug of DT
+    htmlTx <- readLines(path)
+    index <- grep('"\\\\&quot;display\\\\&quot;"', htmlTx)
+    if(length(index))
+    {
+      htmlTx <- gsub('"\\\\&quot;display\\\\&quot;"', '\"display\"', htmlTx)
+      writeLines(htmlTx, path)
+    }
+    # ------ fix complete
     temp
       })
 })
