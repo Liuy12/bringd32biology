@@ -266,7 +266,7 @@ shinyUI(fluidPage(
                                      uiOutput("Chartpage")
                              ),
                              tabItem(tabName = "Tuto",
-                                     includeHTML('www/HTML/Tutorial.html')),
+                                    includeHTML('www/HTML/Tutorial.html')),
                              tabItem(tabName = 'doc',
                                      includeHTML('www/HTML/Documentation.html')),
                              tabItem(tabName = "aboutus", 

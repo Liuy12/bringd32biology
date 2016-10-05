@@ -1,0 +1,310 @@
+
+<!DOCTYPE html>
+
+
+
+<html>
+
+
+
+<head>
+
+
+
+<title>RNA Methylation</title>
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<!-- Tell the browser to be responsive to screen width -->
+
+
+
+
+<link type="text/css" rel="stylesheet" href="CSS/style_fp.css"/>
+    
+<link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css"/>
+
+<link type="text/css" rel="stylesheet" href="CSS/bootstrap.css"/>
+
+<link type="text/css" rel="stylesheet" href="CSS/style.css" />
+    
+<link type="text/css" rel="stylesheet" href="CSS/AdminLTE.css" />
+    
+<script type="text/javascript" src="JavaScript/app.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/bootstrap.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/GoogleAnalytics.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/jquery.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/shiny.js" ></script>
+    
+<style>
+         .tooltip {
+     opacity:1;
+     }
+    
+    .progress-striped .bar {
+      background-color: #149bdf;
+      background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(255, 255, 255, 0.6)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(255, 255, 255, 0.6)), color-stop(0.75, rgba(255, 255, 255, 0.6)), color-stop(0.75, transparent), to(transparent));
+      background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: -moz-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: -o-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      -webkit-background-size: 40px 40px;
+         -moz-background-size: 40px 40px;
+           -o-background-size: 40px 40px;
+              background-size: 40px 40px;
+    }
+     </style>
+
+</head>
+
+
+
+<body>
+
+
+
+<div class="main">
+
+
+
+  <div class="header">
+
+
+
+    <div class="header_resize">
+
+
+
+      <div class="logo">
+
+
+
+        <h1><a href="index.html"><span class="style4"><br />
+
+        <span class="style5">scRNA-seq Vis: </span><br />
+        <span class="style3">Cloud-based application for processing scRNA-seq datasets</span></a></h1>
+
+
+
+      </div>
+
+      <div class="clr"></div>
+
+
+
+      <div class="menu_nav">
+
+
+
+        <ul>
+
+
+
+          <li class="active"><a href="index.html">Home</a></li>
+
+          <li><a href="setinput.html">Input</a></li>         
+
+          <li><a href="charts.html">Charts</a></li>                   
+
+          <li><a href="download.html">Tutorial</a></li> 
+		  
+          <li><a href="faq.html">Documentation</a></li>         
+
+          <li><a href="contact.html">About Us</a></li>
+
+        </ul>
+
+
+
+      </div>
+
+
+
+      <div class="clr"></div>
+
+
+
+    </div>
+
+
+
+  </div>
+
+
+
+  <div class="clr"></div>
+
+
+
+  <div class="content">
+
+
+
+    <div class="content_resize">
+
+
+
+      <div class="mainbar">
+
+
+
+        <div class="article">
+
+
+
+          <h2><span>Introduction</span></h2>
+
+
+
+          <p>Updated on September 26, 2014<a href="#"></a></p>
+
+
+		               <section id="TOC" style="clear: both;font-size: 150%;text-decoration: underline">
+    <ul> 
+        <li><a href="#introduction">Introduction</a></li>
+        <li><a href="#dependency">Dependency of scRNA-seq Vis</a></li>
+        <li><a href="#difference">Comparison with several major toolsets for processing RNA-seq datasets</a></li>
+        <li><a href="#Getstart">Get started with scRNA-seq Vis</a></li>
+    </ul>
+</section>
+
+<br>
+
+<section id="introduction" style="clear: both">
+  <h2 class="page-header"><a href="#introduction">Introduction</a></h2>
+  <p class="lead">
+    <b>scRNA-seq Vis</b> is a web application for analyzing single cell as well as general bulk RNA-seq datasets. Different from traditional application for processing RNA-seq data, by using multiple javascript library (see in <a href="#dependency">Dependency</a> section), scRNA-seq Vis provides an easy way to generate dynamic visualization for RNA-seq pre-processing and differential expression analysis. 
+       </p>
+    <p>
+      To use scRNA-seq Vis, please firstly check the documentation on the left panel and make sure you follow every step by uploading your RNA-seq expression count file and experimental design file and setting all the options required for the analysis. After you submit all required inputs, the output figures will be automatically loaded into Charts subpanel on the left whenever the analysis has finished. After the analysis has finished you can download the report files by pressing the download button in charts subpanel. 
+    </p>
+ 
+</section><!-- /#introduction -->
+
+
+<!-- ============================================================= -->
+
+<section id="dependency">
+    <h2 class="page-header"><a href="#dependency">Dependency</a></h2>
+    <p class = "lead">
+        scRNA-seq Vis is constructed based on <a target="_blank" href="http://shiny.rstudio.com/">shiny framework</a> from R studio. To generate interactive visualization, we incorporate multiple javascript libraries, including <a target="_blank" href="https://www.polychart.com/">Polychart</a>, <a target="_blank" href="http://www.highcharts.com/">Highcharts</a> and <a target="_blank" href="http://nvd3.org/">NVD3</a>. These javascript libraries are in turn based on <a target="_blank" href="http://d3js.org/">D3</a> javascript library. To use these javascript libraries within shiny framework, we adopt <a target="_blank" href="http://rcharts.io/">rCharts</a> package which is essentially an application programming interface (API) for these libraries. Additionally, we also utilize several packages from <a target="_blank" href="http://www.htmlwidgets.org/">htmlwidgets</a> project, including <a target="_blank" href="https://github.com/rstudio/d3heatmap">d3heatmap</a>, <a target="_blank" href="http://rstudio.github.io/DT/">DataTables</a>, <a target="_blank" href="http://christophergandrud.github.io/networkD3/">networkD3</a>, <a target="_blank" href="http://hrbrmstr.github.io/metricsgraphics/">MetricsGraphics</a> and <a target="_blank" href="https://github.com/bwlewis/rthreejs">threejs</a>. Google authentification functionality is adopted from <a target="_blank" href="https://cran.r-project.org/web/packages/googleAuthR/">googleAuthR</a> package. HTML report is generated using <a target="_blank" href="http://lab.hakim.se/reveal-js/#/">reveal.js</a> that is incorporated in <a target="_blank" href="http://slidify.org/">slidify</a> package.  
+    </p>
+    
+</section>
+
+<section id="difference">
+    <h2 class="page-header"><a href="#difference">Difference in me</a></h2>
+    <h3>Differences with <a target="_blank" href="http://www.broadinstitute.org/cancer/software/genepattern/">GenePattern</a> and <a target="_blank" href="https://usegalaxy.org/">Galaxy</a></h3>
+    <ul>
+        <li> 
+            <b>Input files format:</b> GenePattern requires certain formats of <a target="_blank" href="http://www.broadinstitute.org/cancer/software/genepattern/file-formats-guide">input files</a>. Users need to go through several steps just to get the correct format. However, scRNA-seq Vis accepts input files in txt/csv format, which will save users some time in converting input files.
+        </li>
+        <li>
+            <b>Analysis procedure:</b> GenePattern and Galaxy uses cuffdiff for testing differential expression by default. Some popular R packages, such as DESeq, edgeR, limma, etc., are not incorporated. For Galaxy, even through users can access some R packages through Galaxy tool shed, but many of the repositories within tool shed are not well mainteined. On the other side, scRNA-seq Vis provides users with access to most recent version of major differential expression testing R packages. We also include an R package called <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a> that is developed in our own lab. Last but not least, users will have the freedom to change options for differential expression analysis to fit their own needs.
+        </li>
+        <li>
+            <b>Single cell RNA-seq</b>: We also provide support for single cell RNA-seq differential expression analysis including <a target="_blank" href="http://pklab.med.harvard.edu/scde/index.html">SCDE</a> and  
+        </li>
+        <li>
+            <b>Dynamic visualization:</b> scRNA-seq Vis incorporated several popular javascript libraries for visualization which in turn depend on D3 javascript library. Users will have a different perspective of their datasets by interactive visualization. 
+        </li>
+    </ul>
+    <h3>Differences with <a target="_blank" href="http://bioinfo.na.iac.cnr.it/RNASeqGUI/index.html">RNAseqGUI</a></h3>
+    <ul>
+        <li>
+            <b>R as prerequisite:</b> RNAseqGUI is an package that depends on R, so users will need to install R first. In addition, RNAseqGUI is not deployed in either cran or Bioconductor. So users will have to install all the dependencies manually. However, for scRNA-seq Vis, users don't need to install any software locally. Neither do you need to have any programming experience with R.
+        </li>
+        <li>
+            <b>Interactivity is always better:</b> RNAseqGUI generally uses R base plotting system which only gives you dull and non-interactive figures. However, as mentions above, scRNA-seq Vis generates graphs with interactivity which will enable 'interpretation while plotting'. 
+        </li>
+    </ul>
+
+    
+</section>
+
+<section id="Getstart">
+    <h2 class="page-header"><a href="#Getstart">Get started</a></h2>
+    <p class = 'lead'>
+        To get started with scRNA-seq vis, please check the tutorials panel on the left. Details about scRNA-seq Vis can be found from documentation panel on the left. 
+    </p>
+          
+        </div>
+
+        </div>
+
+
+
+      <div class="clr"></div>
+
+
+
+    </div>
+
+
+
+  </div>
+
+
+
+  <div class="fbg">
+
+
+
+    <div class="footer">
+
+
+
+      <p class="lr">&nbsp;</p>
+
+
+
+      <p class="lf">&nbsp;</p>
+
+
+
+      <table width="965" border="0">
+
+
+
+        <tr>
+
+
+
+          <td valign="middle" width="692" ><img src="images/utsa_logo.png" alt="utsa" width="150" height="50" align="middle" /><img src="images/UTHSCSA_logo.gif" alt="uthscsa" width="134" height="60" align="middle"/><img src="images/xj_logo.png" alt="uthscsa" width="274" height="50" align="middle"/><img src="images/cumt_logo.jpeg" alt="uthscsa" width="90" height="90" align="middle"/></td>
+
+
+
+          <td width="234" bordercolor="#FFFFFF"><div align="center">©2014 All Rights Reserved.  •  Design by ECE • UTSA | CBBI • GCCRI  • UTHSCSA </div></td>
+
+        </tr>
+
+      </table>
+
+
+
+    </div>
+
+
+
+  </div>
+
+
+
+</div>
+
+
+
+<div align=center></div>
+
+
+
+</body>
+
+
+
+</html>

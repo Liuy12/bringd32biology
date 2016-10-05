@@ -237,12 +237,12 @@ output$Chartpage <- renderUI({
              title = tagList(shiny::icon("tag"), "Quality control"),
              id = "QCtab",
              tabPanel('Spike-ins QC', 
-                      fluidRow(column(12, metricsgraphicsOutput('Spikeinsqc')
+                      fluidRow(column(12, metricsgraphics::metricsgraphicsOutput('Spikeinsqc')
                       ))),
              tabPanel("Table", 
-                      fluidRow(column(12, dataTableOutput("Table")))),
+                      fluidRow(column(12, DT::dataTableOutput("Table")))),
              tabPanel("Heatmap", 
-                      fluidRow(column(12, d3heatmapOutput('Heatmap')))), 
+                      fluidRow(column(12, d3heatmap::d3heatmapOutput('Heatmap')))), 
              tabPanel("Kernel Density Estimation", 
                       fluidRow(column(12, showOutput("Density", "nvd3")))), 
              tabPanel("Scatter Plot", fluidPage(
@@ -269,9 +269,9 @@ output$Chartpage <- renderUI({
            title = tagList(shiny::icon("tag"), "Quality control"),
            id = "QCtab",
            tabPanel("Table", 
-                    fluidRow(column(12, dataTableOutput("Table")))),
+                    fluidRow(column(12, DT::dataTableOutput("Table")))),
            tabPanel("Heatmap", 
-                    fluidRow(column(12, d3heatmapOutput('Heatmap')))), 
+                    fluidRow(column(12, d3heatmap::d3heatmapOutput('Heatmap')))), 
            tabPanel("Kernel Density Estimation", 
                     fluidRow(column(12, showOutput("Density", "nvd3")))), 
            tabPanel("Scatter Plot", fluidPage(
@@ -323,7 +323,7 @@ output$Chartpage <- renderUI({
                       conditionalPanel(condition = "input.plotdim =='2d'",
                                        column(12, showOutput("PrincipalComponent2d", "dimple"))),
                       conditionalPanel(condition = "input.plotdim =='3d'",
-                                       column(12, scatterplotThreeOutput("PrincipalComponent3d")))
+                                       column(12, threejs::scatterplotThreeOutput("PrincipalComponent3d")))
                     )
            ),
            tabPanel("Gene interaction network", fluidPage(
@@ -342,7 +342,7 @@ output$Chartpage <- renderUI({
              )),
              hr(),
              fluidRow(
-               column(12, forceNetworkOutput("forceNetworkGene"))
+               column(12, networkD3::forceNetworkOutput("forceNetworkGene"))
              )
            )
     ),
@@ -351,11 +351,11 @@ output$Chartpage <- renderUI({
         title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
         id = 'DEanalysis', width = 12, 
         tabPanel("DE Table", 
-                 fluidRow(column(12, dataTableOutput('DEtable')))),
+                 fluidRow(column(12, DT::dataTableOutput('DEtable')))),
         tabPanel("MAplot", 
-                 fluidRow(column(12, metricsgraphicsOutput("MAplot")))),
+                 fluidRow(column(12, metricsgraphics::metricsgraphicsOutput("MAplot")))),
         tabPanel("DE Heatmap", 
-                 fluidRow(column(12, d3heatmapOutput('DEheatmap')))),
+                 fluidRow(column(12, d3heatmap::d3heatmapOutput('DEheatmap')))),
         tabPanel("Dispersion plot", 
                  fluidRow(column(12, showOutput("DispersionPlot", "polycharts"))))
       )
@@ -364,22 +364,22 @@ output$Chartpage <- renderUI({
               title = tagList(shiny::icon("tag"), 'Differential expression analysis'),
               id = 'DEanalysis', width = 12, 
               tabPanel("DE Table", 
-                       fluidRow(column(12, dataTableOutput('DEtable')))),
+                       fluidRow(column(12, DT::dataTableOutput('DEtable')))),
               tabPanel("MAplot", 
-                       fluidRow(column(12, metricsgraphicsOutput("MAplot")))),
+                       fluidRow(column(12, metricsgraphics::metricsgraphicsOutput("MAplot")))),
               tabPanel("DE Heatmap", 
-                       fluidRow(column(12, d3heatmapOutput('DEheatmap'))))
+                       fluidRow(column(12, d3heatmap::d3heatmapOutput('DEheatmap'))))
             )
       else
         tabBox(
           title = tagList(shiny::icon("tag"), 'Highly variable genes analysis'),
           id = 'DEanalysis', width = 12, 
           tabPanel("HVGs Table", 
-                   fluidRow(column(12, dataTableOutput('HVGtable')))),
+                   fluidRow(column(12, DT::dataTableOutput('HVGtable')))),
           tabPanel("HVGs Heatmap", 
-                   fluidRow(column(12, d3heatmapOutput('HVGheatmap')))),
+                   fluidRow(column(12, d3heatmap::d3heatmapOutput('HVGheatmap')))),
           tabPanel("HVG plot", 
-                   fluidRow(column(12, metricsgraphicsOutput('HVGplot'))))
+                   fluidRow(column(12, metricsgraphics::metricsgraphicsOutput('HVGplot'))))
         ),  
 #     if(input$DEmethod != 'limma-voom' & input$DEmethod != 'scde' & input$DEmethod != 'limma' & input$DEmethod != 'monocle' & input$DEmethod != 'Brennecke_2013')
 #       tabBox(
@@ -448,18 +448,18 @@ output$StartDownload <- downloadHandler(
       unlink(path, recursive = TRUE, force = TRUE)
     })
     if(input$DEmethod == 'XBSeq' | input$DEmethod == 'DESeq' | input$DEmethod == 'DESeq2' | input$DEmethod == 'edgeR' | input$DEmethod == 'edgeR-robust'){
-      slidify('Report.Rmd')
+      slidify::slidify('Report.Rmd')
       zip(file, files = c('Report.html', 'libraries/', 'htmlFiles/', 'DEstat.csv', 'TestStat.csv', 'pdfFiles'))
     }
     else if (input$DEmethod == 'Brennecke_2013'){
-      slidify('ReportRNASeqVis.Rmd')
+      slidify::slidify('ReportRNASeqVis.Rmd')
       if(dir.exists('HeteroModule/'))
         zip(file, files = c('ReportRNASeqVis.html', 'libraries/', 'htmlFiles/', 'NormData.csv', 'HVGData.csv', 'HeteroModule/'))
       else
         zip(file, files = c('ReportRNASeqVis.html', 'libraries/', 'htmlFiles/', 'NormData.csv', 'HVGData.csv', 'pdfFiles'))
     }
     else{
-      slidify('Reports.Rmd')
+      slidify::slidify('Reports.Rmd')
       zip(file, files = c('Reports.html', 'libraries/', 'htmlFiles/', 'DEstat.csv', 'TestStat.csv', 'pdfFiles'))
     }
   },
@@ -481,7 +481,7 @@ design <- reactive({
     inFile <- input$file_design
     if (is.null(inFile))
       return(NULL)
-    design <- fread(inFile$datapath, data.table = F)
+    design <- data.table::fread(inFile$datapath, data.table = F)
     design[[1]]
   }
 })
@@ -491,12 +491,12 @@ dataComb <- eventReactive(input$DEstart, {
   if (is.null(inFile))
     return(NULL)
   withProgress(value = 1, message = 'Loading datasets', {
-    data_obs <- fread(inFile$datapath, data.table = F)
+    data_obs <- data.table::fread(inFile$datapath, data.table = F)
     cat('checkpoint1', '\n')
     rownames(data_obs) <- data_obs[,1]
     data_obs <- data_obs[,-1]
     if(!is.null(input$file_spikein)){
-      data_spikein <- fread(input$file_spikein$datapath, data.table = F)
+      data_spikein <- data.table::fread(input$file_spikein$datapath, data.table = F)
       cat('checkpoint2', '\n')
       rownames(data_spikein) <- data_spikein[,1]
       data_spikein <- data_spikein[,-1]
@@ -532,7 +532,7 @@ dataComb <- eventReactive(input$DEstart, {
     else
       condition_sel <- c(input$Con_S1, input$Con_S2)
     if (input$DEmethod == 'XBSeq') {
-      data_bg <- fread(input$file_bg$datapath, data.table = F)
+      data_bg <- data.table::fread(input$file_bg$datapath, data.table = F)
       rownames(data_bg) <- data_bg[,1]
       data_bg <- data_bg[,-1]
       dataOut <- XBSeq.pfun(data_obs, data_bg, group, disp_method = input$SCVmethod, 
@@ -593,6 +593,10 @@ dataComb <- eventReactive(input$DEstart, {
 })
 
 output$value_countMatrix <- renderPrint({
+  input$countMatrix
+})
+
+output$value_countMatrix1 <- renderPrint({
   input$countMatrix
 })
 
@@ -688,7 +692,7 @@ output$HVGpcutoff_value <- renderPrint({
   input$HVGpcutoff
 })
 
-output$Spikeinsqc <- renderMetricsgraphics({
+output$Spikeinsqc <- metricsgraphics::renderMetricsgraphics({
   if (is.null(input$file_spikein))
     return(NULL)
   dataComb <- dataComb()
@@ -697,15 +701,15 @@ output$Spikeinsqc <- renderMetricsgraphics({
     dataMat <- dataComb[[6]]
     rownames(dataMat) <- paste('S', 1:nrow(dataMat), sep = '')
     mp <-
-      mjs_plot(dataMat, Totalreads, Spikein_prop, decimals = 6) %>%
-      mjs_point(
+      metricsgraphics::mjs_plot(dataMat, Totalreads, Spikein_prop, decimals = 6) %>%
+      metricsgraphics::mjs_point(
         x_rug = TRUE, y_rug = TRUE
       ) %>%
       #    mjs_add_baseline(y_value = 0, label = 'baseline') %>%
-      mjs_labs(x_label = 'Number of mapped reads', y_label = "Spike-in reads (%)")
+      metricsgraphics::mjs_labs(x_label = 'Number of mapped reads', y_label = "Spike-in reads (%)")
     gp <- ggplot() + geom_point(aes(x = Totalreads, y = Spikein_prop), data = dataMat) + labs(x = 'Number of mapped reads', y = "Spike-in reads (%)")
     ggsave(paste(folder, '/pdfFiles/', 'spikeinQC.pdf', sep = ''), gp)
-    saveWidget(mp, file = 'SpikeinQC.html', background = 'none')
+    htmlwidgets::saveWidget(mp, file = 'SpikeinQC.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./SpikeinQC.html', path)
     file.remove('./SpikeinQC.html')
@@ -721,8 +725,8 @@ output$Table <- DT::renderDataTable({
     dataMat <- log2(dataComb[[2]] + 0.01)
     folder <- dataComb[[5]]
     colnames(dataMat) <- paste('S', 1:ncol(dataMat), sep = '')
-    temp <- datatable(dataMat, options = list(pageLength = 5))
-    saveWidget(temp, 'datatable.html', background = 'none')
+    temp <- DT::datatable(dataMat, options = list(pageLength = 5))
+    htmlwidgets::saveWidget(temp, 'datatable.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./datatable.html', path)
     file.remove('./datatable.html')
@@ -730,7 +734,7 @@ output$Table <- DT::renderDataTable({
   })
 })
 
-output$Heatmap <- renderD3heatmap({
+output$Heatmap <- d3heatmap::renderD3heatmap({
   if (is.null(input$file_obs))
     return(NULL)
   dataComb <- dataComb()
@@ -750,8 +754,8 @@ output$Heatmap <- renderD3heatmap({
     if (!length(index))
       return(NULL)
     uplim <- ifelse(length(index) < 1000, length(index), 1000)
-    h1 <- d3heatmap(as.data.frame(dataMat1[1:uplim,]), scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE, show_grid = F)
-    saveWidget(h1, 'heatmap.html', background = 'none')
+    h1 <- d3heatmap::d3heatmap(as.data.frame(dataMat1[1:uplim,]), scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE, show_grid = F)
+    htmlwidgets::saveWidget(h1, 'heatmap.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./heatmap.html', path)
     file.remove('./heatmap.html')
@@ -890,7 +894,7 @@ output$Boxplot <- renderChart({
       ylab <- 'Log2 normalized intensity'
     dataMat1 <- as.data.frame(dataMat)
     dataMat1$IDs <- rownames(dataMat)
-    dataMat1 <- melt(dataMat1, 'IDs')
+    dataMat1 <- data.table::melt(dataMat1, 'IDs')
     str(dataMat1)
     gp <- ggplot() + geom_boxplot(aes(x = variable, y = value), data = dataMat1)
     ggsave(paste(folder, '/pdfFiles/boxPlot.pdf', sep = ''), gp)
@@ -972,7 +976,7 @@ heteroModule <- reactive({
               group <- paste('C', ifelse(test1$cluster.label == i, 1, 2), sep = '')
               cat()
               if (input$DEmethod1 == 'XBSeq') {
-                data_bg <- fread(input$file_bg$datapath, data.table = F)
+                data_bg <- data.table::fread(input$file_bg$datapath, data.table = F)
                 rownames(data_bg) <- data_bg[,1]
                 data_bg <- data_bg[,-1]
                 dataOut <- XBSeq.pfun(dataComb[[1]], data_bg, group, disp_method = input$SCVmethod, 
@@ -1070,7 +1074,7 @@ output$PrincipalComponent2d <-
       })
   })
 
-output$PrincipalComponent3d <- renderScatterplotThree({
+output$PrincipalComponent3d <- threejs::renderScatterplotThree({
   library(scatterplot3d)
   prinstat <- Principalstats()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'PCA plot', {
@@ -1095,12 +1099,12 @@ output$PrincipalComponent3d <- renderScatterplotThree({
       colors <- rainbow_hcl(length(unique(ppoints$Design)))
     col <- colors[1:length(unique(ppoints$Design))]
     col <- rep(col, c(as.numeric(table(ppoints$Design))))
-    scatter3d <- scatterplot3js(ppoints[,1], ppoints[,2], ppoints[,3], 
+    scatter3d <- threejs::scatterplot3js(ppoints[,1], ppoints[,2], ppoints[,3], 
                                 labels = paste('S',1:nrow(ppoints), sep = ''), 
                                 axisLabels = c(xlab, ylab, zlab),
                                 color = col,
                                 renderer = 'canvas') # bg = '#ecf0f5'
-    saveWidget(scatter3d, 'pcaplot.html', background = 'none')
+    htmlwidgets::saveWidget(scatter3d, 'pcaplot.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     if(file.exists(paste(path, 'pcaplot.html', sep = '')))
       file.remove(paste(path, 'pcaplot.html', sep = ''))
@@ -1121,7 +1125,7 @@ output$value_Corrcut <- renderPrint({
   input$Corrcut
 })
 
-output$forceNetworkGene <- renderForceNetwork({
+output$forceNetworkGene <- networkD3::renderForceNetwork({
   if (is.null(input$file_obs))
     return(NULL)
   dataComb <- dataComb()
@@ -1153,7 +1157,7 @@ output$forceNetworkGene <- renderForceNetwork({
         )
       index <- which(abs(MisLinks$value) > input$Corrcut)
       MisLinks <- MisLinks[index,]
-      ranks <- frank(unlist(MisLinks[,1:2]), ties.method = 'dense')
+      ranks <- data.table::frank(unlist(MisLinks[,1:2]), ties.method = 'dense')
       MisLinks$source <- ranks[1:nrow(MisLinks)] -1 
       MisLinks$target <- ranks[(nrow(MisLinks) + 1):(2*nrow(MisLinks))] -1
       name <- rownames(dataMat)[sort(unique(c(combs[,index])))]
@@ -1163,7 +1167,7 @@ output$forceNetworkGene <- renderForceNetwork({
         size = rep(15, length(name)), 
         stringsAsFactors = F
       )
-      forceNet <- forceNetwork(
+      forceNet <- networkD3::forceNetwork(
         Links = MisLinks, Nodes = MisNodes, Source = "source",
         Target = "target", Value = "value", NodeID = "name",
         Group = "group", opacity = 0.4, bounded = FALSE
@@ -1221,8 +1225,8 @@ output$DEtable <- DT::renderDataTable({
       colnames(dataMat2) <-
         c(paste('S', 1:ncol(dataMat), sep = ''), 'Log2 fold change', 'p adjusted value')
     }
-    temp <- datatable(dataMat2, options = list(pageLength = 5))
-    saveWidget(temp, 'DEdatatable.html', background = 'none')
+    temp <- DT::datatable(dataMat2, options = list(pageLength = 5))
+    htmlwidgets::saveWidget(temp, 'DEdatatable.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./DEdatatable.html', path)
     file.remove('./DEdatatable.html')
@@ -1239,7 +1243,7 @@ output$DEtable <- DT::renderDataTable({
       })
 })
 
-output$DEheatmap <- renderD3heatmap({
+output$DEheatmap <- d3heatmap::renderD3heatmap({
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'DE heatmap', {
     dataMat <- log2(dataComb[[2]] + 0.01)
@@ -1272,8 +1276,8 @@ output$DEheatmap <- renderD3heatmap({
     }
     dataMat2 <-dataMat[DE_index,]
     colnames(dataMat2) <- paste('S', 1:ncol(dataMat), sep = '')
-    h1 <- d3heatmap(dataMat2, scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE)
-    saveWidget(h1, 'DEheatmap.html', background = 'none')
+    h1 <- d3heatmap::d3heatmap(dataMat2, scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE)
+    htmlwidgets::saveWidget(h1, 'DEheatmap.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./DEheatmap.html', path)
     file.remove('./DEheatmap.html')
@@ -1284,7 +1288,7 @@ output$DEheatmap <- renderD3heatmap({
   })
 })
 
-output$MAplot <- renderMetricsgraphics({
+output$MAplot <- metricsgraphics::renderMetricsgraphics({
   if (is.null(input$file_obs))
     return(NULL)
   dataComb <- dataComb()
@@ -1328,18 +1332,18 @@ output$MAplot <- renderMetricsgraphics({
     else
       color_rg <- c('red', 'grey32')
     mp <-
-      mjs_plot(dataMat, baseMean, log2FoldChange, decimals = 6) %>%
-      mjs_point(
+      metricsgraphics::mjs_plot(dataMat, baseMean, log2FoldChange, decimals = 6) %>%
+      metricsgraphics::mjs_point(
         color_accessor = col, color_range = color_rg, color_type = "category", x_rug =
           TRUE, y_rug = TRUE
       ) %>%
-      mjs_add_baseline(y_value = 0, label = 'baseline') %>%
-      mjs_labs(x_label = xlab, y_label = "Log2 fold change") %>%
-      mjs_add_mouseover("function(d) {
+      metricsgraphics::mjs_add_baseline(y_value = 0, label = 'baseline') %>%
+      metricsgraphics::mjs_labs(x_label = xlab, y_label = "Log2 fold change") %>%
+      metricsgraphics::mjs_add_mouseover("function(d) {
                 $('{{ID}} svg .mg-active-datapoint')
                     .text('Gene Name: ' +  d.point.Genename + ',' + ' Log2 intensity: ' + d.point.baseMean + ',' + ' Log2 fold change: ' + d.point.log2FoldChange);
                  }")
-    saveWidget(mp, file = 'MAplot.html', background = 'none')
+    htmlwidgets::saveWidget(mp, file = 'MAplot.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./MAplot.html', path)
     file.remove('./MAplot.html')
@@ -1481,8 +1485,8 @@ output$HVGtable <- DT::renderDataTable({
     }
     write.csv(dataMat, paste(folder, '/NormData.csv', sep = ''), quote = F)
     write.csv(dataMat2, paste(folder, '/HVGData.csv', sep = ''), quote = F)
-    temp <- datatable(dataMat2, options = list(pageLength = 5))
-    saveWidget(temp, 'HVGdatatable.html', background = 'none')
+    temp <- DT::datatable(dataMat2, options = list(pageLength = 5))
+    htmlwidgets::saveWidget(temp, 'HVGdatatable.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./HVGdatatable.html', path)
     file.remove('./HVGdatatable.html')
@@ -1490,7 +1494,7 @@ output$HVGtable <- DT::renderDataTable({
   })
 })
 
-output$HVGheatmap <- renderD3heatmap(({
+output$HVGheatmap <- d3heatmap::renderD3heatmap(({
   dataComb <- dataComb()
   withProgress(value = 1, message = 'Generating plots: ', detail = 'HVG heatmap', {
     dataMat <- log2(dataComb[[2]] + 0.01)
@@ -1506,8 +1510,8 @@ output$HVGheatmap <- renderD3heatmap(({
     }
     dataMat2 <-dataMat[DE_index,]
     colnames(dataMat2) <- paste('S', 1:ncol(dataMat), sep = '')
-    h1 <- d3heatmap(dataMat2, scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE)
-    saveWidget(h1, 'HVGheatmap.html', background = 'none')
+    h1 <- d3heatmap::d3heatmap(dataMat2, scale = "row", colors = colorRampPalette(c("blue","white","red"))(1000), Colv = FALSE)
+    htmlwidgets::saveWidget(h1, 'HVGheatmap.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./HVGheatmap.html', path)
     file.remove('./HVGheatmap.html')
@@ -1518,7 +1522,7 @@ output$HVGheatmap <- renderD3heatmap(({
   })
 }))
 
-output$HVGplot <- renderMetricsgraphics({
+output$HVGplot <- metricsgraphics::renderMetricsgraphics({
   if (is.null(input$file_obs))
     return(NULL)
   dataComb <- dataComb()
@@ -1543,17 +1547,17 @@ output$HVGplot <- renderMetricsgraphics({
     else
       color_rg <- c('red', 'grey32')
     mp <-
-      mjs_plot(dataMat1, baseMean, CV, decimals = 6) %>%
-      mjs_point(
+      metricsgraphics::mjs_plot(dataMat1, baseMean, CV, decimals = 6) %>%
+      metricsgraphics::mjs_point(
         color_accessor = Col, color_range = color_rg, color_type = "category", x_rug =
           TRUE, y_rug = TRUE
       ) %>%
-      mjs_labs(x_label = 'Log2 expression intensity', y_label = "Coeffcient of variation") %>%
-      mjs_add_mouseover("function(d) {
+      metricsgraphics::mjs_labs(x_label = 'Log2 expression intensity', y_label = "Coeffcient of variation") %>%
+      metricsgraphics::mjs_add_mouseover("function(d) {
                         $('{{ID}} svg .mg-active-datapoint')
                         .text('Gene Name: ' +  d.point.geneName + ',' + ' Log2 intensity: ' + d.point.baseMean + ',' + ' CV: ' + d.point.CV);
   }")
-    saveWidget(mp, file = 'HVGplot.html', background = 'none')
+    htmlwidgets::saveWidget(mp, file = 'HVGplot.html', background = 'none')
     path <- paste(folder, '/htmlFiles/', sep = '')
     file.copy('./HVGplot.html', path)
     file.remove('./HVGplot.html')

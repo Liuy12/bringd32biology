@@ -1,0 +1,179 @@
+<html>
+
+<head>
+
+
+
+<title>RNA Methylation</title>
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<!-- Tell the browser to be responsive to screen width -->
+
+
+
+
+<link type="text/css" rel="stylesheet" href="CSS/style_fp.css"/>
+    
+<link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css"/>
+
+<link type="text/css" rel="stylesheet" href="CSS/bootstrap.min.css">
+
+<link type="text/css" rel="stylesheet" href="CSS/style.css" />
+    
+<link type="text/css" rel="stylesheet" href="CSS/AdminLTE.css" />
+    
+<script type="text/javascript" src="JavaScript/app.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/bootstrap.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/GoogleAnalytics.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/jquery.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/shiny.js" ></script>
+  
+  <!--  
+<script LANGUAGE="JavaScript">
+  function getParams(){
+  var idx = document.URL.indexOf('?');
+  var params = new Array();
+  if (idx != -1) {
+    var pairs = document.URL.substring(idx+1, document.URL.length).split('&');
+  for (var i=0; i<pairs.length; i++){
+    nameVal = pairs[i].split('=');
+    params[nameVal[0]] = nameVal[1];
+    }
+  }
+  return params;
+ }
+params = getParams();
+value_countMatrix = unescape(params["countMatrix"]);
+document.write("value_countMatrix = " + value_countMatrix + "<br>");
+</script>
+
+-->
+    
+    <script>
+        function onLoad(){
+      document.getElementById('log2bmcutoff').innerHTML = sessionStorage.getItem('log2bmcutoff');
+      document.getElementById('DEmethod').innerHTML = sessionStorage.getItem('DEmethod');
+      document.getElementById('SCVmethod').innerHTML = sessionStorage.getItem('SCVmethod');  
+      document.getElementById('spikein').innerHTML = sessionStorage.getItem('spikein');  
+            
+    //document.write("SCVmethod = " + sessionStorage.getItem('SCVmethod') + "<br>");
+        }
+    </script>
+<style>
+         .tooltip {
+     opacity:1;
+     }
+    
+    .progress-striped .bar {
+      background-color: #149bdf;
+      background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(255, 255, 255, 0.6)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(255, 255, 255, 0.6)), color-stop(0.75, rgba(255, 255, 255, 0.6)), color-stop(0.75, transparent), to(transparent));
+      background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: -moz-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: -o-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      -webkit-background-size: 40px 40px;
+         -moz-background-size: 40px 40px;
+           -o-background-size: 40px 40px;
+              background-size: 40px 40px;
+    }
+     </style>
+
+</head>
+
+
+
+<body onload="onLoad();">
+
+
+
+<div class="main">
+
+
+
+  <div class="header">
+
+
+
+    <div class="header_resize">
+
+
+
+      <div class="logo">
+
+
+
+        <h1><a href="index.html"><span class="style4"><br />
+
+        <span class="style5">scRNA-seq Vis: </span><br />
+        <span class="style3">Cloud-based application for processing scRNA-seq datasets</span></a></h1>
+
+
+
+      </div>
+
+      <div class="clr"></div>
+
+
+
+      <div class="menu_nav">
+
+
+
+        <ul>
+
+
+
+          <li class="active"><a href="index.html">Home</a></li>
+
+          <li><a href="setinput.html">Input</a></li>         
+
+          <li><a href="charts.html">Charts</a></li>                   
+
+          <li><a href="download.html">Tutorial</a></li> 
+		  
+          <li><a href="faq.html">Documentation</a></li>         
+
+          <li><a href="contact.html">About Us</a></li>
+
+        </ul>
+
+
+
+      </div>
+
+
+
+      <div class="clr"></div>
+
+
+
+    </div>
+
+
+
+  </div>
+      
+      <!--
+      <input type="hidden" name="log2bmcutoff" id="log2bmcutoff" />
+      <input type="hidden" name="DEmethod" id="DEmethod" />
+      <input type="hidden" name="SCVmethod" id="SCVmethod" />
+<input type="hidden" name="spikein" id="spikein" />
+-->
+      
+      <pre id = 'log2bmcutoff' class = 'shiny-text-output'></pre>
+      <pre id = 'DEmethod' class = 'shiny-text-output'></pre>
+      <pre id = 'SCVmethod' class = 'shiny-text-output'></pre>
+       <pre id = 'spikein' class = 'shiny-text-output'></pre>    
+      
+<div role="tabpanel" class="tab-pane" id="shiny-tab-Charts">
+                <div id="Chartpage" class="shiny-html-output"></div>
+              </div>
+      
+              </body>
+              </html>

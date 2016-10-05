@@ -21,7 +21,7 @@ shinyServer(function(input, output,session) {
   outputOptions(output, "HVGtable", suspendWhenHidden = FALSE)
   outputOptions(output, "HVGheatmap", suspendWhenHidden = FALSE)
   outputOptions(output, "HVGplot", suspendWhenHidden = FALSE)
-  
+
   
   output$totalvisits <- renderValueBox({
     library(rga)

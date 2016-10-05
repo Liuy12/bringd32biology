@@ -3,16 +3,15 @@ library(shiny)
 library(shinydashboard)
 #library(googleVis)
 #library(mailR)
-library(d3heatmap)
-library(metricsgraphics)
-library(shiny)
-library(networkD3)
-library(DT)
+#library(d3heatmap)
+#library(metricsgraphics)
+#library(networkD3)
+#library(DT)
 library(rCharts)
 library(shinythemes)
-library(data.table)
-library(dplyr)
-library(threejs)
+#library(data.table)
+#library(dplyr)
+#library(threejs)
 library(RUVSeq)
 library(colorspace)
 library(doParallel)
@@ -63,7 +62,7 @@ library(ggplot2)
 
 XBSeq.pfun <- 
   function(counts, bgcounts, group, disp_method, sharing_mode, fit_type, paraMethod, spikeins, condition_sel){
-    library(XBSeq)
+    require(XBSeq)
     if(!is.null(condition_sel)){
       XB <- XBSeqDataSet(counts, bgcounts, group)
       XB <- estimateRealCount(XB)
@@ -109,7 +108,7 @@ XBSeq.pfun <-
 DESeq2.pfun <-
   function(counts, group, design = NULL, cookcutoff, fittype, test, spikeins, condition_sel)
   {   
-    library(DESeq2)
+    require(DESeq2)
     if(!is.null(spikeins))
       counts <- rbind(spikeins, counts)
     if(!is.null(condition_sel)){
@@ -155,7 +154,7 @@ DESeq2.pfun <-
 DESeq.pfun <-
   function(counts, group, disp_method, sharing_mode, fit_type, spikeins)
   {   
-    library(DESeq)
+    require(DESeq)
     de <- newCountDataSet(counts, group)
     if(!is.null(condition_sel)){
       if(!is.null(spikeins)){
@@ -198,7 +197,7 @@ DESeq.pfun <-
 edgeR.pfun <-
   function(counts, group, design = NULL, spikeins, condition_sel)
   {
-    library(edgeR)
+    require(edgeR)
     if(!is.null(condition_sel)){
       d <- DGEList(counts = counts, group = group)
       d <- calcNormFactors(d)
@@ -252,7 +251,7 @@ edgeR.pfun <-
 edgeR_robust.pfun <-
   function(counts, group, design = NULL, spikeins, condition_sel)
   {  
-    library(edgeR)
+    require(edgeR)
     if(!is.null(condition_sel)){
       d <- DGEList(counts = counts, group = group)
       d <- calcNormFactors(d)
@@ -303,7 +302,7 @@ edgeR_robust.pfun <-
 limma_voom.pfun <-
   function(counts, group, design = NULL, spikeins, condition_sel) 
   {   
-    library(limma)
+    require(limma)
     nf <- calcNormFactors(counts)
     y <- voom(counts, design, plot=FALSE, lib.size = colSums(counts)*nf)
     NormCount <- as.matrix(2^(y$E))
@@ -342,7 +341,7 @@ limma_voom.pfun <-
   }
 
 scde.pfun <- function(counts, design, cores = 2, condition_sel){
-  library(scde)
+  require(scde)
   if(condition_sel[1]!=""){
     err_mod <- scde.error.models(counts = counts, groups = design, n.cores = cores,
                                  threshold.segmentation=T, save.crossfit.plots=F, 
@@ -451,7 +450,7 @@ Brennecke.pfun <- function(counts, spikeins, nums){
 }
 
 limma.pfun <- function(counts, group, design, spikeins, condition_sel){
-  library(limma)
+  require(limma)
   counts_N <- preprocessCore::normalize.quantiles(as.matrix(counts))
   rownames(counts_N) <- rownames(counts)
   colnames(counts_N) <- colnames(counts)
@@ -489,7 +488,7 @@ limma.pfun <- function(counts, group, design, spikeins, condition_sel){
 }
 
 monocle.pfun <- function(counts, group, condition_sel){
-  library(monocle)
+  require(monocle)
   counts_N <- as.data.frame(preprocessCore::normalize.quantiles(as.matrix(counts)))
   rownames(counts_N) <- rownames(counts)
   colnames(counts_N) <- colnames(counts)
@@ -527,8 +526,8 @@ monocle.pfun <- function(counts, group, condition_sel){
 BPSC.pfun <- function(counts, group, design, spikeins, condition_sel, cores = 2){
   # the input of BPSC has to be TPM or 
   # normlized counts from edgeR
-  library(BPSC)
-  library(edgeR)
+  require(BPSC)
+  require(edgeR)
   d <- DGEList(counts = counts, group = group)
   d <- calcNormFactors(d)
   NormCount <- cpm(d)
@@ -569,8 +568,8 @@ BPSC.pfun <- function(counts, group, design, spikeins, condition_sel, cores = 2)
 }
 
 MAST.pfun <- function(counts, group, spikeins, condition_sel){
-  library(MAST)
-  library(edgeR)
+  require(MAST)
+  require(edgeR)
   registerDoParallel(cores=2)
   d <- DGEList(counts = counts, group = group)
   d <- calcNormFactors(d)
@@ -612,7 +611,7 @@ MAST.pfun <- function(counts, group, spikeins, condition_sel){
 EBSeq.pfun <- 
   function(counts, group, condition_sel)
   {
-    library(EBSeq)
+    require(EBSeq)
     ## EBSeq pipeline ##
     ## adjust p value and p value are the same
     sf <- MedianNorm(counts)
@@ -640,8 +639,8 @@ EBSeq.pfun <-
   }	
 
 ROTS.pfun <- function(counts, group, condition_sel, B =1000){
-  library(edgeR)
-  library(ROTS)
+  require(edgeR)
+  require(ROTS)
   # the input of ROTS has to be 
   # normlized counts or TPM from edgeR
   d <- DGEList(counts = counts, group = group)
@@ -671,10 +670,10 @@ ROTS.pfun <- function(counts, group, condition_sel, B =1000){
 
 idHetero <-
   function(inputNetwork, minMod = 5, maxStep = 5, permuteNum = 1000, pThr = 0.05, weight = NULL) {
-    library(statmod)
-    library(igraph)
-    library(NetSAM)
-    library(LPCM)
+    require(statmod)
+    require(igraph)
+    require(NetSAM)
+    require(LPCM)
     inputNetwork <- as.matrix(inputNetwork)
     inputNetwork_S <- as.character(inputNetwork)
     inputNetwork_S <- array(inputNetwork_S,dim = dim(inputNetwork))

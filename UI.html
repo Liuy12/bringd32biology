@@ -1,0 +1,1032 @@
+<html>
+
+
+
+<head>
+
+
+
+<title>RNA Methylation</title>
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+
+
+
+
+<script type="text/javascript" src="js/cufon-yui.js"></script>
+
+<script type="text/javascript" src="js/arial.js"></script>
+
+<script type="text/javascript" src="js/cuf_run.js"></script>
+    
+<script type="text/javascript" src="scRNA-seqVis/www/JavaScript/md5.js"></script>
+    
+<script type="text/javascript" src="scRNA-seqVis/www/JavaScript/passwdInputBinding.js"></script>
+
+<script type="text/javascript" src="scRNA-seqVis/www/JavaScript/GoogleAnalytics.js"></script>
+
+<link type="text/css" rel="stylesheet" href="scRNA-seqVis/www/CSS/style.css"/>
+
+<link type="text/css" rel="stylesheet" href="scRNA-seqVis/www/CSS/AdminLTE.css"/>
+    
+<link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css"/>
+
+<link rel="stylesheet" href="scRNA-seqVis/www/css/bootstrap.min.css">
+
+<link href="style.css" rel="stylesheet" type="text/css" />
+
+<style>
+         .tooltip {
+     opacity:1;
+     }
+    
+    .progress-striped .bar {
+      background-color: #149bdf;
+      background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(255, 255, 255, 0.6)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(255, 255, 255, 0.6)), color-stop(0.75, rgba(255, 255, 255, 0.6)), color-stop(0.75, transparent), to(transparent));
+      background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: -moz-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: -o-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      -webkit-background-size: 40px 40px;
+         -moz-background-size: 40px 40px;
+           -o-background-size: 40px 40px;
+              background-size: 40px 40px;
+    }
+     </style>
+
+</head>
+    
+<body>
+
+
+<div class="container-fluid">
+  <div class="row">
+    <body class="skin-blue" style="min-height: 611px;">
+      <div class="wrapper">
+        <header class="main-header">
+          <span class="logo">
+            <img src="img/logo.png" style="max-width:50%"/>
+          </span>
+          <nav class="navbar navbar-static-top" role="navigation">
+            <span style="display:none;">
+              <i class="fa fa-bars"></i>
+            </span>
+            <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+              <span class="sr-only">Toggle navigation</span>
+            </a>
+            <div class="navbar-custom-menu">
+              <ul class="nav navbar-nav">
+                <div id="test" class="shiny-html-output"></div>
+              </ul>
+            </div>
+          </nav>
+        </header>
+        <aside class="main-sidebar">
+          <section class="sidebar">
+            <ul id="sidebar" class="sidebar-menu">
+              <li>
+                <a href="#shiny-tab-introduction" data-toggle="tab" data-value="introduction">
+                  <i class="fa fa-circle-o"></i>
+                  <span>Introduction</span>
+                </a>
+              </li>
+              <li class="treeview">
+                <a href="#shiny-tab-Analysis">
+                  <i class="fa fa-bolt"></i>
+                  <span>Start analysis</span>
+                  <i class="fa fa-angle-left pull-right"></i>
+                </a>
+                <ul class="treeview-menu">
+                  <li>
+                    <a href="#shiny-tab-SetInput" data-toggle="tab" data-value="SetInput">
+                      <i class="fa fa-flag"></i>
+                      Set input options
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#shiny-tab-Charts" data-toggle="tab" data-value="Charts">
+                      <i class="fa fa-bar-chart"></i>
+                      Charts
+                    </a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="#shiny-tab-Tuto" data-toggle="tab" data-value="Tuto">
+                  <i class="fa fa-dashboard"></i>
+                  <span>Tutorial</span>
+                </a>
+              </li>
+              <li>
+                <a href="#shiny-tab-doc" data-toggle="tab" data-value="doc">
+                  <i class="fa fa-file-text"></i>
+                  <span>Docomentation</span>
+                </a>
+              </li>
+              <li>
+                <a href="#shiny-tab-aboutus" data-toggle="tab" data-value="aboutus">
+                  <i class="fa fa-users"></i>
+                  <span>About us</span>
+                </a>
+              </li>
+            </ul>
+          </section>
+        </aside>
+        <div class="content-wrapper">
+          <section class="content">
+            <div class="tab-content">
+              <div role="tabpanel" class="tab-pane" id="shiny-tab-introduction">
+                <div class="col-md-6" style="position: relative; left: 25%;">
+              <div class="box box-solid" >
+                <div class="box-header with-border">
+                  <h3 class="box-title">D3.js</h3>
+                </div><!-- /.box-header -->
+                <div class="box-body">
+                  <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+                    <ol class="carousel-indicators">
+                      <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
+                      <li data-target="#carousel-example-generic" data-slide-to="1" class=""></li>
+                      <li data-target="#carousel-example-generic" data-slide-to="2" class=""></li>
+                    </ol>
+                    <div class="carousel-inner">
+                      <div class="item active">
+                        <a target="_blank" href="http://mbostock.github.io/d3/talk/20111116/bundle.html">
+                            <img src="img/circularplot.png" alt="Hierarchical Edge Bundling">
+                          </a>
+                        <div class="carousel-caption">
+                          Hierarchical Edge Bundling
+                        </div>
+                      </div>
+                      <div class="item">
+                        <a target="_blank" href="http://romsson.github.io/dragit/example/nations.html">
+                            <img src="img/Wealthplot.png" alt="Gapminder's Wealth and Health">
+                          </a>
+                        <div class="carousel-caption">
+                          Gapminder's Wealth and Health
+                        </div>
+                      </div>
+                      <div class="item">
+                        <a target="_blank" href="https://vida.io/gists/vfP7KiHLfDbnDWBsX">
+                            <img src="img/map.png" alt="US States Map">
+                          </a>
+                        <div class="carousel-caption">
+                          US States Map
+                        </div>
+                      </div>
+                    </div>
+                    <a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">
+                      <span class="fa fa-angle-left"></span>
+                    </a>
+                    <a class="right carousel-control" href="#carousel-example-generic" data-slide="next">
+                      <span class="fa fa-angle-right"></span>
+                    </a>
+                  </div>
+                </div><!-- /.box-body -->
+              </div><!-- /.box -->
+            </div><!-- /.col -->
+          <!-- END ACCORDION & CAROUSEL-->
+                <section id="TOC" style="clear: both;font-size: 150%;text-decoration: underline">
+    <ul> 
+        <li><a href="#introduction">Introduction</a></li>
+        <li><a href="#dependency">Dependency of scRNA-seq Vis</a></li>
+        <li><a href="#difference">Comparison with several major toolsets for processing RNA-seq datasets</a></li>
+        <li><a href="#Getstart">Get started with scRNA-seq Vis</a></li>
+    </ul>
+</section>
+
+<br>
+
+<section id="introduction" style="clear: both">
+  <h2 class="page-header"><a href="#introduction">Introduction</a></h2>
+  <p class="lead">
+    <b>scRNA-seq Vis</b> is a web application for analyzing single cell as well as general bulk RNA-seq datasets. Different from traditional application for processing RNA-seq data, by using multiple javascript library (see in <a href="#dependency">Dependency</a> section), scRNA-seq Vis provides an easy way to generate dynamic visualization for RNA-seq pre-processing and differential expression analysis. 
+       </p>
+    <p>
+      To use scRNA-seq Vis, please firstly check the documentation on the left panel and make sure you follow every step by uploading your RNA-seq expression count file and experimental design file and setting all the options required for the analysis. After you submit all required inputs, the output figures will be automatically loaded into Charts subpanel on the left whenever the analysis has finished. After the analysis has finished you can download the report files by pressing the download button in charts subpanel. 
+    </p>
+ 
+</section><!-- /#introduction -->
+
+
+<!-- ============================================================= -->
+
+<section id="dependency">
+    <h2 class="page-header"><a href="#dependency">Dependency</a></h2>
+    <p class = "lead">
+        scRNA-seq Vis is constructed based on <a target="_blank" href="http://shiny.rstudio.com/">shiny framework</a> from R studio. To generate interactive visualization, we incorporate multiple javascript libraries, including <a target="_blank" href="https://www.polychart.com/">Polychart</a>, <a target="_blank" href="http://www.highcharts.com/">Highcharts</a> and <a target="_blank" href="http://nvd3.org/">NVD3</a>. These javascript libraries are in turn based on <a target="_blank" href="http://d3js.org/">D3</a> javascript library. To use these javascript libraries within shiny framework, we adopt <a target="_blank" href="http://rcharts.io/">rCharts</a> package which is essentially an application programming interface (API) for these libraries. Additionally, we also utilize several packages from <a target="_blank" href="http://www.htmlwidgets.org/">htmlwidgets</a> project, including <a target="_blank" href="https://github.com/rstudio/d3heatmap">d3heatmap</a>, <a target="_blank" href="http://rstudio.github.io/DT/">DataTables</a>, <a target="_blank" href="http://christophergandrud.github.io/networkD3/">networkD3</a>, <a target="_blank" href="http://hrbrmstr.github.io/metricsgraphics/">MetricsGraphics</a> and <a target="_blank" href="https://github.com/bwlewis/rthreejs">threejs</a>. Google authentification functionality is adopted from <a target="_blank" href="https://cran.r-project.org/web/packages/googleAuthR/">googleAuthR</a> package. HTML report is generated using <a target="_blank" href="http://lab.hakim.se/reveal-js/#/">reveal.js</a> that is incorporated in <a target="_blank" href="http://slidify.org/">slidify</a> package.  
+    </p>
+    
+</section>
+
+<section id="difference">
+    <h2 class="page-header"><a href="#difference">Difference in me</a></h2>
+    <h3>Differences with <a target="_blank" href="http://www.broadinstitute.org/cancer/software/genepattern/">GenePattern</a> and <a target="_blank" href="https://usegalaxy.org/">Galaxy</a></h3>
+    <ul>
+        <li> 
+            <b>Input files format:</b> GenePattern requires certain formats of <a target="_blank" href="http://www.broadinstitute.org/cancer/software/genepattern/file-formats-guide">input files</a>. Users need to go through several steps just to get the correct format. However, scRNA-seq Vis accepts input files in txt/csv format, which will save users some time in converting input files.
+        </li>
+        <li>
+            <b>Analysis procedure:</b> GenePattern and Galaxy uses cuffdiff for testing differential expression by default. Some popular R packages, such as DESeq, edgeR, limma, etc., are not incorporated. For Galaxy, even through users can access some R packages through Galaxy tool shed, but many of the repositories within tool shed are not well mainteined. On the other side, scRNA-seq Vis provides users with access to most recent version of major differential expression testing R packages. We also include an R package called <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a> that is developed in our own lab. Last but not least, users will have the freedom to change options for differential expression analysis to fit their own needs.
+        </li>
+        <li>
+            <b>Single cell RNA-seq</b>: We also provide support for single cell RNA-seq differential expression analysis including <a target="_blank" href="http://pklab.med.harvard.edu/scde/index.html">SCDE</a> and  
+        </li>
+        <li>
+            <b>Dynamic visualization:</b> scRNA-seq Vis incorporated several popular javascript libraries for visualization which in turn depend on D3 javascript library. Users will have a different perspective of their datasets by interactive visualization. 
+        </li>
+    </ul>
+    <h3>Differences with <a target="_blank" href="http://bioinfo.na.iac.cnr.it/RNASeqGUI/index.html">RNAseqGUI</a></h3>
+    <ul>
+        <li>
+            <b>R as prerequisite:</b> RNAseqGUI is an package that depends on R, so users will need to install R first. In addition, RNAseqGUI is not deployed in either cran or Bioconductor. So users will have to install all the dependencies manually. However, for scRNA-seq Vis, users don't need to install any software locally. Neither do you need to have any programming experience with R.
+        </li>
+        <li>
+            <b>Interactivity is always better:</b> RNAseqGUI generally uses R base plotting system which only gives you dull and non-interactive figures. However, as mentions above, scRNA-seq Vis generates graphs with interactivity which will enable 'interpretation while plotting'. 
+        </li>
+    </ul>
+
+    
+</section>
+
+<section id="Getstart">
+    <h2 class="page-header"><a href="#Getstart">Get started</a></h2>
+    <p class = 'lead'>
+        To get started with scRNA-seq vis, please check the tutorials panel on the left. Details about scRNA-seq Vis can be found from documentation panel on the left. 
+    </p>
+              </div>
+              <div role="tabpanel" class="tab-pane" id="shiny-tab-SetInput">
+                <div class="row">
+                  <div class="col-sm-6">
+                    <div>
+                      <div class="box box-solid box-warning">
+                        <div class="box-header">
+                          <h3 class="box-title">Experiment information</h3>
+                          <div class="box-tools pull-right">
+                            <button class="btn btn-box-tool" data-widget="collapse">
+                              <i class="fa fa-minus"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="box-body">
+                          <div id="countMatrix" class="form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline">
+                            <label class="control-label" for="countMatrix">Are input values count/integer values?</label>
+                            <div class="shiny-options-group">
+                              <label class="radio-inline">
+                                <input type="radio" name="countMatrix" value="Yes" checked="checked"/>
+                                <span>Yes</span>
+                              </label>
+                              <label class="radio-inline">
+                                <input type="radio" name="countMatrix" value="No"/>
+                                <span>No</span>
+                              </label>
+                            </div>
+                          </div>
+                          <pre id="value_countMatrix" class="shiny-text-output"></pre>
+                          <div id="spikein" class="form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline">
+                            <label class="control-label" for="spikein">Are spike-ins included?</label>
+                            <div class="shiny-options-group">
+                              <label class="radio-inline">
+                                <input type="radio" name="spikein" value="Yes"/>
+                                <span>Yes</span>
+                              </label>
+                              <label class="radio-inline">
+                                <input type="radio" name="spikein" value="No" checked="checked"/>
+                                <span>No</span>
+                              </label>
+                            </div>
+                          </div>
+                          <pre id="value_spikein" class="shiny-text-output"></pre>
+                          <div id="ExpDesign" class="form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline">
+                            <label class="control-label" for="ExpDesign">What is the design of the experiment?</label>
+                            <div class="shiny-options-group">
+                              <label class="radio-inline">
+                                <input type="radio" name="ExpDesign" value="Not available"/>
+                                <span>Not available</span>
+                              </label>
+                              <label class="radio-inline">
+                                <input type="radio" name="ExpDesign" value="Two-level" checked="checked"/>
+                                <span>Two-level</span>
+                              </label>
+                              <label class="radio-inline">
+                                <input type="radio" name="ExpDesign" value="Multi-level"/>
+                                <span>Multi-level</span>
+                              </label>
+                            </div>
+                          </div>
+                          <pre id="value_ExpDesign" class="shiny-text-output"></pre>
+                          <div data-display-if="input.ExpDesign ==&#39;Multi-level&#39;">
+                            <div id="MultiLevel" class="form-group shiny-input-radiogroup shiny-input-container">
+                              <label class="control-label" for="MultiLevel">For experiments with multi-level design</label>
+                              <div class="shiny-options-group">
+                                <div class="radio">
+                                  <label>
+                                    <input type="radio" name="MultiLevel" value="Specify two conditions to compare"/>
+                                    <span>Specify two conditions to compare</span>
+                                  </label>
+                                </div>
+                                <div class="radio">
+                                  <label>
+                                    <input type="radio" name="MultiLevel" value="Identify most variable genes" checked="checked"/>
+                                    <span>Identify most variable genes</span>
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                            <pre id="value_MultiLevel" class="shiny-text-output"></pre>
+                            <div data-display-if="input.MultiLevel == &#39;Specify two conditions to compare&#39;">
+                              <div class="row">
+                                <div class="col-sm-4 col-sm-offset-1">
+                                  <div class="form-group shiny-input-container">
+                                    <label for="Con_S1">Enter first condition name (For example, C1)</label>
+                                    <input id="Con_S1" type="text" class="form-control" value=""/>
+                                  </div>
+                                </div>
+                                <div class="col-sm-4 col-sm-offset-2">
+                                  <div class="form-group shiny-input-container">
+                                    <label for="Con_S2">Enter second condition name (For example, C2)</label>
+                                    <input id="Con_S2" type="text" class="form-control" value=""/>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="row">
+                                <div class="col-sm-4 col-sm-offset-1">
+                                  <pre id="value_Con_S1" class="shiny-text-output"></pre>
+                                </div>
+                                <div class="col-sm-4 col-sm-offset-2">
+                                  <pre id="value_Con_S2" class="shiny-text-output"></pre>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="box box-solid box-primary">
+                        <div class="box-header">
+                          <h3 class="box-title">File input</h3>
+                          <div class="box-tools pull-right">
+                            <button class="btn btn-box-tool" data-widget="collapse">
+                              <i class="fa fa-minus"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="box-body">
+                          <div id="DEinput" class="shiny-html-output"></div>
+                          <div class="form-group shiny-input-container">
+                            <label>Choose CSV/TXT File for RNA-seq</label>
+                            <div class="input-group">
+                              <label class="input-group-btn">
+                                <span class="btn btn-default btn-file">
+                                  Browse...
+                                  <input id="file_obs" name="file_obs" type="file" style="display: none;" accept="text/csv,text/comma-separated-values,text/plain,.csv"/>
+                                </span>
+                              </label>
+                              <input type="text" class="form-control" placeholder="No file selected" readonly="readonly"/>
+                            </div>
+                            <div id="file_obs_progress" class="progress progress-striped active shiny-file-input-progress">
+                              <div class="progress-bar"></div>
+                            </div>
+                          </div>
+                          <div data-display-if="input.DEmethod == &#39;XBSeq&#39; || input.DEmethod1 == &#39;XBSeq&#39;">
+                            <div class="form-group shiny-input-container">
+                              <label>Choose CSV/TXT File for RNA-seq (bg), required if you choose XBSeq</label>
+                              <div class="input-group">
+                                <label class="input-group-btn">
+                                  <span class="btn btn-default btn-file">
+                                    Browse...
+                                    <input id="file_bg" name="file_bg" type="file" style="display: none;" accept="text/csv,text/comma-separated-values,text/plain,.csv"/>
+                                  </span>
+                                </label>
+                                <input type="text" class="form-control" placeholder="No file selected" readonly="readonly"/>
+                              </div>
+                              <div id="file_bg_progress" class="progress progress-striped active shiny-file-input-progress">
+                                <div class="progress-bar"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div data-display-if="input.ExpDesign != &#39;Not available&#39;">
+                            <div class="form-group shiny-input-container">
+                              <label>Choose CSV/TXT File for experiment design</label>
+                              <div class="input-group">
+                                <label class="input-group-btn">
+                                  <span class="btn btn-default btn-file">
+                                    Browse...
+                                    <input id="file_design" name="file_design" type="file" style="display: none;" accept="text/csv,text/comma-separated-values,text/plain,.csv"/>
+                                  </span>
+                                </label>
+                                <input type="text" class="form-control" placeholder="No file selected" readonly="readonly"/>
+                              </div>
+                              <div id="file_design_progress" class="progress progress-striped active shiny-file-input-progress">
+                                <div class="progress-bar"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div data-display-if="input.spikein == &#39;Yes&#39;">
+                            <div class="form-group shiny-input-container">
+                              <label>Choose CSV/TXT File for spike-ins</label>
+                              <div class="input-group">
+                                <label class="input-group-btn">
+                                  <span class="btn btn-default btn-file">
+                                    Browse...
+                                    <input id="file_spikein" name="file_spikein" type="file" style="display: none;" accept="text/csv,text/comma-separated-values,text/plain,.csv"/>
+                                  </span>
+                                </label>
+                                <input type="text" class="form-control" placeholder="No file selected" readonly="readonly"/>
+                              </div>
+                              <div id="file_spikein_progress" class="progress progress-striped active shiny-file-input-progress">
+                                <div class="progress-bar"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-sm-6">
+                    <div>
+                      <div class="box box-solid box-info">
+                        <div class="box-header">
+                          <h3 class="box-title">Options for DE method</h3>
+                          <div class="box-tools pull-right">
+                            <button class="btn btn-box-tool" data-widget="collapse">
+                              <i class="fa fa-minus"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="box-body">
+                          <div data-display-if="(input.DEmethod == &#39;DESeq&#39; | input.DEmethod == &#39;XBSeq&#39;)||(input.DEmethod1 == &#39;DESeq&#39; | input.DEmethod1 == &#39;XBSeq&#39;)">
+                            <div class="form-group shiny-input-container">
+                              <label class="control-label" for="SCVmethod">Please select a method to estimate dispersion</label>
+                              <div>
+                                <select id="SCVmethod" class="form-control"><option value="pooled" selected>pooled</option>
+<option value="per-condition">per-condition</option>
+<option value="blind">blind</option></select>
+                                <script type="application/json" data-for="SCVmethod">{}</script>
+                              </div>
+                            </div>
+                            <pre id="SCVmethod" class="shiny-text-output"></pre>
+                            <div class="form-group shiny-input-container">
+                              <label class="control-label" for="SharingMode">Please select a method for sharing mode</label>
+                              <div>
+                                <select id="SharingMode" class="form-control"><option value="maximum" selected>maximum</option>
+<option value="fit-only">fit-only</option>
+<option value="gene-est-only">gene-est-only</option></select>
+                                <script type="application/json" data-for="SharingMode">{}</script>
+                              </div>
+                            </div>
+                            <pre id="SharingMode" class="shiny-text-output"></pre>
+                            <div class="form-group shiny-input-container">
+                              <label class="control-label" for="fitType">Please select a method for fitType</label>
+                              <div>
+                                <select id="fitType" class="form-control"><option value="local" selected>local</option>
+<option value="parametric">parametric</option></select>
+                                <script type="application/json" data-for="fitType">{}</script>
+                              </div>
+                            </div>
+                            <pre id="fitType" class="shiny-text-output"></pre>
+                            <div data-display-if="input.DEmethod == &#39;XBSeq&#39; || input.DEmethod1 == &#39;XBSeq&#39;">
+                              <div class="form-group shiny-input-container">
+                                <label class="control-label" for="ParamEst">Please select a method to estimate distribution parameters</label>
+                                <div>
+                                  <select id="ParamEst" class="form-control"><option value="NP" selected>Non-parametric</option>
+<option value="MLE">Maximum liklihood estimation</option></select>
+                                  <script type="application/json" data-for="ParamEst">{}</script>
+                                </div>
+                              </div>
+                              <pre id="ParamEst" class="shiny-text-output"></pre>
+                            </div>
+                          </div>
+                          <div data-display-if="input.DEmethod == &#39;DESeq2&#39; || input.DEmethod1 == &#39;DESeq2&#39;">
+                            <div class="form-group shiny-input-container">
+                              <label class="control-label" for="fitType_DESeq2">Please select a method for fit type</label>
+                              <div>
+                                <select id="fitType_DESeq2" class="form-control"><option value="local" selected>local</option>
+<option value="parametric">parametric</option>
+<option value="mean">mean</option></select>
+                                <script type="application/json" data-for="fitType_DESeq2">{}</script>
+                              </div>
+                            </div>
+                            <pre id="fitType_DESeq2" class="shiny-text-output"></pre>
+                            <div class="form-group shiny-input-container">
+                              <label class="control-label" for="Test">Please select a method for statistical test</label>
+                              <div>
+                                <select id="Test" class="form-control"><option value="Wald" selected>Wald test</option>
+<option value="LRT">Log ratio test</option></select>
+                                <script type="application/json" data-for="Test">{}</script>
+                              </div>
+                            </div>
+                            <pre id="Test" class="shiny-text-output"></pre>
+                            <div class="form-group shiny-input-container">
+                              <label class="control-label" for="cooksCutoff">Please choose either to turn on or off cooks distance cutoff</label>
+                              <div>
+                                <select id="cooksCutoff" class="form-control"><option value="on">on</option>
+<option value="off" selected>off</option></select>
+                                <script type="application/json" data-for="cooksCutoff">{}</script>
+                              </div>
+                            </div>
+                            <pre id="cooksCutoff" class="shiny-text-output"></pre>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div id="HVGBox" class="shiny-html-output"></div>
+                    <div>
+                      <div class="box box-solid box-success">
+                        <div class="box-header">
+                          <h3 class="box-title">Criteria for DE genes</h3>
+                          <div class="box-tools pull-right">
+                            <button class="btn btn-box-tool" data-widget="collapse">
+                              <i class="fa fa-minus"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="box-body">
+                          <div class="form-group shiny-input-container">
+                            <label class="control-label" for="log2bmcutoff">Please set a cutoff for log2 expression intensity</label>
+                            <div>
+                              <select id="log2bmcutoff" class="form-control"><option value="0% quantile">0% quantile</option>
+<option value="25% quantile">25% quantile</option>
+<option value="50% quantile" selected>50% quantile</option>
+<option value="75% quantile">75% quantile</option>
+<option value="100% quantile">100% quantile</option></select>
+                              <script type="application/json" data-for="log2bmcutoff">{}</script>
+                            </div>
+                          </div>
+                          <pre id="log2bmcutoff_value" class="shiny-text-output"></pre>
+                          <div class="form-group shiny-input-container">
+                            <label class="control-label" for="padjust">Please select a method for adjusting p values</label>
+                            <div>
+                              <select id="padjust" class="form-control"><option value="BH" selected>Benj&amp;Hoch</option>
+<option value="bonferroni">bonferroni</option>
+<option value="none">none</option></select>
+                              <script type="application/json" data-for="padjust">{}</script>
+                            </div>
+                          </div>
+                          <pre id="padjust" class="shiny-text-output"></pre>
+                          <div class="form-group shiny-input-container">
+                            <label class="control-label" for="pcutoff">Please set a cutoff of p values for DE genes/HVGs</label>
+                            <div>
+                              <select id="pcutoff" class="form-control"><option value="0.001">0.001</option>
+<option value="0.01">0.01</option>
+<option value="0.05" selected>0.05</option>
+<option value="0.1">0.1</option>
+<option value="0.2">0.2</option></select>
+                              <script type="application/json" data-for="pcutoff">{}</script>
+                            </div>
+                          </div>
+                          <pre id="pcutoff" class="shiny-text-output"></pre>
+                          <div class="form-group shiny-input-container">
+                            <label class="control-label" for="fccutoff">Please set a cutoff of fold change for DE genes</label>
+                            <div>
+                              <select id="fccutoff" class="form-control"><option value="1.5">1.5</option>
+<option value="2" selected>2</option>
+<option value="2.5">2.5</option>
+<option value="3">3</option>
+<option value="5">5</option></select>
+                              <script type="application/json" data-for="fccutoff">{}</script>
+                            </div>
+                          </div>
+                          <pre id="fccutoff" class="shiny-text-output"></pre>
+                          <button id="DEstart" type="button" class="btn btn-default action-button">Start analysis!</button>
+                          <div id="DEstart" class="shiny-text-output"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="tabpanel" class="tab-pane" id="shiny-tab-Charts">
+                <div id="Chartpage" class="shiny-html-output"></div>
+              </div>
+              <div role="tabpanel" class="tab-pane" id="shiny-tab-Tuto"><section id="TOC" style="clear: both;font-size: 150%;text-decoration: underline">
+    <ul> 
+        <li><a href="#DESeq2_bulk">Case 1: Using DESeq2 to process bulk RNA-seq datasets</a></li>
+        <li><a href="#SCDE_singleCell">Case 2: Using SCDE to process single-cell RNA-seq datasets</a></li>
+        <li><a href="#HVGs">Case 3: Identify highly variable genes for single-cell RNA-seq datasets</a></li>
+    </ul>
+</section>
+
+<br>
+
+<section id="DESeq2_bulk">
+    <h2 class="page-header"><a href="#DESeq2_bulk">Case 1: Using DESeq2 to process bulk RNA-seq datasets</a></h2>
+    <b>Datasets</b>
+        <p class="lead">
+        The dataset used for this section comes from a mouse RNA-seq study, which contains 3 replicates of wild type mouse liver tissues (WT) and 3 replicates of Myc transgenic mouse liver tissues (MYC). The dataset is obtained from Gene Expression Omnibus (<a target="_blank" href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE61875">GSE61875</a>). The expression matrix and experimental design file can be downloaded here: <a id="Case1_sample" class="shiny-download-link" href="CaseStudies/Case1/Dataset/Case1_sample.txt" target="_blank">Expression dataset</a> and <a id="Case1_design" class="shiny-download-link" href="CaseStudies/Case1/Dataset/design.txt" target="_blank">design matrix</a>.
+    </p>
+    <b>Set options</b>
+    <p>
+        Click on set input options subpanel of Start analysis panel on the left and firstly set experiment information shown below. 
+    </p>
+    <img src="CaseStudies/Case1/Results/Step1.png" alt="Figures can not be shown" style="width:40%;height:40%;position: relative; left: 30%;">
+    <p>
+        Choose DESeq2 as method for DE analysis and then upload Expression dataset and design matrix downloaded above.    
+    </p>
+    <img src="CaseStudies/Case1/Results/Step2.png" alt="Figures can not be shown" style="width:40%;height:40%;position: relative; left: 30%;">
+    <p>
+    Leave other options as default and click start analysis button in the bottom right box. 
+    </p>
+    <img src="CaseStudies/Case1/Results/Step3.png" alt="Figures can not be shown" style="width:40%;height:40%;position: relative; left: 30%;">
+    <p>
+        After clicking the start analysis button, you will see a progression bar on top of the page indicating current analysis process like shown below.
+    </p>
+    <img src="CaseStudies/Case1/Results/Step4.png" alt="Figures can not be shown" style="width:100%;height:100%;">
+    <p>
+        Click on the Charts subpanel on the left. All the figures will be loaded automatically once the analysis finished. And download button will also appear after the analysis finished.
+    </p>
+    <b> Results</b>
+    <p>
+        Here are some figures generated from the analysis:
+    </p>
+    <p>
+        Normlized data table
+    </p>
+    <iframe src="CaseStudies/Case1/Results/datatable.html" width=1000px height=400px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+        Density plot
+    </p>
+    <iframe src="CaseStudies/Case1/Results/density.html" width=1000px height=400px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+        Box plot
+    </p>
+    <iframe src="CaseStudies/Case1/Results/Boxplot.html" width=1000px height=400px allowtransparency="true" frameBorder="0"> </iframe>
+ 
+    <p>
+    2D PCA plot
+    </p>
+    <iframe src="CaseStudies/Case1/Results/pcaplot.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+     <p>
+    3D PCA plot
+    </p>
+    <iframe src="CaseStudies/Case1/Results/pcaplot1.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+        DE table
+    </p>
+    <iframe src="CaseStudies/Case1/Results/DEdatatable.html" width=1000px height=400px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+        Dispersion plot
+    </p>
+    <iframe src="CaseStudies/Case1/Results/DispersionPlot.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+       MA plot
+    </p>
+    <iframe src="CaseStudies/Case1/Results/MAplot.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+
+</section>
+
+<br>
+
+<section id="SCDE_singleCell">
+    <h2 class="page-header"><a href="#SCDE_singleCell">Case 2: Using SCDE to process single-cell RNA-seq datasets</a></h2>
+    <b>Datasets</b>
+        <p class="lead">
+        The dataset used for this section comes from ES/MEF cell dataset published by <a target="_blank" href="http://www.ncbi.nlm.nih.gov/pubmed/?term=24363023">Islam et al</a>. We only include 20 samples each for ES and MEF cell for the purpose of this tutorial. The expression matrix and experimental design file can be downloaded here: <a id="Case2_sample" class="shiny-download-link" href="CaseStudies/Case2/Dataset/Case2_sample.txt" target="_blank">Expression dataset</a> and <a id="Case2_design" class="shiny-download-link" href="CaseStudies/Case2/Dataset/design.txt" target="_blank">design matrix</a>
+    </p>
+    <b>Set options</b>
+    <p>
+        Click on set input options subpanel of Start analysis panel on the left and firstly set experiment information shown below. 
+    </p>
+    <img src="CaseStudies/Case2/Results/Step1.png" alt="Figures can not be shown" style="width:40%;height:40%;position: relative; left: 30%;">
+    <p>
+        Choose scde as method for DE analysis and then upload Expression dataset and design matrix downloaded above.    
+    </p>
+    <img src="CaseStudies/Case2/Results/Step2.png" alt="Figures can not be shown" style="width:40%;height:40%;position: relative; left: 30%;">
+    <p>
+    Leave other options as default and click start analysis button in the bottom right box. 
+    </p>
+    <img src="CaseStudies/Case2/Results/Step3.png" alt="Figures can not be shown" style="width:40%;height:40%;position: relative; left: 30%;">
+    <p>
+        After clicking the start analysis button, you will see a progression bar on top of the page indicating current analysis process like shown below.
+    </p>
+    <img src="CaseStudies/Case2/Results/Step4.png" alt="Figures can not be shown" style="width:100%;height:100%;">
+    <p>
+        Click on the Charts subpanel on the left. All the figures will be loaded automatically once the analysis finished. And download button will also appear after the analysis finished.
+    </p>
+    <b> Results</b>
+    <p>
+        Here are some figures generated from the analysis:
+    </p>
+    <p>
+        Normlized data table
+    </p>
+    <iframe src="CaseStudies/Case2/Results/datatable.html" width=1000px height=400px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+        Density plot
+    </p>
+    <iframe src="CaseStudies/Case2/Results/density.html" width=1000px height=400px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+        Box plot
+    </p>
+    <iframe src="CaseStudies/Case2/Results/Boxplot.html" width=1000px height=400px allowtransparency="true" frameBorder="0"> </iframe>
+ 
+    <p>
+    2D PCA plot
+    </p>
+    <iframe src="CaseStudies/Case2/Results/pcaplot.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+     <p>
+    3D PCA plot
+    </p>
+    <iframe src="CaseStudies/Case2/Results/pcaplot1.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+        DE table
+    </p>
+    <iframe src="CaseStudies/Case2/Results/DEdatatable.html" width=1000px height=400px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+       MA plot
+    </p>
+    <iframe src="CaseStudies/Case2/Results/MAplot.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+
+</section>
+
+<section id="HVGs">
+<h2 class="page-header"><a href="#HVGs">Case 3: Identify highly variable genes (HVGs) for single-cell RNA-seq datasets</a></h2>
+    <b>Datasets</b>
+        <p class="lead">
+        The dataset used for this section consisted of 430 single glioblastoma cells isolated from 5 individual tumors. The dataset is obtained from Gene Expression Omnibus (<a target="_blank" href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE57872">GSE57872</a>). The expression matrix file can be downloaded here: <a id="Case3_sample" class="shiny-download-link" href="CaseStudies/Case3/Dataset/Case3_sample.txt" target="_blank">Expression dataset</a>.
+    </p>
+    <b>Set options</b>
+    <p>
+        Click on set input options subpanel of Start analysis panel on the left and firstly set experiment information shown below. Remember to set experimental design option to 'not available'.
+    </p>
+    <img src="CaseStudies/Case3/Results/Step1.png" alt="Figures can not be shown" style="width:40%;height:40%;position: relative; left: 30%;">
+    <p>
+        Choose BPSC as method for DE analysis and then upload Expression dataset downloaded above.    
+    </p>
+    <img src="CaseStudies/Case3/Results/Step2.png" alt="Figures can not be shown" style="width:40%;height:40%;position: relative; left: 30%;">
+    <p>
+    Leave other options as default and click start analysis button in the bottom right box. 
+    </p>
+    <img src="CaseStudies/Case3/Results/Step3.png" alt="Figures can not be shown" style="width:40%;height:40%;position: relative; left: 30%;">
+    <p>
+        After clicking the start analysis button, you will see a progression bar on top of the page indicating current analysis process like shown below.
+    </p>
+    <img src="CaseStudies/Case3/Results/Step4.png" alt="Figures can not be shown" style="width:100%;height:100%;">
+    <p>
+        Click on the Charts subpanel on the left. All the figures will be loaded automatically once the analysis finished. And download button will also appear after the analysis finished.
+    </p>
+    <b> Results</b>
+    <p>
+        Here are some figures generated from the analysis:
+    </p>
+    <p>
+        Scatter plot
+    </p>
+    <iframe src="CaseStudies/Case3/Results/Scatterplot.html" width=1000px height=400px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+        Interaction network
+    </p>
+    <iframe src="CaseStudies/Case3/Results/forceNet.html" width=1000px height=400px allowtransparency="true" frameBorder="0"> </iframe>
+     <p>
+    3D PCA plot
+    </p>
+    <iframe src="CaseStudies/Case3/Results/pcaplot.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+        HVGs plot
+    </p>
+    <iframe src="CaseStudies/Case3/Results/HVGplot.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+    <p>
+       HVGs heatmap
+    </p>
+    <iframe src="CaseStudies/Case3/Results/HVGheatmap.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+</section></div>
+              <div role="tabpanel" class="tab-pane" id="shiny-tab-doc"><section id="TOC" style="clear: both;font-size: 150%;text-decoration: underline">
+    <ul> 
+        <li><a href="#Preprocess">Pre-process steps</a></li>
+        <li><a href="#inputfiles">Input format</a></li>
+        <li><a href="#Analysisoptions">Set input options</a></li>
+        <li><a href="#Chartdownload">Download results</a></li>
+    </ul>
+</section>
+
+<br>
+
+<section id="Preprocess">
+    <h2 class="page-header"><a href="#Preprocess">Pre-process steps</a></h2>
+    <p class="lead">
+        Before <a href="#inputfiles">starting analysis</a> with scRNA-seq Vis, you firstly will need to go through several steps to generate expression matrix for your RNA-seq experiment. 
+    </p>
+    <p>
+        After sequencing and <a target="_blank" href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/">sequence quality control</a> procedure, you will get the sequence files in <a target="_blank" href="https://en.wikipedia.org/wiki/FASTQ_format">FASTQ</a> format, which generally contains sequence and its quality information. You need to go through alignment and counting procesure in order to generate expression count matrix for your experiments: 
+    </p>
+    <object type="image/svg+xml" data="img/pipeline.svg" style="width:100%">Your browser does not support SVG</object>
+<!--    <img src="img/pipeline.png" alt="Figure cannot be shown"></img> -->
+<p>
+    After sequencing, you will need to align the sequences to your corresponding genome of interest. Currently, many tools have been designed for sequence alignment of RNA-seq experiments. Among those, <a target="_blank" href="https://ccb.jhu.edu/software/tophat/index.shtml">Tophat</a> and <a target="_blank" href="https://github.com/alexdobin/STAR">STAR</a> aligner are probably the most widely used ones. More details regarding the differences and performances of different RNA-seq aligners can be found <a target="_blank" href="https://en.wikipedia.org/wiki/List_of_RNA-Seq_bioinformatics_tools#Alignment_Tools">here</a> and <a target="_blank" href="http://www.nature.com/nmeth/journal/v10/n12/full/nmeth.2722.html">here</a>.
+</p>
+<p>
+    After sequences have successfully aligned to the corresponding genome. You need to quantify the expression level of each gene by counting the number of reads mapped to each gene/transcript. Also, there are many tools that have been developed for this purpose, such as <a target="_blank" href="http://www-huber.embl.de/users/anders/HTSeq/doc/overview.html">HTSeq</a> and <a target="_blank" href="http://cole-trapnell-lab.github.io/cufflinks/">Cufflinks</a>. 
+</p>
+<div class="callout callout-danger lead">
+    <h4>Tip!</h4>
+    <p>You could also use integrated platforms like <a target="_blank" href="http://www.broadinstitute.org/cancer/software/genepattern/">GenePattern</a> and <a target="_blank" href="https://galaxyproject.org/">Galaxy</a> for pre-process analysis</p>
+  </div>
+</section>
+
+<section id="inputfiles">
+  <h2 class="page-header"><a href="#inputfiles">Input format</a></h2>
+  <p class="lead">
+    After you go through the pre-process steps using your favourite pipeline and generate the expression matrix for RNA-seq, you are now ready to use scRNA-seq Vis! <b>scRNA-seq Vis</b> require two input files (except that if you choose <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a> as DE method). One is expression matrix for RNA-seq. The values of gene expression can be in the unit of 'raw count', 'Transcript per Million (TPM)', 'Reads Per Kilobase of transcript per Million mapped reads (RPKM)', 'Fragments Per Kilobase of transcript per Million mapped reads (FPKM)'. <b>Do not use log2 transformed values</b>. The other is design matrix for the experiment. Both files are required in a format of either tab seperated txt files or csv files. Sample files can be downloaded here: <a id="sampleexpression" class="shiny-download-link" href="Sampledata/test.txt" target="_blank">Expression dataset</a> and <a id="sampledesign" class="shiny-download-link" href="Sampledata/design.txt" target="_blank">design matrix</a>. If design matrix is not available, for instance with single cell experiments to identify cell heterogeneity, please remember to set input option of design matrix to 'not available'.
+       </p>
+ <div class="callout callout-info lead">
+    <h4>Reminder!</h4>
+    <p> 
+        <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a> requires one additional input file in the same format as the expression matrix. For details, please refer to the package <a target="_blank" href="https://www.bioconductor.org/packages/devel/bioc/vignettes/XBSeq/inst/doc/XBSeq.html">Vignette</a>.
+     </p>
+  </div>
+</section>
+
+<section id="Analysisoptions">
+  <h2 class="page-header"><a href="#Analysisoptions">Set input options</a></h2>
+  <p class="lead">
+    Click <b>Start analysis</b> panel and then <b>Set input options</b> subpanel to start your analysis. Firstly, you need to choose which statistical method you wanna use for your analysis. Available options include: <a target="_blank" href="http://hms-dbmi.github.io/scde/">SCDE</a>, <a target="_blank" href="https://github.com/RGLab/MAST">MAST</a>, <a target="_blank" href="https://github.com/nghiavtr/BPSC">BPSC</a> and methods designed for bulk RNA-seq dataset: <a target="_blank" href="http://bioconductor.org/packages/DESeq/">DESeq</a>, <a target="_blank" href="http://bioconductor.org/packages/DESeq2/">DESeq2</a>, <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a>, <a target="_blank" href="http://bioconductor.org/packages/edgeR/">edgeR</a>, <a target="_blank" href="http://omictools.com/edger-robust-s4759.html">edgeR-robust</a>, <a target="_blank" href="http://cole-trapnell-lab.github.io/monocle-release/">monocle</a>, <a target="_blank" href="http://bioconductor.org/packages/DESeq/">ROTS</a>, <a target="_blank" href="https://bioconductor.org/packages/release/bioc/html/limma.html">limma</a>, <a target="_blank" href="http://www.genomebiology.com/2014/15/2/R29">limma-voom</a> and <a target="_blank" href="http://bioconductor.org/packages/release/bioc/html/EBSeq.html">EBSeq</a>. Then you can upload your expression matrix file and experimental design file of your RNA-seq experiment through the file uploading system. In cases where experimental design information is not available, a generalized linear model based method, <a target="_blank" href="http://www.nature.com/nmeth/journal/v10/n11/full/nmeth.2645.html">Brennecke_2013</a> , will be used to identify highly variable genes (HVGs)
+       </p>
+ <div class="callout callout-success lead">
+    <h4>Suggestions!</h4>
+    <p>For detailed information comparing differnt differential expression statistical method for analysing scRNA-seq, please refer to <a target="_blank" href="http://bib.oxfordjournals.org/content/early/2016/07/02/bib.bbw057.full">this article</a>; for comparative studies regarding bulk RNA-seq data, please refer to <a target="_blank" href="http://liuy12.github.io/2015/08/02/Comparison%20of%20differential%20expression%20methods.html">this blog of mine</a></p>
+  </div>
+<h3>Options for <a target="_blank" href="http://bioconductor.org/packages/DESeq/">DESeq</a> and <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a></h3>
+    <b>Method to estimate dispersion:</b> Three options are available to estimate gene-wise dispersions. 
+    <ul>
+        <li>
+            <b>pooled:</b> Use the samples from all conditions with replicates to estimate a single pooled empirical dispersion value, called "pooled", and assign it to all samples.
+        </li>
+        <li>
+            <b>per-condition:</b> For each condition with replicates, compute a gene's empirical dispersion value by considering the data from samples for this condition. For samples of unreplicated conditions, the maximum of empirical dispersion values from the other conditions is used.
+        </li>
+        <li>
+            <b>blind:</b> Ignore the sample labels and compute a gene's empirical dispersion value as if all samples were replicates of a single condition. This can be done even if there are no biological replicates. This method can lead to loss of power.
+        </li>
+    </ul>
+    <b>Sharing mode for dispersion estimation:</b> For each gene, we have two values: the empirical value (derived only from this gene's data), and the fitted value (i.e., the dispersion value typical for genes with an average expression similar to those of this gene).Three options are available to determine the mode of sharing information across genes in order to reduce variability of the dispersion estimates.
+    <ul>
+        <li>
+            <b>fit-only:</b> Use only the fitted value, i.e., the empirical value is used only as input to the fitting, and then ignored. Use this only with very few replicates, and when you are not too concerned about false positives from dispersion outliers, i.e. genes with an unusually high variability.
+        </li>
+        <li>
+            <b>maximum:</b> Take the maximum of the two values. This is the conservative or prudent choice, recommended once you have at least three or four replicates and maybe even with only two replicates
+        </li>
+        <li>
+            <b>gene-est-only:</b> No fitting or sharing, use only the empirical value. This method is preferable when the number of replicates is large and the empirical dispersion values are sufficiently reliable. If the number of replicates is small, this option may lead to many cases where the dispersion of a gene is accidentally underestimated and a false positive arises in the subsequent testing
+        </li>
+    </ul>
+    <b>Method to fit Dispersion-mean relation:</b> Two options are available:
+    <ul>
+        <li>
+            <b>local:</b> Use the <a target="_blank" href="https://cran.r-project.org/web/packages/locfit/index.html">locfit</a> package to fit a dispersion-mean relation.
+        </li>
+        <li>
+            <b>parametric:</b> Fit a dispersion-mean relation of the form dispersion = asymptDisp + extraPois / mean via a robust gamma-family GLM.
+        </li>
+    </ul>
+    <h3>Additional options for <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a></h3>
+    <b>Method to estimate distribution parameters:</b> Two options are available:
+    <ul>
+        <li>
+            <b>Non-parametric:</b> Use non-parametric method to estimate per-gene parameters for nagative binomial and Poisson distribution. This option is generally recommended for experiments with replicates smaller than 5.
+        </li>
+        <li>
+            <b>Maximum liklihod estimation:</b> Use MLE to estimate parameters for the distributions.
+        </li>
+    </ul>
+    <h3>Options for <a target="_blank" href="http://bioconductor.org/packages/DESeq2/">DESeq2</a></h3>
+    <b>Method to fit Dispersion-mean relation:</b> The same parameter as in DESeq but with one additional option:
+    <ul>
+        <li>
+            <b>local:</b> Use the <a target="_blank" href="https://cran.r-project.org/web/packages/locfit/index.html">locfit</a> package to fit a dispersion-mean relation.
+        </li>
+        <li>
+            <b>parametric:</b> Fit a dispersion-mean relation of the form dispersion = asymptDisp + extraPois / mean via a robust gamma-family GLM.
+        </li>
+        <li>
+            <b>mean:</b> use the mean of gene-wise dispersion estimates.
+        </li>
+    </ul>
+    <b>Choice of statistical test:</b> 
+    <ul>
+        <li>
+            <b>wald test:</b> ward test with default parameters
+        </li>
+        <li>
+            <b>Likelihood ratio test:</b> The difference in deviance is compared to a chi-squared distribution to infer significance
+        </li>
+    </ul>
+    <b>Outlier detection:</b> Whether to turn on the outlier detection functionality
+    <ul>
+        <li>
+            <b>on:</b> Use default setting to detect outliers. If outlier is found for a gene, then the p value will be set to NA.
+        </li>
+        <li>
+            <b>off:</b> Turn off outlier detection functionality and use p values as it is. 
+        </li>
+    </ul>
+    <h3>Criteria for differentially expressed genes</h3>
+    <b>Method for multiple test correction:</b> Three options are available:
+    <ul>
+        <li>
+            <b>Benj&Hoch:</b> Details regarding this method can be found <a target="_blank" href="http://www.dnastar.com/arraystar_help/index.html#!Documents/fdrbenjaminihochberg1.htm">here</a>
+        </li>
+        <li>
+            <b>Bonferroni:</b> Details regarding this method can be found <a target="_blank" href="http://www.dnastar.com/arraystar_help/index.html#!Documents/bonferroni1.htm">here</a> 
+        </li>
+        <li>
+            <b>none:</b> Do not adjust for multiple testing.
+        </li>
+    </ul>
+    <p><b>P value cutoff for DE genes:</b> Five options are available, 0.001, 0.01, 0.05, 0.1, 0.2.</p>
+    <p><b>Fold change cutoff for DE genes:</b> Five options are available, 1.5, 2, 2.5, 3, 5.</p>
+    <p><b>Log2 intensity cufoff for DE genes:</b> A value that can generally be determined from density plot.</p>
+</section>
+
+<section id="Chartdownload">
+  <h2 class="page-header"><a href="#Chartdownload">Start visualizing! </a></h2>
+  <p class="lead">
+      After you have filled in all required input options, click start analysis buttion, then the analysis will run automatically using your input options. Click on the charts subpanel. All the figures will automatically be loaded once the analysis finished. There are three modules of charts: Quality control charts, gene/sample relationship charts and differential expression analysis charts. After the analysis has finished, you can switch among different charts by clicking the tabpanels. 
+    </p>
+    <p>
+        Finally, you can click the bottom download button to download the report files. Within the download files there is a file called 'report.html' which is the final reveal.js based report that contains all the figures. 
+    </p>
+    <div class="callout callout-danger lead">
+    <h4>Tip!</h4>
+    <p>The 'report.html' need to stay with the sub folder 'libraries' and 'htmlFiles' in order to be functional. For instance, if you drag the 'report.html' file to another location without dragging the two subfolders, it will not be functional.</p>
+  </div>
+        <p>And that's it. Enjoy visualizing!
+    </p>
+</section></div>
+              <div role="tabpanel" class="tab-pane" id="shiny-tab-aboutus">
+                <div class="row">
+                  <div class="shiny-html-output col-sm-4" id="totalvisits"></div>
+                  <div class="shiny-html-output col-sm-4" id="thismonthvisits"></div>
+                  <div class="shiny-html-output col-sm-4" id="totalusers"></div>
+                </div>
+                       <section class="content-header">
+          <h1>
+            Timeline
+          </h1>
+        </section>
+
+        <!-- Main content -->
+        <section class="content">
+
+          <!-- row -->
+          <div class="row">
+            <div class="col-md-12">
+              <!-- The time line -->
+              <ul class="timeline">
+                <!-- timeline time label -->
+                <li class="time-label">
+                  <span class="bg-red">
+                    1 Oct. 2016
+                  </span>
+                </li>
+                <!-- /.timeline-label -->
+                <!-- timeline item -->
+                <li>
+                  <i class="fa fa-rocket bg-blue"></i>
+                  <div class="timeline-item">
+                    <h3 class="timeline-header"><a href="#">RNA-seq Vis</a> has officially launched!</h3>
+                    <div class="timeline-body">
+                      <b>Features include:</b>
+                        <ul>
+                            <li>
+                                Differential expression analysis for scRNA-seq including bulk RNA-seq experiments
+                            </li>
+                            <li>
+                                Identify cell heterogeneity for scRNA-seq experiments
+                            </li>
+                            <li>
+                                Dynamic visualization using existing javascript libraries
+                            </li>
+                            <li>
+                                Output report using reveal.js
+                            </li>
+                        </ul>
+                    </div>
+                  </div>
+                </li>
+                  </section>
+                <!-- END timeline item -->
+                <!-- timeline item -->
+               <section class="content-header">
+          <h1>
+            Contact
+          </h1>
+                   <br>
+                   <i class="fa fa-envelope" aria-hidden="true"></i> <p>liuy12@uthscsa.edu</p>
+                   <i class="fa fa-linkedin-square" aria-hidden="true"></i><p><a target="_blank" href="https://www.linkedin.com/profile/preview?locale=en_US&trk=prof-0-sb-preview-primary-button">yuanhang liu</a></p>
+        </section>
+                
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </body>
+  </div>
+</div>
+          
+          </body>
+        </html>

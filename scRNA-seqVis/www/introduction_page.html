@@ -1,0 +1,316 @@
+
+<!DOCTYPE html>
+
+
+
+<html>
+
+
+
+<title>RNA Methylation</title>
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="CSS/style_fp.css"/>
+    
+<link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css"/>
+
+<link type="text/css" rel="stylesheet" href="CSS/bootstrap.min.css">
+
+<link type="text/css" rel="stylesheet" href="CSS/style.css" />
+    
+<link type="text/css" rel="stylesheet" href="CSS/AdminLTE.css" />
+    
+<script type="text/javascript" src="JavaScript/app.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/bootstrap.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/GoogleAnalytics.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/jquery.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/shiny.js" ></script>
+
+<style>
+         .tooltip {
+     opacity:1;
+     }
+    
+    .progress-striped .bar {
+      background-color: #149bdf;
+      background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(255, 255, 255, 0.6)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(255, 255, 255, 0.6)), color-stop(0.75, rgba(255, 255, 255, 0.6)), color-stop(0.75, transparent), to(transparent));
+      background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: -moz-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: -o-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      -webkit-background-size: 40px 40px;
+         -moz-background-size: 40px 40px;
+           -o-background-size: 40px 40px;
+              background-size: 40px 40px;
+    }
+     </style>
+
+</head>
+
+
+
+<body>
+
+
+
+<div class="main">
+
+
+
+  <div class="header">
+
+
+
+    <div class="header_resize">
+
+
+
+      <div class="logo">
+
+
+
+        <h1><a href="index.html"><span class="style4"><br />
+
+        <span class="style5">MeT-DB: </span><br />
+        <span class="style3">A database of transcriptome methylation in mammalian cells</span></a></h1>
+
+
+
+      </div>
+
+
+
+      <div class="search">
+
+      <table align=center><tr>
+
+
+
+     <td align=center>
+
+      
+
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<center>Type a gene name <br> (e.g. TP53):
+
+        <form id="form" name="form" method="get" action="search.php">
+
+          <span>
+
+          <input name="lgene" type="text"  class="keywords" id="textfield" maxlength="30" value=""/>
+
+          <input name="b" type="image" src="images/search.gif" class="button" />
+
+
+
+          </span>
+
+
+
+        </form>
+
+            <br><br>      
+
+     </td>
+
+     <td>&nbsp;&nbsp;OR&nbsp;&nbsp;</td>
+
+        <td align=center> Click on Circular Ideogram<br>
+
+         <a href="GenomeViewer.php"><img src="./images/Hgenome.png" width=67 height=67></a>
+
+        
+
+     </td>
+
+     </tr></table>
+
+
+
+      </div>
+
+
+
+      <div class="clr"></div>
+
+
+
+      <div class="menu_nav">
+
+
+
+        <ul>
+
+
+
+          <li class="active"><a href="index.html">Home</a></li>
+
+          <li><a href="introduction.html">Introduction</a></li>         
+
+          <li><a href="statistics.html">Statistics</a></li>                   
+
+          <li><a href="download.html">Download</a></li> 
+		  
+          <li><a href="faq.html">FAQ/Tutorial</a></li>         
+
+          <li><a href="publications.html">References</a></li>
+
+          <li><a href="contact.html">Contact Us</a></li>
+
+
+
+        </ul>
+
+
+
+      </div>
+
+
+
+      <div class="clr"></div>
+
+
+
+    </div>
+
+
+
+  </div>
+
+      
+<div role="tabpanel" class="tab-pane" id="shiny-tab-introduction">
+                <div class="col-md-6" style="position: relative; left: 25%;">
+              <div class="box box-solid" >
+                <div class="box-header with-border">
+                  <h3 class="box-title">D3.js</h3>
+                </div><!-- /.box-header -->
+                <div class="box-body">
+                  <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+                    <ol class="carousel-indicators">
+                      <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
+                      <li data-target="#carousel-example-generic" data-slide-to="1" class=""></li>
+                      <li data-target="#carousel-example-generic" data-slide-to="2" class=""></li>
+                    </ol>
+                    <div class="carousel-inner">
+                      <div class="item active">
+                        <a target="_blank" href="http://mbostock.github.io/d3/talk/20111116/bundle.html">
+                            <img src="img/circularplot.png" alt="Hierarchical Edge Bundling">
+                          </a>
+                        <div class="carousel-caption">
+                          Hierarchical Edge Bundling
+                        </div>
+                      </div>
+                      <div class="item">
+                        <a target="_blank" href="http://romsson.github.io/dragit/example/nations.html">
+                            <img src="img/Wealthplot.png" alt="Gapminder's Wealth and Health">
+                          </a>
+                        <div class="carousel-caption">
+                          Gapminder's Wealth and Health
+                        </div>
+                      </div>
+                      <div class="item">
+                        <a target="_blank" href="https://vida.io/gists/vfP7KiHLfDbnDWBsX">
+                            <img src="img/map.png" alt="US States Map">
+                          </a>
+                        <div class="carousel-caption">
+                          US States Map
+                        </div>
+                      </div>
+                    </div>
+                    <a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">
+                      <span class="fa fa-angle-left"></span>
+                    </a>
+                    <a class="right carousel-control" href="#carousel-example-generic" data-slide="next">
+                      <span class="fa fa-angle-right"></span>
+                    </a>
+                  </div>
+                </div><!-- /.box-body -->
+              </div><!-- /.box -->
+            </div><!-- /.col -->
+          <!-- END ACCORDION & CAROUSEL-->
+                <section id="TOC" style="clear: both;font-size: 150%;text-decoration: underline">
+    <ul> 
+        <li><a href="#introduction">Introduction</a></li>
+        <li><a href="#dependency">Dependency of scRNA-seq Vis</a></li>
+        <li><a href="#difference">Comparison with several major toolsets for processing RNA-seq datasets</a></li>
+        <li><a href="#Getstart">Get started with scRNA-seq Vis</a></li>
+    </ul>
+</section>
+
+<br>
+
+<section id="introduction" style="clear: both">
+  <h2 class="page-header"><a href="#introduction">Introduction</a></h2>
+  <p class="lead">
+    <b>scRNA-seq Vis</b> is a web application for analyzing single cell as well as general bulk RNA-seq datasets. Different from traditional application for processing RNA-seq data, by using multiple javascript library (see in <a href="#dependency">Dependency</a> section), scRNA-seq Vis provides an easy way to generate dynamic visualization for RNA-seq pre-processing and differential expression analysis. 
+       </p>
+    <p>
+      To use scRNA-seq Vis, please firstly check the documentation on the left panel and make sure you follow every step by uploading your RNA-seq expression count file and experimental design file and setting all the options required for the analysis. After you submit all required inputs, the output figures will be automatically loaded into Charts subpanel on the left whenever the analysis has finished. After the analysis has finished you can download the report files by pressing the download button in charts subpanel. 
+    </p>
+ 
+</section><!-- /#introduction -->
+
+
+<!-- ============================================================= -->
+
+<section id="dependency">
+    <h2 class="page-header"><a href="#dependency">Dependency</a></h2>
+    <p class = "lead">
+        scRNA-seq Vis is constructed based on <a target="_blank" href="http://shiny.rstudio.com/">shiny framework</a> from R studio. To generate interactive visualization, we incorporate multiple javascript libraries, including <a target="_blank" href="https://www.polychart.com/">Polychart</a>, <a target="_blank" href="http://www.highcharts.com/">Highcharts</a> and <a target="_blank" href="http://nvd3.org/">NVD3</a>. These javascript libraries are in turn based on <a target="_blank" href="http://d3js.org/">D3</a> javascript library. To use these javascript libraries within shiny framework, we adopt <a target="_blank" href="http://rcharts.io/">rCharts</a> package which is essentially an application programming interface (API) for these libraries. Additionally, we also utilize several packages from <a target="_blank" href="http://www.htmlwidgets.org/">htmlwidgets</a> project, including <a target="_blank" href="https://github.com/rstudio/d3heatmap">d3heatmap</a>, <a target="_blank" href="http://rstudio.github.io/DT/">DataTables</a>, <a target="_blank" href="http://christophergandrud.github.io/networkD3/">networkD3</a>, <a target="_blank" href="http://hrbrmstr.github.io/metricsgraphics/">MetricsGraphics</a> and <a target="_blank" href="https://github.com/bwlewis/rthreejs">threejs</a>. Google authentification functionality is adopted from <a target="_blank" href="https://cran.r-project.org/web/packages/googleAuthR/">googleAuthR</a> package. HTML report is generated using <a target="_blank" href="http://lab.hakim.se/reveal-js/#/">reveal.js</a> that is incorporated in <a target="_blank" href="http://slidify.org/">slidify</a> package.  
+    </p>
+    
+</section>
+
+<section id="difference">
+    <h2 class="page-header"><a href="#difference">Difference in me</a></h2>
+    <h3>Differences with <a target="_blank" href="http://www.broadinstitute.org/cancer/software/genepattern/">GenePattern</a> and <a target="_blank" href="https://usegalaxy.org/">Galaxy</a></h3>
+    <ul>
+        <li> 
+            <b>Input files format:</b> GenePattern requires certain formats of <a target="_blank" href="http://www.broadinstitute.org/cancer/software/genepattern/file-formats-guide">input files</a>. Users need to go through several steps just to get the correct format. However, scRNA-seq Vis accepts input files in txt/csv format, which will save users some time in converting input files.
+        </li>
+        <li>
+            <b>Analysis procedure:</b> GenePattern and Galaxy uses cuffdiff for testing differential expression by default. Some popular R packages, such as DESeq, edgeR, limma, etc., are not incorporated. For Galaxy, even through users can access some R packages through Galaxy tool shed, but many of the repositories within tool shed are not well mainteined. On the other side, scRNA-seq Vis provides users with access to most recent version of major differential expression testing R packages. We also include an R package called <a target="_blank" href="http://bioconductor.org/packages/XBSeq/">XBSeq</a> that is developed in our own lab. Last but not least, users will have the freedom to change options for differential expression analysis to fit their own needs.
+        </li>
+        <li>
+            <b>Single cell RNA-seq</b>: We also provide support for single cell RNA-seq differential expression analysis including <a target="_blank" href="http://pklab.med.harvard.edu/scde/index.html">SCDE</a> and  
+        </li>
+        <li>
+            <b>Dynamic visualization:</b> scRNA-seq Vis incorporated several popular javascript libraries for visualization which in turn depend on D3 javascript library. Users will have a different perspective of their datasets by interactive visualization. 
+        </li>
+    </ul>
+    <h3>Differences with <a target="_blank" href="http://bioinfo.na.iac.cnr.it/RNASeqGUI/index.html">RNAseqGUI</a></h3>
+    <ul>
+        <li>
+            <b>R as prerequisite:</b> RNAseqGUI is an package that depends on R, so users will need to install R first. In addition, RNAseqGUI is not deployed in either cran or Bioconductor. So users will have to install all the dependencies manually. However, for scRNA-seq Vis, users don't need to install any software locally. Neither do you need to have any programming experience with R.
+        </li>
+        <li>
+            <b>Interactivity is always better:</b> RNAseqGUI generally uses R base plotting system which only gives you dull and non-interactive figures. However, as mentions above, scRNA-seq Vis generates graphs with interactivity which will enable 'interpretation while plotting'. 
+        </li>
+    </ul>
+
+    
+</section>
+
+<section id="Getstart">
+    <h2 class="page-header"><a href="#Getstart">Get started</a></h2>
+    <p class = 'lead'>
+        To get started with scRNA-seq vis, please check the tutorials panel on the left. Details about scRNA-seq Vis can be found from documentation panel on the left. 
+    </p>
+              </div>
+    
+      </div>
+      
+    </body>
+    
+</html>

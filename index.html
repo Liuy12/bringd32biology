@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+
+
+
+<html>
+
+
+
+<head>
+
+
+
+<title>scRNA-seq Vis</title>
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<!-- Tell the browser to be responsive to screen width -->
+
+
+
+
+<link type="text/css" rel="stylesheet" href="scRNA-seqVis/www/CSS/style_fp.css"/>
+    
+<link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css"/>
+
+<link type="text/css" rel="stylesheet" href="scRNA-seqVis/www/CSS/bootstrap.css"/>
+
+<link type="text/css" rel="stylesheet" href="scRNA-seqVis/www/CSS/style.css" />
+    
+<link type="text/css" rel="stylesheet" href="scRNA-seqVis/www/CSS/AdminLTE.css" />
+    
+<script type="text/javascript" src="scRNA-seqVis/www/JavaScript/app.js" ></script>
+    
+<script type="text/javascript" src="scRNA-seqVis/www/JavaScript/bootstrap.js" ></script>
+    
+<script type="text/javascript" src="scRNA-seqVis/www/JavaScript/GoogleAnalytics.js" ></script>
+    
+<script type="text/javascript" src="scRNA-seqVis/www/JavaScript/jquery.js" ></script>
+    
+<script type="text/javascript" src="scRNA-seqVis/www/JavaScript/shiny.js" ></script>
+    
+<style>
+         .tooltip {
+     opacity:1;
+     }
+    
+    .progress-striped .bar {
+      background-color: #149bdf;
+      background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(255, 255, 255, 0.6)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(255, 255, 255, 0.6)), color-stop(0.75, rgba(255, 255, 255, 0.6)), color-stop(0.75, transparent), to(transparent));
+      background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: -moz-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: -o-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      -webkit-background-size: 40px 40px;
+         -moz-background-size: 40px 40px;
+           -o-background-size: 40px 40px;
+              background-size: 40px 40px;
+    }
+     </style>
+
+</head>
+
+
+
+<body>
+
+
+
+<div class="main">
+
+
+
+  <div class="header">
+
+
+
+    <div class="header_resize">
+
+
+
+      <div class="logo">
+
+
+
+        <h1><a href="index.html"><span class="style4"><br />
+
+        <span class="style5">scRNA-seq Vis: </span><br />
+        <span class="style3">Cloud-based application for processing scRNA-seq datasets</span></a></h1>
+
+
+
+      </div>
+
+      <div class="clr"></div>
+
+
+
+      <div class="menu_nav">
+
+
+
+        <ul>
+
+
+
+          <li class="active"><a href="index.html">Home</a></li>
+
+          <li><a href="setinput.html">scRNA-seq Vis</a></li>                
+
+          <li><a href="contact.html">About Us</a></li>
+
+        </ul>
+
+
+
+      </div>
+
+
+
+      <div class="clr"></div>
+
+
+
+    </div>
+
+
+
+  </div>
+
+
+
+  <div class="clr"></div>
+
+
+
+  <div class="content">
+
+
+
+    <div class="content_resize">
+
+
+
+      <div class="mainbar">
+
+
+
+        <div class="article">
+
+<section id="introduction" style="clear: both">
+  <h2 ><a href="#introduction">Introduction</a></h2>
+    <p>Updated on September 29, 2016</p>
+    <br>
+  <p class="lead">
+      Traditional RNA sequencing (RNA-seq) is a revolutionary technology that enables transcriptomic profiling in a systematic manner and has been widely adopted for genomic research during the past two decades. However, for traditional RNA-seq, profiles of gene expression levels are generated from bulk populations of millions of input cells, which means that the expression value for each gene is an average of expression levels across the bulk population. As a result, the underneath true signal of interest might be misrepresented. Thanks to the recent development of RNA-seq technology, we are now able to examine transcriptomic profile at single cell level. Up till now, there are still no web-based platforms for processing scRNA-seq datasets. Here we present an integrated web application, scRNA-seq Vis, for analyzing scRNA-seq datasets.</p> 
+    <p class="lead"><b>scRNA-seq Vis</b> is a web application for analyzing single cell as well as general bulk RNA-seq datasets. Different from traditional application for processing RNA-seq data, by using multiple javascript library (see in <a href="#dependency">Dependency</a> section), scRNA-seq Vis provides an easy way to generate dynamic visualization for RNA-seq pre-processing and differential expression analysis. 
+       </p>
+    
+    <p class = "lead">
+        This is the internal design of scRNA-seq Vis
+    </p>
+    
+    <p>
+     <object type="image/svg+xml" data="scRNA-seqVis/www/img/pipeline_sc.svg" style="width:100%">Your browser does not support SVG</object>
+    </p>
+   
+    
+    <p class = "lead">
+      You can access scRNA-seq Vis from here
+    </p>
+          
+        </div>
+
+        </div>
+
+
+
+      <div class="clr"></div>
+
+
+
+    </div>
+
+
+
+  </div>
+
+
+
+  <div class="fbg">
+
+
+
+    <div class="footer">
+
+
+
+      <p class="lr">&nbsp;</p>
+
+
+
+      <p class="lf">&nbsp;</p>
+
+
+
+      <table width="965" border="0">
+
+
+
+        <tr>
+
+
+
+          <td valign="middle" width="692" ><img src="scRNA-seqVis/www/img/UTHSCSA_logo.gif" alt="uthscsa" width="134" height="60" align="middle"/><img src="scRNA-seqVis/www/img/utsa_logo.png" alt="utsa" width="150" height="50" align="middle" /><img src="scRNA-seqVis/www/img/UTSA_oci.png" alt="utsa" width="100" height="50" align="middle" /></td>
+
+
+
+          <td width="234" bordercolor="#FFFFFF"><div align="center">©2016 All Rights Reserved.  •  Design by ECE • UTSA | CBBI • GCCRI  • UTHSCSA </div></td>
+
+        </tr>
+
+      </table>
+
+
+
+    </div>
+
+
+
+  </div>
+
+
+
+</div>
+
+
+
+<div align=center></div>
+
+
+
+</body>
+
+
+
+</html>

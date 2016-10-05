@@ -1,0 +1,516 @@
+
+<!DOCTYPE html>
+
+
+
+<html>
+
+
+
+<head>
+
+
+
+<title>RNA Methylation</title>
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<!-- Tell the browser to be responsive to screen width -->
+
+
+
+
+<link type="text/css" rel="stylesheet" href="CSS/style_fp.css"/>
+    
+<link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css"/>
+
+<link type="text/css" rel="stylesheet" href="CSS/bootstrap.css"/>
+
+<link type="text/css" rel="stylesheet" href="CSS/style.css" />
+    
+<link type="text/css" rel="stylesheet" href="CSS/AdminLTE.css" />
+    
+<script type="text/javascript" src="JavaScript/app.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/bootstrap.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/GoogleAnalytics.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/jquery.js" ></script>
+    
+<script type="text/javascript" src="JavaScript/shiny.js" ></script>
+    
+<script>
+//    
+        function onLoad() {
+    sessionStorage.setItem("log2bmcutoff", document.getElementById("log2bmcutoff").value);
+    sessionStorage.setItem("DEmethod", document.getElementById("DEmethod").value);
+    sessionStorage.setItem("SCVmethod", document.getElementById("SCVmethod").value); 
+            if (document.getElementById('spikein_1').checked) {
+  sessionStorage.setItem("spikein", document.getElementById("spikein_1").value);
+}
+            else{
+                sessionStorage.setItem("spikein", document.getElementById("spikein_2").value);
+            }
+      
+ //   sessionStorage.setItem("log2bmcutoff", document.getElementById("log2bmcutoff").value);
+ //   document.write("spikein = " + sessionStorage.getItem("spikein") + "<br>");        
+}
+      //  document.write("countMatrix = " + x + "<br>");
+    </script>
+    
+<style>
+         .tooltip {
+     opacity:1;
+     }
+    
+    .progress-striped .bar {
+      background-color: #149bdf;
+      background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(255, 255, 255, 0.6)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(255, 255, 255, 0.6)), color-stop(0.75, rgba(255, 255, 255, 0.6)), color-stop(0.75, transparent), to(transparent));
+      background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: -moz-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: -o-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent);
+      -webkit-background-size: 40px 40px;
+         -moz-background-size: 40px 40px;
+           -o-background-size: 40px 40px;
+              background-size: 40px 40px;
+    }
+     </style>
+
+</head>
+
+
+
+<body onload="onLoad();">
+
+
+
+<div class="main">
+
+
+
+  <div class="header">
+
+
+
+    <div class="header_resize">
+
+
+
+      <div class="logo">
+
+
+
+        <h1><a href="index.html"><span class="style4"><br />
+
+        <span class="style5">scRNA-seq Vis: </span><br />
+        <span class="style3">Cloud-based application for processing scRNA-seq datasets</span></a></h1>
+
+
+
+      </div>
+
+      <div class="clr"></div>
+
+
+
+      <div class="menu_nav">
+
+
+
+        <ul>
+
+
+
+          <li class="active"><a href="index.html">Home</a></li>
+
+          <li><a href="setinput.html">Input</a></li>         
+
+          <li><a href="charts.html">Charts</a></li>                   
+
+          <li><a href="download.html">Tutorial</a></li> 
+		  
+          <li><a href="faq.html">Documentation</a></li>         
+
+          <li><a href="contact.html">About Us</a></li>
+
+        </ul>
+
+
+
+      </div>
+
+
+
+      <div class="clr"></div>
+
+
+
+    </div>
+
+
+
+  </div>
+      
+      <div class="content">
+          
+    <div class="content_resize">
+
+      <div class="mainbar">
+      <div class = "article">
+<div id="shiny-tab-SetInput">
+                <div class="row">
+                  <div class="col-sm-6">
+                    <div>
+                      <div class="box box-solid box-warning">
+                        <div class="box-header">
+                          <h3 class="box-title">Experiment information</h3>
+                          <div class="box-tools pull-right">
+                            <button class="btn btn-box-tool" data-widget="collapse">
+                              <i class="fa fa-minus"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="box-body">
+                          <div id="countMatrix" class="form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline">
+                            <label class="control-label" for="countMatrix">Are input values count/integer values?</label>
+                            <div class="shiny-options-group">
+                              <label class="radio-inline">
+                                <input type="radio" name="countMatrix" value="Yes" checked="checked"/>
+                                <span>Yes</span>
+                              </label>
+                              <label class="radio-inline">
+                                <input type="radio" name="countMatrix" value="No"/>
+                                <span>No</span>
+                              </label>
+                            </div>
+                          </div>
+                          <pre id="value_countMatrix" class="shiny-text-output"></pre>
+                          <div id="spikein" class="form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline">
+                            <label class="control-label" for="spikein">Are spike-ins included?</label>
+                            <div class="shiny-options-group">
+                              <label class="radio-inline">
+                                <input type="radio" id="spikein_1" name="spikein" value="Yes"/>
+                                <span>Yes</span>
+                              </label>
+                              <label class="radio-inline">
+                                <input type="radio" id="spikein_2" name="spikein" value="No" checked="checked"/>
+                                <span>No</span>
+                              </label>
+                            </div>
+                          </div>
+                          <pre id="value_spikein" class="shiny-text-output"></pre>
+                          <div id="ExpDesign" class="form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline">
+                            <label class="control-label" for="ExpDesign">What is the design of the experiment?</label>
+                            <div class="shiny-options-group">
+                              <label class="radio-inline">
+                                <input type="radio" name="ExpDesign" value="Not available"/>
+                                <span>Not available</span>
+                              </label>
+                              <label class="radio-inline">
+                                <input type="radio" name="ExpDesign" value="Two-level" checked="checked"/>
+                                <span>Two-level</span>
+                              </label>
+                              <label class="radio-inline">
+                                <input type="radio" name="ExpDesign" value="Multi-level"/>
+                                <span>Multi-level</span>
+                              </label>
+                            </div>
+                          </div>
+                          <pre id="value_ExpDesign" class="shiny-text-output"></pre>
+                          <div data-display-if="input.ExpDesign ==&#39;Multi-level&#39;">
+                            <div id="MultiLevel" class="form-group shiny-input-radiogroup shiny-input-container">
+                              <label class="control-label" for="MultiLevel">For experiments with multi-level design</label>
+                              <div class="shiny-options-group">
+                                <div class="radio">
+                                  <label>
+                                    <input type="radio" name="MultiLevel" value="Specify two conditions to compare"/>
+                                    <span>Specify two conditions to compare</span>
+                                  </label>
+                                </div>
+                                <div class="radio">
+                                  <label>
+                                    <input type="radio" name="MultiLevel" value="Identify most variable genes" checked="checked"/>
+                                    <span>Identify most variable genes</span>
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                            <pre id="value_MultiLevel" class="shiny-text-output"></pre>
+                            <div data-display-if="input.MultiLevel == &#39;Specify two conditions to compare&#39;">
+                              <div class="row">
+                                <div class="col-sm-4 col-sm-offset-1">
+                                  <div class="form-group shiny-input-container">
+                                    <label for="Con_S1">Enter first condition name (For example, C1)</label>
+                                    <input id="Con_S1" type="text" class="form-control" value=""/>
+                                  </div>
+                                </div>
+                                <div class="col-sm-4 col-sm-offset-2">
+                                  <div class="form-group shiny-input-container">
+                                    <label for="Con_S2">Enter second condition name (For example, C2)</label>
+                                    <input id="Con_S2" type="text" class="form-control" value=""/>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="row">
+                                <div class="col-sm-4 col-sm-offset-1">
+                                  <pre id="value_Con_S1" class="shiny-text-output"></pre>
+                                </div>
+                                <div class="col-sm-4 col-sm-offset-2">
+                                  <pre id="value_Con_S2" class="shiny-text-output"></pre>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="box box-solid box-primary">
+                        <div class="box-header">
+                          <h3 class="box-title">File input</h3>
+                          <div class="box-tools pull-right">
+                            <button class="btn btn-box-tool" data-widget="collapse">
+                              <i class="fa fa-minus"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="box-body">
+                          <div id="DEinput" class="shiny-html-output"></div>
+                          <div class="form-group shiny-input-container">
+                            <label>Choose CSV/TXT File for RNA-seq</label>
+                            <div class="input-group">
+                              <label class="input-group-btn">
+                                <span class="btn btn-default btn-file">
+                                  Browse...
+                                  <input id="file_obs" name="file_obs" type="file" style="display: none;" accept="text/csv,text/comma-separated-values,text/plain,.csv"/>
+                                </span>
+                              </label>
+                              <input type="text" class="form-control" placeholder="No file selected" readonly="readonly"/>
+                            </div>
+                            <div id="file_obs_progress" class="progress progress-striped active shiny-file-input-progress">
+                              <div class="progress-bar"></div>
+                            </div>
+                          </div>
+                          <div data-display-if="input.DEmethod == &#39;XBSeq&#39; || input.DEmethod1 == &#39;XBSeq&#39;">
+                            <div class="form-group shiny-input-container">
+                              <label>Choose CSV/TXT File for RNA-seq (bg), required if you choose XBSeq</label>
+                              <div class="input-group">
+                                <label class="input-group-btn">
+                                  <span class="btn btn-default btn-file">
+                                    Browse...
+                                    <input id="file_bg" name="file_bg" type="file" style="display: none;" accept="text/csv,text/comma-separated-values,text/plain,.csv"/>
+                                  </span>
+                                </label>
+                                <input type="text" class="form-control" placeholder="No file selected" readonly="readonly"/>
+                              </div>
+                              <div id="file_bg_progress" class="progress progress-striped active shiny-file-input-progress">
+                                <div class="progress-bar"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div data-display-if="input.ExpDesign != &#39;Not available&#39;">
+                            <div class="form-group shiny-input-container">
+                              <label>Choose CSV/TXT File for experiment design</label>
+                              <div class="input-group">
+                                <label class="input-group-btn">
+                                  <span class="btn btn-default btn-file">
+                                    Browse...
+                                    <input id="file_design" name="file_design" type="file" style="display: none;" accept="text/csv,text/comma-separated-values,text/plain,.csv"/>
+                                  </span>
+                                </label>
+                                <input type="text" class="form-control" placeholder="No file selected" readonly="readonly"/>
+                              </div>
+                              <div id="file_design_progress" class="progress progress-striped active shiny-file-input-progress">
+                                <div class="progress-bar"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div data-display-if="input.spikein == &#39;Yes&#39;">
+                            <div class="form-group shiny-input-container">
+                              <label>Choose CSV/TXT File for spike-ins</label>
+                              <div class="input-group">
+                                <label class="input-group-btn">
+                                  <span class="btn btn-default btn-file">
+                                    Browse...
+                                    <input id="file_spikein" name="file_spikein" type="file" style="display: none;" accept="text/csv,text/comma-separated-values,text/plain,.csv"/>
+                                  </span>
+                                </label>
+                                <input type="text" class="form-control" placeholder="No file selected" readonly="readonly"/>
+                              </div>
+                              <div id="file_spikein_progress" class="progress progress-striped active shiny-file-input-progress">
+                                <div class="progress-bar"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-sm-6">
+                    <div>
+                      <div class="box box-solid box-info">
+                        <div class="box-header">
+                          <h3 class="box-title">Options for DE method</h3>
+                          <div class="box-tools pull-right">
+                            <button class="btn btn-box-tool" data-widget="collapse">
+                              <i class="fa fa-minus"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="box-body">
+                          <div data-display-if="(input.DEmethod == &#39;DESeq&#39; | input.DEmethod == &#39;XBSeq&#39;)||(input.DEmethod1 == &#39;DESeq&#39; | input.DEmethod1 == &#39;XBSeq&#39;)">
+                            <div class="form-group shiny-input-container">
+                              <label class="control-label" for="SCVmethod">Please select a method to estimate dispersion</label>
+                              <div>
+                                <select id="SCVmethod" class="form-control"><option value="pooled" selected>pooled</option>
+<option value="per-condition">per-condition</option>
+<option value="blind">blind</option></select>
+                                <script type="application/json" data-for="SCVmethod">{}</script>
+                              </div>
+                            </div>
+                            <pre id="SCVmethod" class="shiny-text-output"></pre>
+                            <div class="form-group shiny-input-container">
+                              <label class="control-label" for="SharingMode">Please select a method for sharing mode</label>
+                              <div>
+                                <select id="SharingMode" class="form-control"><option value="maximum" selected>maximum</option>
+<option value="fit-only">fit-only</option>
+<option value="gene-est-only">gene-est-only</option></select>
+                                <script type="application/json" data-for="SharingMode">{}</script>
+                              </div>
+                            </div>
+                            <pre id="SharingMode" class="shiny-text-output"></pre>
+                            <div class="form-group shiny-input-container">
+                              <label class="control-label" for="fitType">Please select a method for fitType</label>
+                              <div>
+                                <select id="fitType" class="form-control"><option value="local" selected>local</option>
+<option value="parametric">parametric</option></select>
+                                <script type="application/json" data-for="fitType">{}</script>
+                              </div>
+                            </div>
+                            <pre id="fitType" class="shiny-text-output"></pre>
+                            <div data-display-if="input.DEmethod == &#39;XBSeq&#39; || input.DEmethod1 == &#39;XBSeq&#39;">
+                              <div class="form-group shiny-input-container">
+                                <label class="control-label" for="ParamEst">Please select a method to estimate distribution parameters</label>
+                                <div>
+                                  <select id="ParamEst" class="form-control"><option value="NP" selected>Non-parametric</option>
+<option value="MLE">Maximum liklihood estimation</option></select>
+                                  <script type="application/json" data-for="ParamEst">{}</script>
+                                </div>
+                              </div>
+                              <pre id="ParamEst" class="shiny-text-output"></pre>
+                            </div>
+                          </div>
+                          <div data-display-if="input.DEmethod == &#39;DESeq2&#39; || input.DEmethod1 == &#39;DESeq2&#39;">
+                            <div class="form-group shiny-input-container">
+                              <label class="control-label" for="fitType_DESeq2">Please select a method for fit type</label>
+                              <div>
+                                <select id="fitType_DESeq2" class="form-control"><option value="local" selected>local</option>
+<option value="parametric">parametric</option>
+<option value="mean">mean</option></select>
+                                <script type="application/json" data-for="fitType_DESeq2">{}</script>
+                              </div>
+                            </div>
+                            <pre id="fitType_DESeq2" class="shiny-text-output"></pre>
+                            <div class="form-group shiny-input-container">
+                              <label class="control-label" for="Test">Please select a method for statistical test</label>
+                              <div>
+                                <select id="Test" class="form-control"><option value="Wald" selected>Wald test</option>
+<option value="LRT">Log ratio test</option></select>
+                                <script type="application/json" data-for="Test">{}</script>
+                              </div>
+                            </div>
+                            <pre id="Test" class="shiny-text-output"></pre>
+                            <div class="form-group shiny-input-container">
+                              <label class="control-label" for="cooksCutoff">Please choose either to turn on or off cooks distance cutoff</label>
+                              <div>
+                                <select id="cooksCutoff" class="form-control"><option value="on">on</option>
+<option value="off" selected>off</option></select>
+                                <script type="application/json" data-for="cooksCutoff">{}</script>
+                              </div>
+                            </div>
+                            <pre id="cooksCutoff" class="shiny-text-output"></pre>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div id="HVGBox" class="shiny-html-output"></div>
+                    <div>
+                      <div class="box box-solid box-success">
+                        <div class="box-header">
+                          <h3 class="box-title">Criteria for DE genes</h3>
+                          <div class="box-tools pull-right">
+                            <button class="btn btn-box-tool" data-widget="collapse">
+                              <i class="fa fa-minus"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="box-body">
+                          <div class="form-group shiny-input-container">
+                            <label class="control-label" for="log2bmcutoff">Please set a cutoff for log2 expression intensity</label>
+                            <div>
+                              <select id="log2bmcutoff" class="form-control"><option value="0% quantile">0% quantile</option>
+<option value="25% quantile">25% quantile</option>
+<option value="50% quantile" selected>50% quantile</option>
+<option value="75% quantile">75% quantile</option>
+<option value="100% quantile">100% quantile</option></select>
+                              <script type="application/json" data-for="log2bmcutoff">{}</script>
+                            </div>
+                          </div>
+                          <pre id="log2bmcutoff_value" class="shiny-text-output"></pre>
+                          <div class="form-group shiny-input-container">
+                            <label class="control-label" for="padjust">Please select a method for adjusting p values</label>
+                            <div>
+                              <select id="padjust" class="form-control"><option value="BH" selected>Benj&amp;Hoch</option>
+<option value="bonferroni">bonferroni</option>
+<option value="none">none</option></select>
+                              <script type="application/json" data-for="padjust">{}</script>
+                            </div>
+                          </div>
+                          <pre id="padjust" class="shiny-text-output"></pre>
+                          <div class="form-group shiny-input-container">
+                            <label class="control-label" for="pcutoff">Please set a cutoff of p values for DE genes/HVGs</label>
+                            <div>
+                              <select id="pcutoff" class="form-control"><option value="0.001">0.001</option>
+<option value="0.01">0.01</option>
+<option value="0.05" selected>0.05</option>
+<option value="0.1">0.1</option>
+<option value="0.2">0.2</option></select>
+                              <script type="application/json" data-for="pcutoff">{}</script>
+                            </div>
+                          </div>
+                          <pre id="pcutoff" class="shiny-text-output"></pre>
+                          <div class="form-group shiny-input-container">
+                            <label class="control-label" for="fccutoff">Please set a cutoff of fold change for DE genes</label>
+                            <div>
+                              <select id="fccutoff" class="form-control"><option value="1.5">1.5</option>
+<option value="2" selected>2</option>
+<option value="2.5">2.5</option>
+<option value="3">3</option>
+<option value="5">5</option></select>
+                              <script type="application/json" data-for="fccutoff">{}</script>
+                            </div>
+                          </div>
+                          <pre id="fccutoff" class="shiny-text-output"></pre>
+                          <button id="DEstart" type="button" class="btn btn-default action-button" onclick="onLoad();">Start analysis!</button>
+            
+                          <div id="DEstart" class="shiny-text-output"></div>
+                            
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                                     
+              </div>
+        </div>
+          
+        </div>
+          </div>
+      </div>
+</div>
+    
+</body>
+</html>
