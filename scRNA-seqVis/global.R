@@ -390,7 +390,7 @@ scde.pfun <- function(counts, design, cores = 2, condition_sel){
   )
 }
 
-Brennecke.pfun <- function(counts, spikeins, nums){
+Brennecke.pfun <- function(counts, spikeins, nums, padj, pcut){
   if(any(round(counts) != counts)){
     nCountsBio <- preprocessCore::normalize.quantiles(as.matrix(counts))
     rownames(nCountsBio) <- rownames(counts)
@@ -437,8 +437,8 @@ Brennecke.pfun <- function(counts, spikeins, nums){
   cv2th <- a0 + minBiolDisp + a0 * minBiolDisp
   testDenom <- ( meansBio * psia1theta + meansBio^2 * cv2th ) / ( 1 + cv2th/m )
   p <- 1 - pchisq( varsBio * (m-1) / testDenom, m-1 )
-  padj <- p.adjust( p, "BH" )
-  sig <- padj < .1
+  padj <- p.adjust( p, padj)
+  sig <- padj < pcut
   sig[is.na(sig)] <- FALSE
   HVG_Bren_id=which(sig)
   return(list(
@@ -448,6 +448,108 @@ Brennecke.pfun <- function(counts, spikeins, nums){
     DE_id = HVG_Bren_id
   ))
 }
+
+scVEGs.pfun <- function(data, padj, pcut) {
+  require(locfit)
+  require(MASS)
+  require(hydroGOF)
+  require(calibrate)
+  
+  if(any(round(data) != data)){
+    nCountsBio <- preprocessCore::normalize.quantiles(as.matrix(data))
+    rownames(nCountsBio) <- rownames(data)
+    colnames(nCountsBio) <- colnames(data)
+  }
+  else{
+    sfBio <- estimateSizeFactorsForMatrix(data)
+    nCountsBio <- t(t(data)/sfBio)
+  }
+  
+  geneName <- rownames(data)
+
+  m <- dim(data)[1]
+  std <- apply(data, 1, sd)
+  avg <- apply(data, 1, mean)
+  cv <- std / avg
+  # over dispersion sigma  (var = u(1 + u * sigma^2))
+  rm(tpm)
+  rm(flag)
+  xdata <- (avg)
+  ydata <- log10(cv)
+  xdata <- xdata[is.na(ydata) != "TRUE"]
+  ydata <- ydata[is.na(ydata) != "TRUE"]
+  
+  fitLoc <- locfit.robust(ydata ~ lp(log10(xdata), nn = .2))
+  xSeq <- seq(min(log10(xdata)), max(log10(xdata)), 0.005)
+  gapNum <- matrix(0, length(xSeq), 1)
+  for(i in 1:length(xSeq)) {
+    cdx <- which((log10(xdata) >= xSeq[i] - 0.05) & (log10(xdata) < xSeq[i] + 0.05))
+    gapNum[i,1] <- length(cdx)
+  }
+  cdx <- which(gapNum > m*0.005)
+  xSeq <- 10 ^ xSeq
+  ySeq <- predict(fitLoc,log10(xSeq))
+  yDiff <- diff(ySeq)
+  ix <- which(yDiff > 0 & log10(xSeq[-1]) > 0)
+  if(length(ix) == 0)
+    ix <- length(ySeq) - 1
+  xSeq_all <- 10^seq(min(log10(xdata)), max(log10(xdata)), 0.001)
+  xSeq <- xSeq[cdx[1]:ix[1] + 1]
+  ySeq <- ySeq[cdx[1]:ix[1] + 1]
+  
+  b <- 1
+  a <- 0
+  df <- data.frame(x=xSeq, y = ySeq)
+  fit = nls(y ~ 0.5 * log10(b / x + a), data = df, 
+            start=list(b = b,a = a), nls.control(maxiter = 500), na.action =  'na.exclude')
+  newdf <- data.frame(x = xSeq_all)
+  ydataFit <- predict(fit,newdata = newdf)
+  
+  # Calculate CV difference
+  logX <- log10(xdata)
+  
+  logXseq <- log10(xSeq_all)
+  cvDist <- matrix(0,length(xdata),1)
+  for (i in 1:length(logX)) {
+    cx <- which(logXseq >= logX[i] - 0.2 & logXseq < logX[i] + 0.2)
+    tmp <- sqrt((logXseq[cx] - logX[i])^2 + (ydataFit[cx] - ydata[i])^2)
+    tx <- which.min(tmp)
+    
+    if(logXseq[cx[tx]] > logX[i]) {
+      if(ydataFit[cx[tx]] > ydata[i]) {
+        cvDist[i] <- -1*tmp[tx]
+      } else {
+        cvDist[i] <- tmp[tx]
+      }
+      cvDist[i] <- -1*tmp[tx]
+    } else if (logXseq[cx[tx]] <= logX[i]) {
+      if(ydataFit[cx[tx]] < ydata[i]) {
+        cvDist[i] <- tmp[tx]
+      } else {
+        cvDist[i] <- -1*tmp[tx]
+      }
+    } 
+  }
+  cvDist <- log2(10^cvDist)
+  
+  # use kernel density estimate to find the peak
+  dor <- density(cvDist, kernel = "gaussian")
+  distMid <-dor$x[which.max(dor$y)]
+  dist2 <- cvDist - distMid
+  tmpDist <- c(dist2[dist2 <= 0], abs(dist2[dist2 < 0])) + distMid
+  distFit <- fitdistr(tmpDist, "normal")
+  pRaw <- pnorm(cvDist, mean = distFit$estimate[1], sd = distFit$estimate[2], lower.tail = FALSE)
+  pAdj <- p.adjust(pRaw, padj)
+  dx <- which(pAdj < pVal)
+  
+  sig <- data[dx, ]
+  return(list(
+    RowCount = data,
+    normCounts = nCountsBio,
+    CV = cv,
+    DE_id = dx
+  ))
+  }
 
 limma.pfun <- function(counts, group, design, spikeins, condition_sel){
   require(limma)

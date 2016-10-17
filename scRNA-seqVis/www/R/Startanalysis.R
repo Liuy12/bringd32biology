@@ -161,7 +161,7 @@ output$DEinput <- renderUI({
           selectizeInput(
             "DEmethod", 
             label = 'Please select a method for highly variable genes analysis',
-            choices = c('Brennecke_2013'),
+            choices = c('Brennecke_2013', 'scVEGs'),
             options = list(placeholder = 'select a method below',
                            onInitialize = I('function() { this.setValue(""); }'))
           ),
@@ -180,7 +180,7 @@ output$DEinput <- renderUI({
           selectizeInput(
             "DEmethod", 
             label = 'Please select a method for highly variable genes analysis',
-            choices = c('Brennecke_2013'),
+            choices = c('Brennecke_2013', 'scVEGs'),
             options = list(placeholder = 'select a method below',
                            onInitialize = I('function() { this.setValue(""); }'))
           ),
@@ -202,7 +202,7 @@ output$HVGBox <- renderUI({
     box(
       title = "Criteria for HVG genes", status = 'danger', solidHeader = TRUE,width = NULL,
       collapsible = TRUE,
-      if(input$spikein == 'No')
+      if(input$spikein == 'No' & input$DEmethod == 'Brennecke_2013')
       {
         tags$div(numericInput("HVGnumber", label = "Please set number of HVGs.", 
                               value = 100, min = 1
@@ -451,7 +451,7 @@ output$StartDownload <- downloadHandler(
       slidify::slidify('Report.Rmd')
       zip(file, files = c('Report.html', 'libraries/', 'htmlFiles/', 'DEstat.csv', 'TestStat.csv', 'pdfFiles'))
     }
-    else if (input$DEmethod == 'Brennecke_2013'){
+    else if (input$DEmethod == 'Brennecke_2013' | input$DEmethod == 'scVEGs'){
       slidify::slidify('ReportRNASeqVis.Rmd')
       if(dir.exists('HeteroModule/'))
         zip(file, files = c('ReportRNASeqVis.html', 'libraries/', 'htmlFiles/', 'NormData.csv', 'HVGData.csv', 'HeteroModule/'))
@@ -568,7 +568,10 @@ dataComb <- eventReactive(input$DEstart, {
       dataOut <- monocle.pfun(data_obs, group, condition_sel = condition_sel)
     }
     else if (input$DEmethod == 'Brennecke_2013'){
-      dataOut <- Brennecke.pfun(data_obs, spikeins = data_spikein, input$HVGnumber)
+      dataOut <- Brennecke.pfun(data_obs, spikeins = data_spikein, input$HVGnumber, input$HVGpadjust, input$HVGpadjust_value)
+    }
+    else if (input$DEmethod == 'scVEGs'){
+      dataOut <- scVEGs.pfun(data_obs, input$HVGpadjust, input$HVGpadjust_value)
     }
     else if (input$DEmethod == 'BPSC')
       dataOut <- BPSC.pfun(data_obs, group, model.matrix(~group), data_spikein, condition_sel, 4)
@@ -1200,7 +1203,7 @@ output$DEtable <- DT::renderDataTable({
     folder <- dataComb[[5]]
     dataMat <- as.data.frame(dataMat)
     dataMat1 <- dataComb[[4]]
-    if(input$DEmethod == 'EBSeq' || (input$DEmethod == 'Brennecke_2013' && input$DEmethod1 == 'EBSeq'))
+    if(input$DEmethod == 'EBSeq' || ((input$DEmethod == 'Brennecke_2013' | input$DEmethod == 'scVEGs')&& input$DEmethod1 == 'EBSeq'))
       p_adjust1 <- dataMat1[,3]
     else
       p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
@@ -1250,7 +1253,7 @@ output$DEheatmap <- d3heatmap::renderD3heatmap({
     folder <- dataComb[[5]]
     dataMat <- as.data.frame(dataMat)
     dataMat1 <- dataComb[[4]]
-    if(input$DEmethod == 'EBSeq' || (input$DEmethod == 'Brennecke_2013' && input$DEmethod1 == 'EBSeq'))
+    if(input$DEmethod == 'EBSeq' || ((input$DEmethod == 'Brennecke_2013' | input$DEmethod == 'scVEGs') && input$DEmethod1 == 'EBSeq'))
       p_adjust1 <- dataMat1[,3]
     else
       p_adjust1 <- p.adjust(dataMat1[,3], method = input$padjust)
@@ -1296,7 +1299,7 @@ output$MAplot <- metricsgraphics::renderMetricsgraphics({
     dataMat <- dataComb[[4]]
     folder <- dataComb[[5]]
     colnames(dataMat) <- c('baseMean', 'log2FoldChange', 'p_adjust')
-    if(input$DEmethod == 'EBSeq' || (input$DEmethod == 'Brennecke_2013' && input$DEmethod1 == 'EBSeq'))
+    if(input$DEmethod == 'EBSeq' || ((input$DEmethod == 'Brennecke_2013' | input$DEmethod == 'scVEGs') && input$DEmethod1 == 'EBSeq'))
       p_adjust1 <- dataMat[,3]
     else
       p_adjust1 <- p.adjust(dataMat[,3], method = input$padjust)
