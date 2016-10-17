@@ -1,5 +1,5 @@
 ---
-title       : RNA-seq Vis Report
+title       : scRNA-seq Vis Report
 subtitle    : 
 author      : 
 job         : 
@@ -26,8 +26,8 @@ body {background:none transparent;
   }
 </script>
 
-# RNA-seq Vis report
-<small> Created by [RNA-seq Vis team](https://yuanhangliu.shinyapps.io/RNA-seq)</small>
+# scRNA-seq Vis report
+<small> Created by [scRNA-seq Vis team](https://yuanhangliu.shinyapps.io/scRNA-seq)</small>
 
 ---
 
