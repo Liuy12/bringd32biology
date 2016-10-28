@@ -285,8 +285,8 @@ edgeR_robust.pfun <-
     colnames(Dispersion) <- c('TagwiseDisp', 'FittedDisp')
     TestStat <- data.frame(
       AveCPM = 2^(dw$AveLogCPM),
-      logfc = lr$table$logFC,
-      pval = lr$table$PValue
+      logfc = lrw$table$logFC,
+      pval = lrw$table$PValue
     )
     colnames(TestStat) <- c('AveCPM', 'logFC', 'p value')
     rownames(TestStat) <- rownames(counts)
