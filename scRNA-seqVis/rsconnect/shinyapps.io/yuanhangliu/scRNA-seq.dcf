@@ -1,7 +1,8 @@
 name: scRNA-seq
+title:
 account: yuanhangliu
 server: shinyapps.io
 appId: 126075
-bundleId: 579065
+bundleId: 602566
 url: https://yuanhangliu.shinyapps.io/scRNA-seq/
-when: 1475802468.87404
+when: 1478017857.75486

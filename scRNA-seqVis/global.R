@@ -1,6 +1,7 @@
 #library(googleAuthR)
 library(shiny)
 library(shinydashboard)
+library(magrittr)
 #library(googleVis)
 #library(mailR)
 #library(d3heatmap)
@@ -342,7 +343,8 @@ limma_voom.pfun <-
 
 scde.pfun <- function(counts, design, cores = 2, condition_sel){
   require(scde)
-  if(condition_sel[1]!=""){
+  counts <- clean.counts(counts, min.lib.size=1000, min.reads = 1, min.detected = 1)
+  if(!is.null(condition_sel)){
     err_mod <- scde.error.models(counts = counts, groups = design, n.cores = cores,
                                  threshold.segmentation=T, save.crossfit.plots=F, 
                                  save.model.plots=F,verbose=0, min.size.entries = 100)
