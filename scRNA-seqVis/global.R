@@ -341,7 +341,7 @@ limma_voom.pfun <-
     ))
   }
 
-scde.pfun <- function(counts, design, cores = 2, condition_sel){
+scde.pfun <- function(counts, design, cores = 10, condition_sel){
   require(scde)
   counts <- clean.counts(counts, min.lib.size=1000, min.reads = 1, min.detected = 1)
   if(!is.null(condition_sel)){
@@ -612,7 +612,7 @@ monocle.pfun <- function(counts, group, condition_sel){
   pd <- new("AnnotatedDataFrame", data = design)
   counts_class <- newCellDataSet(as.matrix(counts_N_sel), phenoData = pd)
   diff_test_res <- differentialGeneTest(counts_class,
-                                        fullModelFormulaStr="expression~conditions", cores = 2)
+                                        fullModelFormulaStr="expression~conditions", cores = 10)
   TestStat <- data.frame(
     AveExpr = apply(counts_N_sel, 1, mean),
     logfc = log2(temp[1,]/temp[2,]),
@@ -627,7 +627,7 @@ monocle.pfun <- function(counts, group, condition_sel){
   )
 }
 
-BPSC.pfun <- function(counts, group, design, spikeins, condition_sel, cores = 2){
+BPSC.pfun <- function(counts, group, design, spikeins, condition_sel, cores = 10){
   # the input of BPSC has to be TPM or 
   # normlized counts from edgeR
   require(BPSC)
@@ -674,7 +674,7 @@ BPSC.pfun <- function(counts, group, design, spikeins, condition_sel, cores = 2)
 MAST.pfun <- function(counts, group, spikeins, condition_sel){
   require(MAST)
   require(edgeR)
-  registerDoParallel(cores=2)
+  registerDoParallel(cores=10)
   d <- DGEList(counts = counts, group = group)
   d <- calcNormFactors(d)
   NormCount <- cpm(d)
