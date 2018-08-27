@@ -1,0 +1,12 @@
+name: scrna-seqvis
+title: scRNA-seqVis
+username: M182980
+account: M182980
+server: hsr-rsc-dev.mayo.edu
+hostUrl: https://hsr-rsc-dev.mayo.edu:1919/__api__
+appId: 35
+bundleId: 324
+url: https://hsr-rsc-dev.mayo.edu:1919/content/35/
+when: 1535400635.42566
+asMultiple: FALSE
+asStatic: FALSE

@@ -1,0 +1,10 @@
+name: scRNAseq-Vis
+title:
+username:
+account: yuanhangliu
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 288926
+bundleId: 1551742
+url: https://yuanhangliu.shinyapps.io/scRNAseq-Vis/
+when: 1535084566.48614

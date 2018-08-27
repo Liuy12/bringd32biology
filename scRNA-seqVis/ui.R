@@ -29,7 +29,7 @@ shinyUI(fluidPage(
     )
   ),
   theme = shinytheme("flatly"),
-  fluidRow(dashboardPage(skin = 'blue',
+  fluidRow(dashboardPage(skin = 'blue',title = 'scRNASeq-Vis',
                          dashboardHeader(uiOutput('test'), title = img(src = 'img/logo.png', style = "max-width:50%")
                          ),
                          dashboardSidebar(
